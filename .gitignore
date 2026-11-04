@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Production builds
+dist/
+client/dist/
+server/dist/
+build/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Android build outputs & caches
+client/android/.gradle/
+client/android/build/
+client/android/app/build/
+client/android/captures/
+client/android/.idea/
+client/android/*.iml
+client/android/app/*.iml
+client/android/local.properties
+
+# iOS build outputs & caches
+client/ios/App/build/
+client/ios/App/DerivedData/
+client/ios/App/Pods/
+client/ios/App/.symlinks/
+client/ios/App/*.xcworkspace/xcuserdata/
+client/ios/App/*.xcodeproj/xcuserdata/
+
+# Scratch & test run captures
+scratch/
+bottom_crop_full.png
+btn*.png
+dock_check.png
+nav_inspect*.png

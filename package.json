@@ -1,0 +1,18 @@
+{
+  "name": "medical-booking-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cross-platform Digital Healthcare System with OP Booking, Telehealth, Nurse Network, District Franchise & Super Admin",
+  "scripts": {
+    "dev": "concurrently -n \"SERVER,CLIENT\" -c \"blue,green\" \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev",
+    "build": "npm --prefix client run build && npm --prefix server run build",
+    "cap:sync": "npm --prefix client run cap:sync",
+    "cap:open:ios": "npm --prefix client run cap:open:ios",
+    "cap:open:android": "npm --prefix client run cap:open:android"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
