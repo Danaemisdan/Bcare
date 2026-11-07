@@ -184,13 +184,13 @@ export function LiquidGlassNavbar<T extends string = string>({
 
                 {/* Minimal Chic AI Label */}
                 <span
-                  className={`text-[9px] mt-0.5 tracking-tight transition-all duration-200 ${
+                  className={`text-[9.5px] mt-0.5 tracking-tight transition-all duration-200 ${
                     isActive
-                      ? 'font-black text-indigo-950 scale-105'
-                      : 'font-bold text-slate-600 group-hover:text-slate-900'
+                      ? 'font-extrabold text-sky-600 scale-105'
+                      : 'font-semibold text-slate-500 group-hover:text-slate-800'
                   }`}
                 >
-                  AI
+                  AI Health
                 </span>
               </button>
             );

@@ -12,15 +12,19 @@ import {
   ArrowRight, 
   Check, 
   RotateCcw,
-  Zap,
   Activity,
   Heart,
   ChevronRight,
   Filter,
-  Sliders,
-  Compass,
   CheckCircle2,
-  PhoneCall
+  PhoneCall,
+  Search,
+  X,
+  Compass,
+  Calendar,
+  Zap,
+  SlidersHorizontal,
+  ChevronLeft
 } from 'lucide-react';
 import { DoctorProfile, Hospital, OpSlot, PatientProfile } from '../types';
 import { ConsultationType } from './BookingConsultationScreen';
@@ -47,139 +51,136 @@ interface ClinicalRule {
   recommendedSpecialty: string;
   secondaryDiagnosis: string;
   urgency: 'ROUTINE' | 'ELEVATED' | 'PRIORITY';
-  redFlags: string[];
+  advice: string;
 }
 
 const CLINICAL_KNOWLEDGE_BASE: ClinicalRule[] = [
   {
     zone: 'lower_back',
     symptoms: ['Lower back pain', 'Lumbar ache', 'Back stiffness', 'Sciatica', 'Spine spasm'],
-    primaryDiagnosis: 'Lumbar Spondylosis & Paraspinal Myofascial Strain',
+    primaryDiagnosis: 'Lumbar Spondylosis & Paraspinal Strain',
     confidence: 94,
-    explanation: 'Clinical indicators suggest mechanical stress or facet joint irritation of the L4-L5/S1 spinal axis without acute cauda equina red flags.',
+    explanation: 'Mechanical stress on the lumbar spine or facet joint irritation. No acute nerve root compression detected.',
     recommendedSpecialty: 'Orthopedics',
-    secondaryDiagnosis: 'Disc Herniation with mild L5 Radiculopathy',
+    secondaryDiagnosis: 'L4-L5 Postural Disc Strain',
     urgency: 'ROUTINE',
-    redFlags: ['No bowel/bladder loss noted', 'No progressive bilateral motor weakness']
+    advice: 'Avoid lifting heavy items, maintain upright lumbar ergonomics, and schedule an in-person physical evaluation.'
   },
   {
     zone: 'head',
     symptoms: ['Throbbing headache', 'Migraine', 'Temporal pain', 'Light sensitivity', 'Cluster headache'],
-    primaryDiagnosis: 'Episodic Migraine with Neurovascular Vasodilation',
-    confidence: 91,
-    explanation: 'Unilateral or pulsing cranial discomfort aggravated by sensory stimuli, consistent with episodic neurovascular migraine.',
+    primaryDiagnosis: 'Episodic Neurovascular Migraine',
+    confidence: 92,
+    explanation: 'Unilateral or pulsing cranial discomfort aggravated by screen exposure or stress.',
     recommendedSpecialty: 'Neurology',
-    secondaryDiagnosis: 'Tension-Type Myofascial Cranial Headache',
+    secondaryDiagnosis: 'Tension-Type Myofascial Headache',
     urgency: 'ROUTINE',
-    redFlags: ['No sudden thunderclap onset', 'No unilateral facial drooping or speech slurring']
+    advice: 'Rest in a quiet, low-light environment, hydrate well, and consult a neurologist for targeted relief.'
   },
   {
     zone: 'chest',
     symptoms: ['Chest tightness', 'Substernal pressure', 'Pectoral soreness', 'Heartburn', 'Acid reflux'],
-    primaryDiagnosis: 'Costochondritis & Gastroesophageal Reflux (GERD)',
-    confidence: 88,
-    explanation: 'Localized anterior chest wall tenderness and retrosternal acidity. Non-ischemic indicators present, yet clinical review is prioritized.',
+    primaryDiagnosis: 'Costochondritis & Acidity / GERD',
+    confidence: 89,
+    explanation: 'Anterior chest wall tenderness combined with retrosternal gastric acidity.',
     recommendedSpecialty: 'Cardiology',
-    secondaryDiagnosis: 'Atypical Angina Pectoris (Requires ECG Triaging)',
+    secondaryDiagnosis: 'Atypical Angina Pectoris (Requires ECG)',
     urgency: 'PRIORITY',
-    redFlags: ['No radiation to left arm or jaw', 'No associated diaphoresis or dyspnea']
+    advice: 'Avoid heavy meals or recumbent posture after eating. A clinical cardiac ECG check is advised for peace of mind.'
   },
   {
     zone: 'abdomen',
     symptoms: ['Stomach cramp', 'Abdominal bloating', 'Acid reflux', 'Epigastric pain', 'Indigestion'],
     primaryDiagnosis: 'Acute Epigastric Gastritis & Dyspepsia',
     confidence: 93,
-    explanation: 'Mucosal gastric hyperacidity and post-prandial cramping localized to the epigastrium and umbilical region.',
+    explanation: 'Mucosal gastric hyperacidity and cramping in the upper gastrointestinal region.',
     recommendedSpecialty: 'General Medicine',
-    secondaryDiagnosis: 'Irritable Bowel Syndrome (IBS) flare-up',
+    secondaryDiagnosis: 'Irritable Bowel Syndrome (IBS) Flare-up',
     urgency: 'ROUTINE',
-    redFlags: ['No peritoneal rigidity', 'No hematemesis or melena detected']
+    advice: 'Drink warm water, take light bland meals, and see a general physician for soothing antacid regulation.'
   },
   {
     zone: 'legs',
     symptoms: ['Knee swelling', 'Joint stiffness', 'Patellar soreness', 'Calf cramp', 'Ligament sprain'],
-    primaryDiagnosis: 'Patellofemoral Arthralgia & Meniscal Stress',
-    confidence: 92,
-    explanation: 'Weight-bearing articular wear or synovial effusion of the knee joint with functional ROM restriction.',
+    primaryDiagnosis: 'Patellofemoral Arthralgia & Joint Strain',
+    confidence: 91,
+    explanation: 'Synovial irritation or weight-bearing mechanical overload of the knee joint.',
     recommendedSpecialty: 'Orthopedics',
-    secondaryDiagnosis: 'Early Osteoarthritis with Synovial Irritation',
+    secondaryDiagnosis: 'Early Synovial Cartilage Irritation',
     urgency: 'ROUTINE',
-    redFlags: ['No septic joint erythema or fever', 'Joint stability intact']
+    advice: 'Elevate knee, avoid deep squats or stairs, and book an orthopedic OPD pass for joint assessment.'
   },
   {
     zone: 'neck',
     symptoms: ['Cervical stiffness', 'Neck spasm', 'Trapezius tension', 'Shoulder radiation'],
-    primaryDiagnosis: 'Cervical Radiculitis & Trapezius Spasm',
+    primaryDiagnosis: 'Cervical Radiculopathy & Trapezius Spasm',
     confidence: 90,
-    explanation: 'Ergonomic posture strain affecting cervical lordosis (C5-C7) causing myofascial trigger point tension.',
+    explanation: 'Ergonomic screen posture strain affecting the cervical lordosis and upper trapezius muscles.',
     recommendedSpecialty: 'Orthopedics',
     secondaryDiagnosis: 'Cervical Spondylitis',
     urgency: 'ROUTINE',
-    redFlags: ['Normal upper limb reflexes', 'No spinal cord compression signs']
+    advice: 'Apply warm fomentation, adjust monitor height to eye level, and consult an orthopedic doctor.'
   },
   {
     zone: 'arms',
     symptoms: ['Wrist pain', 'Elbow soreness', 'Carpal numbness', 'Shoulder impingement'],
-    primaryDiagnosis: 'Lateral Epicondylitis / Repetitive Strain Injury',
+    primaryDiagnosis: 'Repetitive Strain Injury & Tendon Irritation',
     confidence: 89,
-    explanation: 'Micro-tendinous strain from repetitive wrist extension or rotator cuff tendon irritation.',
+    explanation: 'Micro-tendinous strain from repetitive typing, lifting, or ergonomic pressure.',
     recommendedSpecialty: 'Orthopedics',
-    secondaryDiagnosis: 'Carpal Tunnel Median Nerve Entrapment',
+    secondaryDiagnosis: 'Carpal Tunnel Tendon Irritation',
     urgency: 'ROUTINE',
-    redFlags: ['No limb cyanosis or arterial compromise', 'No motor paresis']
-  },
-  {
-    zone: 'pelvis',
-    symptoms: ['Pelvic ache', 'Sacroiliac stiffness', 'Hip soreness', 'Lower groin strain'],
-    primaryDiagnosis: 'Sacroiliac Joint Dysfunction & Hip Bursitis',
-    confidence: 87,
-    explanation: 'Unilateral sacroiliac joint inflammation or trochanteric friction syndrome upon prolonged sitting.',
-    recommendedSpecialty: 'Orthopedics',
-    secondaryDiagnosis: 'Iliopsoas Tendon Overuse Strain',
-    urgency: 'ROUTINE',
-    redFlags: ['No systemic inflammatory fever', 'Normal pelvic bone density indicators']
-  },
-  {
-    zone: 'upper_back',
-    symptoms: ['Thoracic spine pain', 'Interscapular knot', 'Rhomboid soreness', 'Mid-back ache'],
-    primaryDiagnosis: 'Thoracic Postural Kyphosis & Rhomboid Myalgia',
-    confidence: 91,
-    explanation: 'Postural fatigue of the interscapular stabilizing musculature secondary to prolonged desk ergonomics.',
-    recommendedSpecialty: 'Orthopedics',
-    secondaryDiagnosis: 'Costovertebral Joint Dysfunction',
-    urgency: 'ROUTINE',
-    redFlags: ['No vertebral point tenderness on percussion', 'Chest expansion symmetrical']
+    advice: 'Take hourly rest breaks, wear an ergonomic wrist support, and schedule an OPD consultation.'
   },
   {
     zone: 'feet',
     symptoms: ['Heel pain', 'Plantar stiffness', 'Ankle sprain', 'Arch soreness'],
-    primaryDiagnosis: 'Plantar Fasciitis & Calcaneal Spur Stress',
+    primaryDiagnosis: 'Plantar Fasciitis & Calcaneal Strain',
     confidence: 95,
-    explanation: 'Micro-tearing of the aponeurosis at the medial calcaneal tuberosity, aggravated by first morning steps.',
+    explanation: 'Micro-tearing of the plantar aponeurosis at the medial heel bone, sharpest during first morning steps.',
     recommendedSpecialty: 'Orthopedics',
     secondaryDiagnosis: 'Achilles Tendinopathy',
     urgency: 'ROUTINE',
-    redFlags: ['Intact distal pedal pulses', 'No skin breakdown or diabetic ulceration']
+    advice: 'Wear cushioned indoor footwear, perform gentle calf stretches, and book an orthopedic token.'
   }
 ];
 
 const COMMON_CONCERNS = [
-  { label: 'Lower Back Pain', zone: 'lower_back' as BodyZone },
-  { label: 'Throbbing Headache / Migraine', zone: 'head' as BodyZone },
-  { label: 'Chest Discomfort & Acidity', zone: 'chest' as BodyZone },
-  { label: 'Knee Swelling & Stiffness', zone: 'legs' as BodyZone },
-  { label: 'Cervical Neck Strain', zone: 'neck' as BodyZone },
-  { label: 'Stomach Cramps & Bloating', zone: 'abdomen' as BodyZone },
-  { label: 'Foot & Heel Pain', zone: 'feet' as BodyZone },
-  { label: 'Shoulder & Arm Spasm', zone: 'arms' as BodyZone }
+  { icon: '🧠', label: 'Throbbing Headache / Migraine', zone: 'head' as BodyZone },
+  { icon: '🧘', label: 'Lower Back & Spine Ache', zone: 'lower_back' as BodyZone },
+  { icon: '🫀', label: 'Chest Discomfort & Acidity', zone: 'chest' as BodyZone },
+  { icon: '🦵', label: 'Knee Swelling & Stiffness', zone: 'legs' as BodyZone },
+  { icon: '🧣', label: 'Cervical Neck Strain', zone: 'neck' as BodyZone },
+  { icon: '🫄', label: 'Stomach Cramps & Bloating', zone: 'abdomen' as BodyZone },
+  { icon: '🦶', label: 'Foot & Heel Pain', zone: 'feet' as BodyZone },
+  { icon: '⚡', label: 'Shoulder & Arm Spasm', zone: 'arms' as BodyZone }
 ];
 
-const PAIN_TYPES = [
-  'Sharp & Stabbing',
-  'Dull Constant Ache',
-  'Burning / Acidity',
-  'Throbbing / Pulsing',
-  'Stiff / Restricted Motion'
+const BODY_ZONES: { id: BodyZone; label: string; icon: string; desc: string }[] = [
+  { id: 'head', label: 'Head & Face', icon: '🧠', desc: 'Migraine, sinuses, temples' },
+  { id: 'neck', label: 'Neck & Throat', icon: '🧣', desc: 'Cervical spine, trapezius' },
+  { id: 'chest', label: 'Chest & Ribs', icon: '🫀', desc: 'Tightness, heartburn, ribs' },
+  { id: 'abdomen', label: 'Stomach & Gut', icon: '🫄', desc: 'Cramps, acidity, digestion' },
+  { id: 'lower_back', label: 'Lower Back', icon: '🧘', desc: 'Lumbar spine, sciatica' },
+  { id: 'legs', label: 'Knees & Legs', icon: '🦵', desc: 'Joints, calves, sprains' },
+  { id: 'arms', label: 'Arms & Shoulders', icon: '🦾', desc: 'Wrists, elbows, spasms' },
+  { id: 'feet', label: 'Feet & Heels', icon: '🦶', desc: 'Plantar heel, ankles' },
+];
+
+const DURATION_OPTIONS = [
+  { id: 'today', label: 'Just Started Today', sub: 'Less than 24 hours ago', icon: '⚡' },
+  { id: 'days', label: 'A Few Days', sub: '2 to 6 days ago', icon: '🗓️' },
+  { id: 'weeks', label: 'Over a Week', sub: '1 to 3 weeks of discomfort', icon: '📅' },
+  { id: 'chronic', label: 'Chronic / Recurring', sub: 'Ongoing for over a month', icon: '🔄' },
+];
+
+const ADDITIONAL_SYMPTOMS = [
+  { id: 'fever', label: 'Fever / Chills', icon: '🌡️' },
+  { id: 'dizziness', label: 'Dizziness / Lightheaded', icon: '💫' },
+  { id: 'nausea', label: 'Nausea / Upset Stomach', icon: '🤢' },
+  { id: 'fatigue', label: 'Fatigue / Body Weakness', icon: '🥱' },
+  { id: 'sleep', label: 'Disturbed Sleep', icon: '😴' },
+  { id: 'none', label: 'None, just the primary pain', icon: '✨' },
 ];
 
 interface AiHealthAssistantProps {
@@ -197,54 +198,55 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
   slots,
   onOpenCheckout
 }) => {
-  // Assistant Intake State
+  // Wizard Step State: 1 = Problem, 2 = Area & Intensity, 3 = Duration, 4 = Secondary Symptoms, 5 = Geo Results
+  const [currentStep, setCurrentStep] = useState<number>(1);
+
+  // Form State
+  const [problemDescription, setProblemDescription] = useState<string>('Lower back pain radiating to hip');
   const [selectedZone, setSelectedZone] = useState<BodyZone>('lower_back');
-  const [bodyPerspective, setBodyPerspective] = useState<'FRONT' | 'BACK'>('BACK');
-  const [painSeverity, setPainSeverity] = useState<number>(6);
-  const [painType, setPainType] = useState<string>('Dull Constant Ache');
-  const [searchQuery, setSearchQuery] = useState<string>('Lower back pain radiating to hip');
-  const [consultTypePreference, setConsultTypePreference] = useState<ConsultationType>('IN_PERSON_OPD');
+  const [painSeverity, setPainSeverity] = useState<number>(5); // 1 to 10
+  const [duration, setDuration] = useState<string>('days');
+  const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
 
-  // Geo-Filter State
+  // Geo & Filter State
   const [distanceRadius, setDistanceRadius] = useState<number>(10); // 5km, 10km, 25km
+  const [viewMode, setViewMode] = useState<'HOSPITALS' | 'DOCTORS'>('HOSPITALS');
   const [selectedHospitalId, setSelectedHospitalId] = useState<string>(() => hospitals[0]?.id || 'hosp-1');
-  const [doctorSortCriteria, setDoctorSortCriteria] = useState<'EARLIEST' | 'RATING' | 'FEE'>('EARLIEST');
 
-  // Match clinical rule locally with 0ms latency
+  // Match clinical rule locally (0ms)
   const clinicalResult = useMemo(() => {
     const matched = CLINICAL_KNOWLEDGE_BASE.find(r => r.zone === selectedZone) || CLINICAL_KNOWLEDGE_BASE[0];
     return matched;
   }, [selectedZone]);
 
-  // Handle Quick Issue Selection
-  const handleSelectConcern = (concern: { label: string; zone: BodyZone }) => {
+  // Handle selecting a common concern from Step 1
+  const handleSelectConcern = (concern: typeof COMMON_CONCERNS[0]) => {
+    setProblemDescription(concern.label);
     setSelectedZone(concern.zone);
-    setSearchQuery(concern.label);
-    if (concern.zone === 'lower_back' || concern.zone === 'upper_back') {
-      setBodyPerspective('BACK');
+  };
+
+  // Toggle secondary symptoms
+  const handleToggleSymptom = (symptomId: string) => {
+    if (symptomId === 'none') {
+      setSelectedSymptoms(['none']);
+      return;
+    }
+    const filtered = selectedSymptoms.filter(s => s !== 'none');
+    if (filtered.includes(symptomId)) {
+      setSelectedSymptoms(filtered.filter(s => s !== symptomId));
     } else {
-      setBodyPerspective('FRONT');
+      setSelectedSymptoms([...filtered, symptomId]);
     }
   };
 
-  // Color intensity for pain level
-  const getPainColor = (val: number) => {
-    if (val <= 3) return { bg: 'bg-emerald-500', text: 'text-emerald-700', label: 'Mild Discomfort' };
-    if (val <= 6) return { bg: 'bg-amber-500', text: 'text-amber-700', label: 'Moderate Pain' };
-    if (val <= 8) return { bg: 'bg-orange-500', text: 'text-orange-700', label: 'Severe Pain' };
-    return { bg: 'bg-rose-600', text: 'text-rose-700', label: 'Critical Pain' };
-  };
-
-  const painVisual = getPainColor(painSeverity);
-
-  // Ranked nearby hospitals with simulated GPS distance
+  // Geo-ranked hospitals
   const rankedHospitals = useMemo(() => {
     return hospitals.map((hosp, idx) => {
-      const distance = 1.2 + idx * 2.1;
+      const distance = 1.2 + idx * 1.8;
       return {
         ...hosp,
         distanceKm: distance,
-        liveWaitMins: 8 + idx * 5,
+        liveWaitMins: 10 + idx * 5,
         rating: 4.8 + (idx % 3) * 0.08
       };
     }).filter(h => h.distanceKm <= distanceRadius);
@@ -252,7 +254,7 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
 
   const activeHospital = rankedHospitals.find(h => h.id === selectedHospitalId) || rankedHospitals[0] || hospitals[0];
 
-  // Matched doctors filtered by specialty, hospital, and sort
+  // Matched doctors filtered by specialty
   const availableDoctors = useMemo(() => {
     let docs = doctors.filter(d => {
       const matchesSpecialty = d.specialty.toLowerCase().includes(clinicalResult.recommendedSpecialty.toLowerCase()) ||
@@ -263,90 +265,103 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
     });
 
     if (docs.length === 0) {
-      // Fallback: any doctor in this hospital or general medicine
       docs = doctors.filter(d => d.hospitalId === activeHospital.id);
     }
     if (docs.length === 0) {
       docs = doctors.slice(0, 3);
     }
-
-    return [...docs].sort((a, b) => {
-      if (doctorSortCriteria === 'RATING') return b.rating - a.rating;
-      if (doctorSortCriteria === 'FEE') return a.opConsultationFee - b.opConsultationFee;
-      // Earliest
-      return 0;
-    });
-  }, [doctors, clinicalResult.recommendedSpecialty, selectedHospitalId, activeHospital.id, doctorSortCriteria]);
+    return docs;
+  }, [doctors, clinicalResult.recommendedSpecialty, selectedHospitalId, activeHospital.id]);
 
   const topDoctor = availableDoctors[0] || doctors[0];
 
-  // Next slot for top doctor
-  const matchedSlot = useMemo(() => {
-    return slots.find(s => s.doctorId === topDoctor.id && s.status === 'AVAILABLE') || slots[0];
-  }, [slots, topDoctor.id]);
-
-  // Direct Auto-Booking trigger
-  const handleProceedAutoBooking = (chosenDoc?: DoctorProfile) => {
-    const targetDoc = chosenDoc || topDoctor;
-    const targetHosp = hospitals.find(h => h.id === targetDoc.hospitalId) || activeHospital;
-    const targetSlot = slots.find(s => s.doctorId === targetDoc.id && s.status === 'AVAILABLE') || matchedSlot;
-
-    onOpenCheckout(targetDoc, consultTypePreference, targetSlot);
+  // Auto-booking handoff
+  const handleProceedBooking = (chosenDoc: DoctorProfile, type: ConsultationType = 'IN_PERSON_OPD') => {
+    const targetSlot = slots.find(s => s.doctorId === chosenDoc.id && s.status === 'AVAILABLE') || slots[0];
+    onOpenCheckout(chosenDoc, type, targetSlot);
   };
+
+  // Severity color & text helper
+  const getSeverityInfo = (val: number) => {
+    if (val <= 3) return { label: 'Mild Discomfort', desc: 'Manageable, minimal daily disruption', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' };
+    if (val <= 6) return { label: 'Moderate Pain', desc: 'Impacting work, movement or sleep', color: 'text-sky-800 bg-sky-50 border-sky-200' };
+    return { label: 'Severe / Acute', desc: 'Intense pain, requiring urgent attention', color: 'text-rose-800 bg-rose-50 border-rose-200' };
+  };
+
+  const severityInfo = getSeverityInfo(painSeverity);
 
   return (
     <div className="space-y-4 pb-36 animate-in fade-in duration-200">
       
       {/* ========================================================================= */}
-      {/* HERO BANNER: TINY LOCAL AI HEALTH INTAKE                                  */}
+      {/* LIGHT & SMOOTH HEADER WITH ETHEREAL SIRI ORB                              */}
       {/* ========================================================================= */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 text-white p-4.5 sm:p-5 border border-slate-800 shadow-xl">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-sky-500/10 rounded-full blur-2xl pointer-events-none" />
+      <div className="relative overflow-hidden rounded-3xl bg-white/90 backdrop-blur-xl border border-slate-200/80 p-4.5 sm:p-5 shadow-sm">
+        {/* Soft Pearlescent Background Aura */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-sky-100/60 via-indigo-50/40 to-transparent rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-emerald-100/40 to-transparent rounded-full blur-xl pointer-events-none" />
 
-        <div className="relative z-10 flex items-start justify-between gap-3">
+        <div className="relative z-10 flex items-center justify-between gap-3">
           <div className="space-y-1">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-[11px] font-semibold">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-              <span>B Care Smart Triage AI</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              <span className="text-[10px] text-emerald-200/80 font-normal">0ms Local Engine</span>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sky-50 border border-sky-200/80 text-sky-700 text-[11px] font-semibold">
+              <Sparkles className="w-3.5 h-3.5 text-sky-500" />
+              <span>Smart Health Intake</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              <span className="text-[10px] text-slate-500 font-normal">30-Second Clinical Triage</span>
             </div>
-            <h2 className="text-lg sm:text-xl font-bold tracking-tight text-white">
-              Instant Symptom & Hospital Match
+            <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900">
+              {currentStep <= 4 ? "Find What's Wrong & Book Nearby" : "Top Verified Matches Near You"}
             </h2>
-            <p className="text-xs text-slate-300 leading-relaxed max-w-md">
-              Tap your pain point on the diagram below. The assistant pinpoints potential causes, locates top accredited clinics nearby, and prepares your appointment so you only complete payment.
+            <p className="text-xs text-slate-600 leading-relaxed max-w-md">
+              {currentStep <= 4 
+                ? "Answer 4 quick questions. Our local clinical assistant identifies potential causes and connects you directly to accredited clinics."
+                : `Matched with ${clinicalResult.recommendedSpecialty} specialists in Coimbatore. Choose a hospital or doctor to secure your slot.`}
             </p>
           </div>
 
           <div className="flex flex-col items-center justify-center shrink-0 pr-1">
-            <SiriOrb size={56} state="thinking" />
-            <span className="text-[10px] text-emerald-300/80 mt-1.5 font-medium tracking-tight">Active Engine</span>
+            <SiriOrb size={52} state={currentStep <= 4 ? "thinking" : "idle"} />
+            <span className="text-[10px] text-sky-600 font-medium mt-1 tracking-tight">
+              {currentStep <= 4 ? "Local Engine" : "Ready to Book"}
+            </span>
           </div>
         </div>
 
-        {/* Quick Issue Chips */}
-        <div className="relative z-10 mt-4 pt-3 border-t border-white/10">
-          <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-2">
-            Common Health Inquiries:
-          </span>
-          <div className="flex flex-wrap gap-1.5">
-            {COMMON_CONCERNS.map((concern) => {
-              const isSelected = selectedZone === concern.zone;
+        {/* 4-Step Progress Indicator */}
+        <div className="relative z-10 mt-4 pt-3 border-t border-slate-100">
+          <div className="flex items-center justify-between gap-1.5">
+            {[
+              { num: 1, label: 'Problem' },
+              { num: 2, label: 'Area' },
+              { num: 3, label: 'Duration' },
+              { num: 4, label: 'Symptoms' },
+              { num: 5, label: 'Geo Match' }
+            ].map((step) => {
+              const isActive = currentStep === step.num;
+              const isPast = currentStep > step.num;
               return (
                 <button
-                  key={concern.label}
+                  key={step.num}
                   type="button"
-                  onClick={() => handleSelectConcern(concern)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer select-none flex items-center gap-1.5 ${
-                    isSelected
-                      ? 'bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/20 scale-[1.02]'
-                      : 'bg-white/10 hover:bg-white/15 text-slate-200 border border-white/10'
+                  onClick={() => {
+                    if (isPast || currentStep === 5) setCurrentStep(step.num);
+                  }}
+                  className={`flex-1 flex flex-col items-center gap-1 group transition-all ${
+                    isPast || currentStep === 5 ? 'cursor-pointer' : 'cursor-default'
                   }`}
                 >
-                  <span>{concern.label}</span>
-                  {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                  <div className={`h-1.5 w-full rounded-full transition-all duration-300 ${
+                    isActive
+                      ? 'bg-gradient-to-r from-sky-400 to-indigo-500 shadow-sm shadow-sky-400/30'
+                      : isPast
+                      ? 'bg-emerald-500'
+                      : 'bg-slate-200'
+                  }`} />
+                  <span className={`text-[10px] font-medium hidden sm:block ${
+                    isActive ? 'text-sky-700 font-bold' : isPast ? 'text-emerald-700' : 'text-slate-400'
+                  }`}>
+                    {step.label}
+                  </span>
                 </button>
               );
             })}
@@ -355,595 +370,622 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
       </div>
 
       {/* ========================================================================= */}
-      {/* 2-COLUMN SECTION: INTERACTIVE ANATOMICAL DIAGRAM & CLINICAL TRIAGE        */}
+      {/* STEP 1: WHAT'S THE PROBLEM?                                               */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
-        
-        {/* LEFT (Lg: 5 cols): INTERACTIVE SVG ANATOMICAL PAIN DIAGRAM */}
-        <div className="lg:col-span-5 bg-white rounded-3xl border border-slate-200/80 p-4 shadow-sm flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-                  <Activity className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-xs font-bold text-slate-900 tracking-tight">Interactive Pain Diagram</h3>
-                  <p className="text-[10px] text-slate-500">Tap body region to isolate issue</p>
-                </div>
+      {currentStep === 1 && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          className="space-y-4"
+        >
+          <div className="bg-white rounded-3xl border border-slate-200/80 p-5 shadow-sm space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-[11px] font-bold text-sky-600 uppercase tracking-wider">Question 1 of 4</span>
+                <h3 className="text-base sm:text-lg font-bold text-slate-900">What's bothering you today?</h3>
+                <p className="text-xs text-slate-500">Type what you feel or tap a common health concern below.</p>
               </div>
+              <span className="text-2xl">🩺</span>
+            </div>
 
-              {/* Front / Back Perspective Switcher */}
-              <div className="bg-slate-100 p-0.5 rounded-xl flex items-center text-[11px] font-semibold">
+            {/* Natural Language Symptom Input */}
+            <div className="relative">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+              <input
+                type="text"
+                value={problemDescription}
+                onChange={(e) => setProblemDescription(e.target.value)}
+                placeholder="e.g. Throbbing migraine, acute lower back stiffness, acid reflux..."
+                className="w-full pl-10 pr-10 py-3 bg-slate-50/80 hover:bg-slate-50 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl border border-slate-200 focus:border-sky-400 focus:ring-4 focus:ring-sky-100 outline-none transition-all placeholder:text-slate-400"
+              />
+              {problemDescription && (
                 <button
                   type="button"
-                  onClick={() => setBodyPerspective('FRONT')}
-                  className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                    bodyPerspective === 'FRONT'
-                      ? 'bg-white text-slate-950 shadow-xs'
-                      : 'text-slate-500 hover:text-slate-800'
-                  }`}
+                  onClick={() => setProblemDescription('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-full"
                 >
-                  Front
+                  <X className="w-4 h-4" />
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setBodyPerspective('BACK')}
-                  className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                    bodyPerspective === 'BACK'
-                      ? 'bg-white text-slate-950 shadow-xs'
-                      : 'text-slate-500 hover:text-slate-800'
-                  }`}
-                >
-                  Back
-                </button>
+              )}
+            </div>
+
+            {/* Quick One-Tap Concern Chips */}
+            <div>
+              <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block mb-2">
+                Common Concerns:
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {COMMON_CONCERNS.map((concern) => {
+                  const isSelected = problemDescription === concern.label;
+                  return (
+                    <button
+                      key={concern.label}
+                      type="button"
+                      onClick={() => handleSelectConcern(concern)}
+                      className={`flex items-center gap-2.5 p-2.5 rounded-2xl border text-left text-xs font-medium transition-all ${
+                        isSelected
+                          ? 'bg-sky-50/80 border-sky-300 text-sky-900 shadow-sm shadow-sky-100'
+                          : 'bg-white hover:bg-slate-50 border-slate-200/80 text-slate-700'
+                      }`}
+                    >
+                      <span className="text-base shrink-0">{concern.icon}</span>
+                      <span className="flex-1 font-semibold">{concern.label}</span>
+                      {isSelected && <Check className="w-3.5 h-3.5 text-sky-600 stroke-[3]" />}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            {/* SVG Visual Body Anatomy Diagram */}
-            <div className="relative py-4 flex items-center justify-center min-h-[300px]">
-              
-              {/* Center Silhouette SVG */}
-              <div className="relative w-48 sm:w-52 h-72">
-                <svg
-                  viewBox="0 0 200 320"
-                  className="w-full h-full drop-shadow-md select-none"
-                >
-                  <defs>
-                    <linearGradient id="bodySkinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#e2e8f0" />
-                      <stop offset="100%" stopColor="#cbd5e1" />
-                    </linearGradient>
-                    <linearGradient id="bodyHighlight" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stopColor="#10b981" />
-                      <stop offset="100%" stopColor="#059669" />
-                    </linearGradient>
-                  </defs>
-
-                  {/* Base Body Vector Silhouette */}
-                  <g fill="url(#bodySkinGrad)" stroke="#94a3b8" strokeWidth="1.5">
-                    {/* Head */}
-                    <circle cx="100" cy="38" r="24" />
-                    {/* Neck */}
-                    <rect x="91" y="60" width="18" height="15" rx="3" />
-                    {/* Shoulders & Torso */}
-                    <path d="M 60 75 Q 100 70 140 75 L 148 115 L 140 175 L 125 185 L 125 210 L 75 210 L 75 185 L 60 175 L 52 115 Z" />
-                    {/* Left Arm */}
-                    <path d="M 52 82 Q 40 120 38 160 Q 36 175 42 185 L 48 183 Q 44 140 58 98 Z" />
-                    {/* Right Arm */}
-                    <path d="M 148 82 Q 160 120 162 160 Q 164 175 158 185 L 152 183 Q 156 140 142 98 Z" />
-                    {/* Left Leg */}
-                    <path d="M 76 210 L 74 270 Q 72 290 68 305 L 82 305 Q 88 285 88 265 L 94 210 Z" />
-                    {/* Right Leg */}
-                    <path d="M 124 210 L 126 270 Q 128 290 132 305 L 118 305 Q 112 285 112 265 L 106 210 Z" />
-                  </g>
-
-                  {/* Body Center Spine Indicator (Back View) */}
-                  {bodyPerspective === 'BACK' && (
-                    <g stroke="#94a3b8" strokeWidth="1" strokeDasharray="2,2" opacity="0.6">
-                      <line x1="100" y1="62" x2="100" y2="185" />
-                    </g>
-                  )}
-
-                  {/* Interactive Hotspot Targets */}
-                  {/* Head */}
-                  <g 
-                    onClick={() => setSelectedZone('head')} 
-                    className="cursor-pointer transition-transform hover:scale-105"
-                  >
-                    <circle
-                      cx="100"
-                      cy="38"
-                      r="16"
-                      className={`transition-all duration-200 ${
-                        selectedZone === 'head'
-                          ? 'fill-rose-500/80 stroke-rose-400 stroke-2 animate-pulse'
-                          : 'fill-slate-400/20 hover:fill-emerald-400/40 stroke-transparent'
-                      }`}
-                    />
-                  </g>
-
-                  {/* Neck */}
-                  <g 
-                    onClick={() => setSelectedZone('neck')} 
-                    className="cursor-pointer transition-transform hover:scale-105"
-                  >
-                    <circle
-                      cx="100"
-                      cy="68"
-                      r="10"
-                      className={`transition-all duration-200 ${
-                        selectedZone === 'neck'
-                          ? 'fill-rose-500/80 stroke-rose-400 stroke-2 animate-pulse'
-                          : 'fill-slate-400/20 hover:fill-emerald-400/40 stroke-transparent'
-                      }`}
-                    />
-                  </g>
-
-                  {/* Front: Chest / Back: Upper Back */}
-                  {bodyPerspective === 'FRONT' ? (
-                    <g 
-                      onClick={() => setSelectedZone('chest')} 
-                      className="cursor-pointer transition-transform hover:scale-105"
-                    >
-                      <circle
-                        cx="100"
-                        cy="100"
-                        r="18"
-                        className={`transition-all duration-200 ${
-                          selectedZone === 'chest'
-                            ? 'fill-rose-500/80 stroke-rose-400 stroke-2 animate-pulse'
-                            : 'fill-slate-400/20 hover:fill-emerald-400/40 stroke-transparent'
-                        }`}
-                      />
-                    </g>
-                  ) : (
-                    <g 
-                      onClick={() => setSelectedZone('upper_back')} 
-                      className="cursor-pointer transition-transform hover:scale-105"
-                    >
-                      <circle
-                        cx="100"
-                        cy="100"
-                        r="18"
-                        className={`transition-all duration-200 ${
-                          selectedZone === 'upper_back'
-                            ? 'fill-rose-500/80 stroke-rose-400 stroke-2 animate-pulse'
-                            : 'fill-slate-400/20 hover:fill-emerald-400/40 stroke-transparent'
-                        }`}
-                      />
-                    </g>
-                  )}
-
-                  {/* Front: Abdomen / Back: Lower Back (Lumbar) */}
-                  {bodyPerspective === 'FRONT' ? (
-                    <g 
-                      onClick={() => setSelectedZone('abdomen')} 
-                      className="cursor-pointer transition-transform hover:scale-105"
-                    >
-                      <circle
-                        cx="100"
-                        cy="145"
-                        r="20"
-                        className={`transition-all duration-200 ${
-                          selectedZone === 'abdomen'
-                            ? 'fill-rose-500/80 stroke-rose-400 stroke-2 animate-pulse'
-                            : 'fill-slate-400/20 hover:fill-emerald-400/40 stroke-transparent'
-                        }`}
-                      />
-                    </g>
-                  ) : (
-                    <g 
-                      onClick={() => setSelectedZone('lower_back')} 
-                      className="cursor-pointer transition-transform hover:scale-105"
-                    >
-                      <circle
-                        cx="100"
-                        cy="145"
-                        r="20"
-                        className={`transition-all duration-200 ${
-                          selectedZone === 'lower_back'
-                            ? 'fill-rose-500/80 stroke-rose-400 stroke-2 animate-pulse'
-                            : 'fill-slate-400/20 hover:fill-emerald-400/40 stroke-transparent'
-                        }`}
-                      />
-                    </g>
-                  )}
-
-                  {/* Pelvis */}
-                  <g 
-                    onClick={() => setSelectedZone('pelvis')} 
-                    className="cursor-pointer transition-transform hover:scale-105"
-                  >
-                    <circle
-                      cx="100"
-                      cy="190"
-                      r="14"
-                      className={`transition-all duration-200 ${
-                        selectedZone === 'pelvis'
-                          ? 'fill-rose-500/80 stroke-rose-400 stroke-2 animate-pulse'
-                          : 'fill-slate-400/20 hover:fill-emerald-400/40 stroke-transparent'
-                      }`}
-                    />
-                  </g>
-
-                  {/* Knees / Legs */}
-                  <g 
-                    onClick={() => setSelectedZone('legs')} 
-                    className="cursor-pointer transition-transform hover:scale-105"
-                  >
-                    <circle
-                      cx="80"
-                      cy="255"
-                      r="12"
-                      className={`transition-all duration-200 ${
-                        selectedZone === 'legs'
-                          ? 'fill-rose-500/80 stroke-rose-400 stroke-2 animate-pulse'
-                          : 'fill-slate-400/20 hover:fill-emerald-400/40 stroke-transparent'
-                      }`}
-                    />
-                    <circle
-                      cx="120"
-                      cy="255"
-                      r="12"
-                      className={`transition-all duration-200 ${
-                        selectedZone === 'legs'
-                          ? 'fill-rose-500/80 stroke-rose-400 stroke-2 animate-pulse'
-                          : 'fill-slate-400/20 hover:fill-emerald-400/40 stroke-transparent'
-                      }`}
-                    />
-                  </g>
-
-                  {/* Feet & Ankles */}
-                  <g 
-                    onClick={() => setSelectedZone('feet')} 
-                    className="cursor-pointer transition-transform hover:scale-105"
-                  >
-                    <circle
-                      cx="75"
-                      cy="300"
-                      r="10"
-                      className={`transition-all duration-200 ${
-                        selectedZone === 'feet'
-                          ? 'fill-rose-500/80 stroke-rose-400 stroke-2 animate-pulse'
-                          : 'fill-slate-400/20 hover:fill-emerald-400/40 stroke-transparent'
-                      }`}
-                    />
-                    <circle
-                      cx="125"
-                      cy="300"
-                      r="10"
-                      className={`transition-all duration-200 ${
-                        selectedZone === 'feet'
-                          ? 'fill-rose-500/80 stroke-rose-400 stroke-2 animate-pulse'
-                          : 'fill-slate-400/20 hover:fill-emerald-400/40 stroke-transparent'
-                      }`}
-                    />
-                  </g>
-
-                  {/* Arms */}
-                  <g 
-                    onClick={() => setSelectedZone('arms')} 
-                    className="cursor-pointer transition-transform hover:scale-105"
-                  >
-                    <circle
-                      cx="46"
-                      cy="135"
-                      r="11"
-                      className={`transition-all duration-200 ${
-                        selectedZone === 'arms'
-                          ? 'fill-rose-500/80 stroke-rose-400 stroke-2 animate-pulse'
-                          : 'fill-slate-400/20 hover:fill-emerald-400/40 stroke-transparent'
-                      }`}
-                    />
-                    <circle
-                      cx="154"
-                      cy="135"
-                      r="11"
-                      className={`transition-all duration-200 ${
-                        selectedZone === 'arms'
-                          ? 'fill-rose-500/80 stroke-rose-400 stroke-2 animate-pulse'
-                          : 'fill-slate-400/20 hover:fill-emerald-400/40 stroke-transparent'
-                      }`}
-                    />
-                  </g>
-                </svg>
-
-                {/* Floating Active Tag */}
-                <div className="absolute top-2 left-2 bg-slate-900/90 text-white backdrop-blur-md px-2.5 py-1 rounded-xl text-[10px] font-bold shadow-md flex items-center gap-1.5 border border-white/10">
-                  <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
-                  <span className="capitalize">{selectedZone.replace('_', ' ')}</span>
-                </div>
-              </div>
+            {/* Next CTA */}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => setCurrentStep(2)}
+                disabled={!problemDescription.trim()}
+                className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 active:scale-[0.99] text-white font-bold text-sm shadow-md shadow-sky-500/20 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                <span>Continue: Where Does It Hurt?</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
             </div>
           </div>
+        </motion.div>
+      )}
 
-          {/* Pain Intensity Slider & Characteristics */}
-          <div className="mt-3 pt-3 border-t border-slate-100 space-y-3">
-            <div>
-              <div className="flex items-center justify-between text-xs mb-1">
-                <span className="font-bold text-slate-700 flex items-center gap-1.5">
-                  <Activity className="w-3.5 h-3.5 text-slate-400" />
-                  <span>Pain Intensity Score:</span>
-                </span>
-                <span className={`font-mono font-bold px-2 py-0.5 rounded-full text-[11px] ${painVisual.bg} text-white`}>
-                  {painSeverity} / 10 • {painVisual.label}
-                </span>
+      {/* ========================================================================= */}
+      {/* STEP 2: BODY AREA & PAIN INTENSITY                                        */}
+      {/* ========================================================================= */}
+      {currentStep === 2 && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          className="space-y-4"
+        >
+          <div className="bg-white rounded-3xl border border-slate-200/80 p-5 shadow-sm space-y-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-[11px] font-bold text-sky-600 uppercase tracking-wider">Question 2 of 4</span>
+                <h3 className="text-base sm:text-lg font-bold text-slate-900">Where is the discomfort located?</h3>
+                <p className="text-xs text-slate-500">Select the primary body zone and its severity level.</p>
               </div>
+              <button
+                type="button"
+                onClick={() => setCurrentStep(1)}
+                className="text-xs font-semibold text-slate-500 hover:text-slate-800 flex items-center gap-1"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" /> Back
+              </button>
+            </div>
+
+            {/* Body Zone Selector Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              {BODY_ZONES.map((zone) => {
+                const isSelected = selectedZone === zone.id;
+                return (
+                  <button
+                    key={zone.id}
+                    type="button"
+                    onClick={() => setSelectedZone(zone.id)}
+                    className={`flex flex-col items-center text-center p-3 rounded-2xl border transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-sky-50 border-sky-400 text-sky-950 shadow-sm shadow-sky-100 ring-2 ring-sky-200'
+                        : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'
+                    }`}
+                  >
+                    <span className="text-2xl mb-1.5">{zone.icon}</span>
+                    <span className="text-xs font-bold leading-tight">{zone.label}</span>
+                    <span className="text-[10px] text-slate-500 mt-0.5 line-clamp-1">{zone.desc}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Pain Severity Slider */}
+            <div className="pt-2 border-t border-slate-100 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-bold text-slate-800">Pain Intensity</span>
+                  <p className="text-[11px] text-slate-500">Rate how acute the pain feels right now</p>
+                </div>
+                <div className={`px-2.5 py-1 rounded-full text-xs font-bold border ${severityInfo.color}`}>
+                  Score {painSeverity}/10 • {severityInfo.label}
+                </div>
+              </div>
+
               <input
                 type="range"
                 min="1"
                 max="10"
                 value={painSeverity}
-                onChange={(e) => setPainSeverity(parseInt(e.target.value))}
-                className="w-full accent-rose-600 h-1.5 bg-slate-200 rounded-lg cursor-pointer"
+                onChange={(e) => setPainSeverity(parseInt(e.target.value, 10))}
+                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-600"
               />
-              <div className="flex justify-between text-[9px] text-slate-400 mt-1 tabular-nums font-mono">
-                <span>1 (Mild)</span>
-                <span>5 (Moderate)</span>
-                <span>10 (Severe)</span>
+
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { range: '1 - 3', label: 'Mild', val: 2 },
+                  { range: '4 - 6', label: 'Moderate', val: 5 },
+                  { range: '7 - 10', label: 'Severe', val: 8 },
+                ].map((tier) => {
+                  const isActive = (tier.val <= 3 && painSeverity <= 3) || 
+                    (tier.val >= 4 && tier.val <= 6 && painSeverity >= 4 && painSeverity <= 6) ||
+                    (tier.val >= 7 && painSeverity >= 7);
+                  return (
+                    <button
+                      key={tier.label}
+                      type="button"
+                      onClick={() => setPainSeverity(tier.val)}
+                      className={`p-2 rounded-xl text-center border text-xs transition-all ${
+                        isActive
+                          ? 'bg-sky-50 border-sky-300 font-bold text-sky-900 shadow-sm'
+                          : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-600'
+                      }`}
+                    >
+                      <div className="font-bold">{tier.label}</div>
+                      <div className="text-[10px] text-slate-500">{tier.range}</div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Pain Type Selector Chips */}
-            <div>
-              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-1.5">
-                Pain Sensation Type:
-              </span>
-              <div className="flex flex-wrap gap-1">
-                {PAIN_TYPES.map((t) => (
+            {/* Navigation CTA */}
+            <div className="pt-2 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setCurrentStep(1)}
+                className="px-4 py-3 rounded-2xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all"
+              >
+                Back
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentStep(3)}
+                className="flex-1 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 active:scale-[0.99] text-white font-bold text-sm shadow-md shadow-sky-500/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
+              >
+                <span>Continue: Duration & Timing</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* STEP 3: DURATION & PROGRESSION                                            */}
+      {/* ========================================================================= */}
+      {currentStep === 3 && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          className="space-y-4"
+        >
+          <div className="bg-white rounded-3xl border border-slate-200/80 p-5 shadow-sm space-y-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-[11px] font-bold text-sky-600 uppercase tracking-wider">Question 3 of 4</span>
+                <h3 className="text-base sm:text-lg font-bold text-slate-900">How long has this been going on?</h3>
+                <p className="text-xs text-slate-500">Helps distinguish acute episodes from chronic conditions.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCurrentStep(2)}
+                className="text-xs font-semibold text-slate-500 hover:text-slate-800 flex items-center gap-1"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" /> Back
+              </button>
+            </div>
+
+            {/* Duration Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {DURATION_OPTIONS.map((opt) => {
+                const isSelected = duration === opt.id;
+                return (
                   <button
-                    key={t}
+                    key={opt.id}
                     type="button"
-                    onClick={() => setPainType(t)}
-                    className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-all cursor-pointer ${
-                      painType === t
-                        ? 'bg-slate-950 text-white shadow-xs'
-                        : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+                    onClick={() => {
+                      setDuration(opt.id);
+                      // Auto-advance smoothly to question 4
+                      setTimeout(() => setCurrentStep(4), 250);
+                    }}
+                    className={`flex items-start gap-3 p-4 rounded-2xl border text-left transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-sky-50 border-sky-400 shadow-sm ring-2 ring-sky-200'
+                        : 'bg-white hover:bg-slate-50 border-slate-200'
                     }`}
                   >
-                    {t}
+                    <span className="text-2xl shrink-0 mt-0.5">{opt.icon}</span>
+                    <div className="flex-1">
+                      <div className="text-sm font-bold text-slate-900">{opt.label}</div>
+                      <div className="text-xs text-slate-500 mt-0.5">{opt.sub}</div>
+                    </div>
+                    {isSelected && <Check className="w-4 h-4 text-sky-600 stroke-[3] shrink-0 mt-1" />}
                   </button>
-                ))}
-              </div>
+                );
+              })}
+            </div>
+
+            {/* Navigation CTA */}
+            <div className="pt-2 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setCurrentStep(2)}
+                className="px-4 py-3 rounded-2xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all"
+              >
+                Back
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentStep(4)}
+                className="flex-1 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 active:scale-[0.99] text-white font-bold text-sm shadow-md shadow-sky-500/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
+              >
+                <span>Continue: Secondary Symptoms</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
             </div>
           </div>
-        </div>
+        </motion.div>
+      )}
 
-        {/* RIGHT (Lg: 7 cols): CLINICAL INFERENCE & GEO-LOCATION HOSPITAL MATCH */}
-        <div className="lg:col-span-7 space-y-3">
-          
-          {/* Clinical Diagnostic Differential Card */}
-          <div className="bg-white rounded-3xl border border-slate-200/80 p-4 shadow-sm space-y-3">
-            <div className="flex items-start justify-between gap-3">
+      {/* ========================================================================= */}
+      {/* STEP 4: SECONDARY SYMPTOMS                                                */}
+      {/* ========================================================================= */}
+      {currentStep === 4 && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          className="space-y-4"
+        >
+          <div className="bg-white rounded-3xl border border-slate-200/80 p-5 shadow-sm space-y-5">
+            <div className="flex items-center justify-between">
               <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                    Clinical Differential Assessment
-                  </span>
-                  <span className="text-[10px] font-mono text-slate-400">
-                    Confidence {clinicalResult.confidence}%
-                  </span>
+                <span className="text-[11px] font-bold text-sky-600 uppercase tracking-wider">Question 4 of 4</span>
+                <h3 className="text-base sm:text-lg font-bold text-slate-900">Any additional symptoms?</h3>
+                <p className="text-xs text-slate-500">Tap all that apply, or tap "None" to finish intake.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCurrentStep(3)}
+                className="text-xs font-semibold text-slate-500 hover:text-slate-800 flex items-center gap-1"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" /> Back
+              </button>
+            </div>
+
+            {/* Secondary Symptoms Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+              {ADDITIONAL_SYMPTOMS.map((symp) => {
+                const isSelected = selectedSymptoms.includes(symp.id);
+                return (
+                  <button
+                    key={symp.id}
+                    type="button"
+                    onClick={() => handleToggleSymptom(symp.id)}
+                    className={`flex items-center gap-2.5 p-3 rounded-2xl border text-left text-xs font-semibold transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-sky-50 border-sky-300 text-sky-950 shadow-sm ring-1 ring-sky-200'
+                        : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'
+                    }`}
+                  >
+                    <span className="text-lg shrink-0">{symp.icon}</span>
+                    <span className="flex-1">{symp.label}</span>
+                    {isSelected && <Check className="w-3.5 h-3.5 text-sky-600 stroke-[3] shrink-0" />}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Navigation CTA: Lead to Geo Results */}
+            <div className="pt-2 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setCurrentStep(3)}
+                className="px-4 py-3 rounded-2xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all"
+              >
+                Back
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentStep(5)}
+                className="flex-1 py-4 px-5 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-600 hover:from-emerald-600 hover:to-sky-700 active:scale-[0.99] text-white font-bold text-sm shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 transition-all cursor-pointer"
+              >
+                <Sparkles className="w-4 h-4 text-emerald-100" />
+                <span>Find Hospitals & Doctors Nearby</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* STEP 5: GEO LOCATION & NEARBY HOSPITALS / DOCTORS                         */}
+      {/* ========================================================================= */}
+      {currentStep === 5 && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          className="space-y-4"
+        >
+          {/* Clinical Triage Result Card */}
+          <div className="bg-gradient-to-br from-white via-sky-50/40 to-emerald-50/30 rounded-3xl border border-sky-200/90 p-4.5 sm:p-5 shadow-sm space-y-3">
+            <div className="flex items-start justify-between gap-2">
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Clinical Match: {clinicalResult.confidence}% Confidence</span>
                 </div>
-                <h4 className="text-sm font-bold text-slate-950 mt-1">
+                <h3 className="text-base sm:text-lg font-bold text-slate-900">
                   {clinicalResult.primaryDiagnosis}
-                </h4>
+                </h3>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  {clinicalResult.explanation}
+                </p>
               </div>
 
-              <span className={`px-2.5 py-1 rounded-xl text-[10px] font-bold tracking-wide shrink-0 ${
-                clinicalResult.urgency === 'PRIORITY'
-                  ? 'bg-rose-100 text-rose-700 border border-rose-200'
-                  : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-              }`}>
-                {clinicalResult.urgency === 'PRIORITY' ? '⚡ High Acuity OPD' : '✓ Routine Outpatient'}
-              </span>
+              <button
+                type="button"
+                onClick={() => setCurrentStep(1)}
+                className="text-xs font-bold text-sky-700 hover:text-sky-900 px-3 py-1.5 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-center gap-1 shrink-0"
+              >
+                <RotateCcw className="w-3.5 h-3.5" /> Edit
+              </button>
             </div>
 
-            <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3 rounded-2xl border border-slate-100">
-              {clinicalResult.explanation}
-            </p>
-
-            {/* Red Flag Safeguards Check */}
-            <div className="bg-emerald-50/70 p-2.5 rounded-2xl border border-emerald-100 flex items-center justify-between text-xs">
-              <div className="flex items-center gap-2 text-emerald-900">
-                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span className="text-[11px] font-medium">
-                  Safeguards: {clinicalResult.redFlags.join(' • ')}
-                </span>
-              </div>
-              <span className="text-[10px] font-bold text-emerald-700 shrink-0">Clear</span>
-            </div>
-
-            {/* Recommended Specialty Pill */}
-            <div className="flex items-center justify-between pt-1 text-xs">
-              <span className="text-slate-500 font-medium">Recommended Specialist Field:</span>
-              <span className="font-bold text-slate-900 bg-slate-100 px-3 py-1 rounded-xl flex items-center gap-1.5">
-                <Stethoscope className="w-3.5 h-3.5 text-emerald-600" />
-                <span>{clinicalResult.recommendedSpecialty}</span>
+            <div className="pt-2 border-t border-sky-100 flex flex-wrap items-center gap-2 text-xs">
+              <span className="font-bold text-slate-700">Recommended Specialty:</span>
+              <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 font-bold">
+                {clinicalResult.recommendedSpecialty}
               </span>
+              <span className="text-slate-400">•</span>
+              <span className="text-slate-600">Urgency: <strong>{clinicalResult.urgency}</strong></span>
             </div>
           </div>
 
-          {/* Geo-Location & Hospital Search Radius */}
+          {/* Geo-Location Bar & Distance Filters */}
           <div className="bg-white rounded-3xl border border-slate-200/80 p-4 shadow-sm space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold">
-                  <MapPin className="w-3.5 h-3.5" />
+                <div className="w-8 h-8 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shrink-0">
+                  <MapPin className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-slate-900">Accredited Clinics Nearby</h4>
-                  <p className="text-[10px] text-slate-500">Live GPS: Coimbatore South, Tamil Nadu</p>
+                  <div className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                    <span>Coimbatore South</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[10px] text-emerald-700 font-medium">GPS Active</span>
+                  </div>
+                  <div className="text-[11px] text-slate-500">Showing accredited centers near your live coordinates</div>
                 </div>
               </div>
 
               {/* Radius Chips */}
-              <div className="flex items-center gap-1">
-                {[5, 10, 25].map(radius => (
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-bold text-slate-400 uppercase mr-1">Radius:</span>
+                {[5, 10, 25].map((rad) => (
                   <button
-                    key={radius}
+                    key={rad}
                     type="button"
-                    onClick={() => setDistanceRadius(radius)}
-                    className={`px-2 py-0.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
-                      distanceRadius === radius
-                        ? 'bg-slate-950 text-white'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    onClick={() => setDistanceRadius(rad)}
+                    className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all ${
+                      distanceRadius === rad
+                        ? 'bg-sky-500 text-white shadow-2xs'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
                     }`}
                   >
-                    {radius}km
+                    {rad} km
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Hospital Selector List */}
-            <div className="grid grid-cols-1 gap-2">
-              {rankedHospitals.map(hosp => {
-                const isSelected = hosp.id === activeHospital.id;
+            {/* View Mode Toggle: Hospitals vs Doctors */}
+            <div className="pt-2 border-t border-slate-100 flex rounded-2xl bg-slate-100 p-1">
+              <button
+                type="button"
+                onClick={() => setViewMode('HOSPITALS')}
+                className={`flex-1 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  viewMode === 'HOSPITALS'
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Building2 className="w-3.5 h-3.5 text-sky-600" />
+                <span>Hospitals Nearby ({rankedHospitals.length})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('DOCTORS')}
+                className={`flex-1 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  viewMode === 'DOCTORS'
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Stethoscope className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Available Doctors ({availableDoctors.length})</span>
+              </button>
+            </div>
+          </div>
+
+          {/* ===================================================================== */}
+          {/* VIEW: NEARBY HOSPITALS LIST                                           */}
+          {/* ===================================================================== */}
+          {viewMode === 'HOSPITALS' && (
+            <div className="space-y-3">
+              {rankedHospitals.map((hospital) => {
+                const isSelected = hospital.id === selectedHospitalId;
+                const hospitalDoctors = doctors.filter(d => d.hospitalId === hospital.id);
+                const assignedDoctor = hospitalDoctors.find(d => 
+                  d.specialty.toLowerCase().includes(clinicalResult.recommendedSpecialty.toLowerCase())
+                ) || hospitalDoctors[0] || topDoctor;
+
                 return (
                   <div
-                    key={hosp.id}
-                    onClick={() => setSelectedHospitalId(hosp.id)}
-                    className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                    key={hospital.id}
+                    className={`rounded-3xl border p-4.5 transition-all ${
                       isSelected
-                        ? 'bg-emerald-50/80 border-emerald-400/80 shadow-xs'
-                        : 'bg-white hover:bg-slate-50 border-slate-200/80'
+                        ? 'bg-white border-sky-400 shadow-md ring-2 ring-sky-100'
+                        : 'bg-white hover:border-slate-300 border-slate-200/80 shadow-sm'
                     }`}
                   >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold shrink-0 ${
-                        isSelected ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-700'
-                      }`}>
-                        <Building2 className="w-4 h-4" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <h5 className="font-bold text-xs text-slate-950 truncate">
-                            {hosp.name}
-                          </h5>
-                          <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-md bg-emerald-100 text-emerald-800">
-                            NABH
-                          </span>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3">
+                        <div className="w-12 h-12 rounded-2xl bg-sky-50 border border-sky-200/80 flex items-center justify-center text-sky-600 shrink-0 mt-0.5">
+                          <Building2 className="w-6 h-6" />
                         </div>
-                        <p className="text-[10px] text-slate-500 truncate">
-                          {hosp.address} • {hosp.distanceKm.toFixed(1)} km away
-                        </p>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-sm font-bold text-slate-900">{hospital.name}</h4>
+                            <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold">
+                              {hospital.distanceKm.toFixed(1)} km away
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-500 mt-0.5">{hospital.address}</p>
+                          <div className="flex items-center gap-2 mt-2 text-[11px] text-slate-600">
+                            <span className="flex items-center gap-1 font-semibold text-amber-600">
+                              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                              {hospital.rating.toFixed(1)}
+                            </span>
+                            <span>•</span>
+                            <span className="text-emerald-700 font-semibold flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              Next Token #4 (~{hospital.liveWaitMins}m wait)
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <div className="text-xs text-slate-400">OPD Pass</div>
+                        <div className="text-sm font-bold text-slate-900">₹{assignedDoctor?.opConsultationFee || 200}</div>
                       </div>
                     </div>
 
-                    <div className="text-right shrink-0">
-                      <span className="text-[10px] font-bold text-emerald-700 block">
-                        ~{hosp.liveWaitMins}m wait
-                      </span>
-                      <span className="text-[10px] text-slate-400">
-                        {hosp.rating.toFixed(1)} ★
-                      </span>
+                    {/* Booking Actions */}
+                    <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                      <div className="text-xs text-slate-500">
+                        Assigned: <strong>Dr. {assignedDoctor?.name}</strong> ({assignedDoctor?.specialty})
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleProceedBooking(assignedDoctor, 'IN_PERSON_OPD')}
+                        className="px-4 py-2.5 rounded-2xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-sm shadow-sky-600/20 flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all"
+                      >
+                        <span>Book OPD Token</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
                 );
               })}
             </div>
-          </div>
+          )}
 
-          {/* Doctor Filter & Instant Auto-Booking Card */}
-          <div className="bg-white rounded-3xl border border-slate-200/80 p-4 shadow-sm space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
-                  <Stethoscope className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-slate-900">Recommended Specialist Doctor</h4>
-                  <p className="text-[10px] text-slate-500">Filtered for {clinicalResult.recommendedSpecialty}</p>
-                </div>
-              </div>
+          {/* ===================================================================== */}
+          {/* VIEW: AVAILABLE DOCTORS LIST                                          */}
+          {/* ===================================================================== */}
+          {viewMode === 'DOCTORS' && (
+            <div className="space-y-3">
+              {availableDoctors.map((doc) => {
+                const docHospital = hospitals.find(h => h.id === doc.hospitalId) || activeHospital;
+                const docSlot = slots.find(s => s.doctorId === doc.id && s.status === 'AVAILABLE') || slots[0];
 
-              {/* Consultation Type Selector */}
-              <div className="bg-slate-100 p-0.5 rounded-xl flex items-center text-[10px] font-semibold">
-                <button
-                  type="button"
-                  onClick={() => setConsultTypePreference('IN_PERSON_OPD')}
-                  className={`px-2 py-0.8 rounded-lg transition-all cursor-pointer ${
-                    consultTypePreference === 'IN_PERSON_OPD'
-                      ? 'bg-white text-slate-950 shadow-xs'
-                      : 'text-slate-500'
-                  }`}
-                >
-                  In-Person OPD (₹100)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setConsultTypePreference('VIDEO_CONSULTATION')}
-                  className={`px-2 py-0.8 rounded-lg transition-all cursor-pointer ${
-                    consultTypePreference === 'VIDEO_CONSULTATION'
-                      ? 'bg-white text-slate-950 shadow-xs'
-                      : 'text-slate-500'
-                  }`}
-                >
-                  Video (₹200)
-                </button>
-              </div>
-            </div>
+                return (
+                  <div
+                    key={doc.id}
+                    className="rounded-3xl border border-slate-200/80 bg-white p-4.5 shadow-sm hover:border-slate-300 transition-all"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3">
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-100 to-indigo-100 border border-slate-200 flex items-center justify-center font-bold text-indigo-700 text-base shrink-0">
+                          {doc.name.charAt(0)}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-sm font-bold text-slate-900">Dr. {doc.name}</h4>
+                            <span className="px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 text-[10px] font-bold">
+                              {doc.specialty}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-500 mt-0.5">{docHospital.name} • {docHospital.address}</p>
+                          <div className="flex items-center gap-2 mt-1.5 text-[11px] text-slate-600">
+                            <span className="flex items-center gap-1 font-semibold text-amber-600">
+                              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                              {doc.rating}
+                            </span>
+                            <span>•</span>
+                            <span className="text-slate-500">{doc.experienceYears} yrs exp</span>
+                            <span>•</span>
+                            <span className="text-emerald-700 font-semibold">
+                              Available Today
+                            </span>
+                          </div>
+                        </div>
+                      </div>
 
-            {/* Doctor Profile Card */}
-            <div className="p-3.5 rounded-2xl bg-gradient-to-br from-slate-50 to-white border border-slate-200/90 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 text-white flex items-center justify-center font-bold text-sm shadow-xs shrink-0 border border-slate-200">
-                  {(topDoctor as any).avatar ? (
-                    <img src={(topDoctor as any).avatar} alt={topDoctor.name} className="w-full h-full object-cover rounded-2xl" />
-                  ) : (
-                    topDoctor.name.replace('Dr. ', '').split(' ')[0][0]
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <h5 className="font-bold text-xs text-slate-950 truncate">
-                      {topDoctor.name}
-                    </h5>
-                    <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded-md border border-emerald-200">
-                      {topDoctor.rating} ★
-                    </span>
+                      <div className="text-right shrink-0">
+                        <div className="text-xs text-slate-400">Consult Fee</div>
+                        <div className="text-sm font-bold text-slate-900">₹{doc.opConsultationFee}</div>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons: Walk-in OPD or Video Consult */}
+                    <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleProceedBooking(doc, 'VIDEO_CONSULTATION')}
+                        className="px-3.5 py-2 rounded-2xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all"
+                      >
+                        <PhoneCall className="w-3.5 h-3.5 text-sky-600" />
+                        <span>Video Consult</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleProceedBooking(doc, 'IN_PERSON_OPD')}
+                        className="px-4 py-2 rounded-2xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white font-bold text-xs shadow-sm shadow-sky-500/20 flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all"
+                      >
+                        <span>Book OPD Token</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
-                  <p className="text-[11px] text-slate-600 font-medium truncate">
-                    {topDoctor.specialty} • {topDoctor.experienceYears}y exp
-                  </p>
-                  <p className="text-[10px] text-slate-400 truncate mt-0.5">
-                    Earliest Slot: Today • Token #{matchedSlot.tokenNumber} ({matchedSlot.time})
-                  </p>
-                </div>
-              </div>
-
-              <div className="text-right shrink-0">
-                <span className="text-xs font-bold text-slate-950 block tabular-nums">
-                  {consultTypePreference === 'IN_PERSON_OPD' ? '₹100' : '₹200'}
-                </span>
-                <span className="text-[10px] text-slate-400">Govt OP fee</span>
-              </div>
+                );
+              })}
             </div>
-
-            {/* ONE-TAP AUTO BOOKING BUTTON ("Patient only does the payment part") */}
-            <button
-              type="button"
-              onClick={() => handleProceedAutoBooking(topDoctor)}
-              className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-600 hover:from-emerald-700 hover:to-sky-700 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 active:scale-[0.99] transition-all cursor-pointer"
-            >
-              <Zap className="w-4 h-4 text-emerald-200 fill-emerald-200" />
-              <span>
-                {consultTypePreference === 'IN_PERSON_OPD'
-                  ? 'Auto-Book Slot & Proceed to Pay (₹100) →'
-                  : 'Auto-Book Video & Proceed to Pay (₹200) →'
-                }
-              </span>
-            </button>
-            <p className="text-center text-[10px] text-slate-400">
-              Instant appointment lock • ABDM Compliant • 100% Refundable
-            </p>
-          </div>
-
-        </div>
-
-      </div>
+          )}
+        </motion.div>
+      )}
 
     </div>
   );
 };
+
+export default AiHealthAssistant;
