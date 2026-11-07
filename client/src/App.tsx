@@ -188,7 +188,7 @@ export function App() {
     emergencySosActive: true,
     emergencyNumber: '108 / +91-98420-10800',
     broadcastBanner: {
-      enabled: true,
+      enabled: false,
       type: 'INFO',
       text: 'Specialist Cardiology, Orthopedic & Neurology Tokens available for today • ABDM Ayushman discounts applied'
     }
@@ -1458,45 +1458,25 @@ export function App() {
                         <button
                           type="button"
                           onClick={handleToggleProfile}
-                          className={`flex items-center gap-1.5 py-1 pl-1.5 pr-2.5 rounded-full transition-all cursor-pointer group ${
-                            isProfileActive
-                              ? 'bg-slate-900 text-white ring-2 ring-emerald-500/80 shadow-xs'
-                              : activeUserTokens.length > 0 && currentRole === 'PATIENT'
-                              ? 'bg-slate-900 hover:bg-slate-800 text-white border border-slate-700/80 shadow-xs'
-                              : 'bg-slate-100 hover:bg-slate-200/80 text-slate-800 border border-slate-200/80'
-                          }`}
-                          title={isProfileActive ? 'Close Profile View' : `Logged in as ${currentUser.name} (${currentRole}) • Tap for Profile & Sign Out`}
+                          className="flex items-center gap-1.5 p-1 rounded-full hover:bg-slate-100 transition-colors cursor-pointer group"
+                          title={isProfileActive ? 'Close Profile View' : `Logged in as ${currentUser.name} • Tap for Profile & Sign Out`}
                         >
                           <div className="relative">
-                            <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shadow-xs ${
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shadow-xs border border-white transition-all ${
                               isProfileActive
                                 ? 'bg-rose-500 text-white'
-                                : activeUserTokens.length > 0 && currentRole === 'PATIENT'
-                                ? 'bg-emerald-500 text-slate-950'
-                                : 'bg-slate-900 text-white font-semibold'
+                                : 'bg-gradient-to-tr from-slate-900 via-slate-800 to-slate-950 text-white'
                             }`}>
                               {isProfileActive ? (
-                                <X className="w-3 h-3 text-white" />
+                                <X className="w-4 h-4 text-white" />
                               ) : (
                                 currentUser.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)
                               )}
                             </div>
-                            {!isProfileActive && activeUserTokens.length > 0 && currentRole === 'PATIENT' && (
-                              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-slate-900 animate-pulse" />
+                            {!isProfileActive && (
+                              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
                             )}
                           </div>
-                          <span className={`text-[11px] font-medium transition-colors max-w-[65px] truncate ${
-                            isProfileActive || (activeUserTokens.length > 0 && currentRole === 'PATIENT')
-                              ? 'text-slate-100'
-                              : 'text-slate-800 group-hover:text-emerald-700'
-                          }`}>
-                            {isProfileActive ? 'Close' : currentUser.name.split(' ')[0]}
-                          </span>
-                          {!isProfileActive && activeUserTokens.length > 0 && currentRole === 'PATIENT' && (
-                            <span className="px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 text-[9px] font-mono font-bold tabular-nums">
-                              #{activeUserTokens[0].tokenNumber}
-                            </span>
-                          )}
                         </button>
                       ) : (
                         <button
@@ -1647,45 +1627,25 @@ export function App() {
                         <button
                           type="button"
                           onClick={handleToggleProfile}
-                          className={`flex items-center gap-1.5 py-1 pl-1.5 pr-2.5 rounded-full transition-all cursor-pointer group ${
-                            isProfileActive
-                              ? 'bg-slate-900 text-white ring-2 ring-emerald-500/80 shadow-xs'
-                              : activeUserTokens.length > 0 && currentRole === 'PATIENT'
-                              ? 'bg-slate-900 hover:bg-slate-800 text-white border border-slate-700/80 shadow-xs'
-                              : 'bg-slate-100 hover:bg-slate-200/80 text-slate-800 border border-slate-200/80'
-                          }`}
-                          title={isProfileActive ? 'Close Profile View' : `Logged in as ${currentUser.name} (${currentRole}) • Tap for Profile & Sign Out`}
+                          className="flex items-center gap-1.5 p-1 rounded-full hover:bg-slate-100 transition-colors cursor-pointer group"
+                          title={isProfileActive ? 'Close Profile View' : `Logged in as ${currentUser.name} • Tap for Profile & Sign Out`}
                         >
                           <div className="relative">
-                            <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shadow-xs ${
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shadow-xs border border-white transition-all ${
                               isProfileActive
                                 ? 'bg-rose-500 text-white'
-                                : activeUserTokens.length > 0 && currentRole === 'PATIENT'
-                                ? 'bg-emerald-500 text-slate-950'
-                                : 'bg-slate-900 text-white font-semibold'
+                                : 'bg-gradient-to-tr from-slate-900 via-slate-800 to-slate-950 text-white'
                             }`}>
                               {isProfileActive ? (
-                                <X className="w-3 h-3 text-white" />
+                                <X className="w-4 h-4 text-white" />
                               ) : (
                                 currentUser.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)
                               )}
                             </div>
-                            {!isProfileActive && activeUserTokens.length > 0 && currentRole === 'PATIENT' && (
-                              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-slate-900 animate-pulse" />
+                            {!isProfileActive && (
+                              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
                             )}
                           </div>
-                          <span className={`text-[11px] font-medium transition-colors max-w-[65px] truncate ${
-                            isProfileActive || (activeUserTokens.length > 0 && currentRole === 'PATIENT')
-                              ? 'text-slate-100'
-                              : 'text-slate-800 group-hover:text-emerald-700'
-                          }`}>
-                            {isProfileActive ? 'Close' : currentUser.name.split(' ')[0]}
-                          </span>
-                          {!isProfileActive && activeUserTokens.length > 0 && currentRole === 'PATIENT' && (
-                            <span className="px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 text-[9px] font-mono font-bold tabular-nums">
-                              #{activeUserTokens[0].tokenNumber}
-                            </span>
-                          )}
                         </button>
                       ) : (
                         <button
