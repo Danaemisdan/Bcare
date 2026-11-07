@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LucideIcon, Sparkles } from 'lucide-react';
+import { LucideIcon } from 'lucide-react';
+import { SiriOrb } from './SiriOrb';
 
 // ============================================================================
 // Liquid Glass Navbar
@@ -162,7 +163,7 @@ export function LiquidGlassNavbar<T extends string = string>({
           const isActive = item.id === activeId;
           const Icon = item.icon;
 
-          // SPECIAL RENDERING: SEXY 3D LUMINOUS AI ORB
+          // SPECIAL RENDERING: REAL 21ST.DEV ANIMATED SIRI ORB
           if (item.highlight) {
             return (
               <button
@@ -174,49 +175,12 @@ export function LiquidGlassNavbar<T extends string = string>({
                 aria-current={isActive ? 'page' : undefined}
                 className="relative z-30 flex-1 flex flex-col items-center justify-center -mt-5 outline-none cursor-pointer group select-none"
               >
-                {/* Outer Ethereal Pulsing AI Aura */}
-                <div
-                  className={`absolute -inset-3 rounded-full transition-all duration-700 pointer-events-none blur-md ${
-                    isActive
-                      ? 'bg-gradient-to-tr from-cyan-400 via-indigo-500 to-fuchsia-500 opacity-90 scale-110 animate-pulse'
-                      : 'bg-gradient-to-tr from-cyan-500 via-teal-400 to-indigo-500 opacity-60 scale-100 group-hover:opacity-85'
-                  }`}
+                {/* 21st.dev Animated Multi-Angle Conic Gradient Siri Orb */}
+                <SiriOrb
+                  size={48}
+                  state={isActive ? 'thinking' : 'idle'}
+                  className="transition-transform duration-200 group-hover:scale-105 active:scale-92"
                 />
-
-                {/* The 3D Sexy Luminous AI Orb */}
-                <motion.div
-                  animate={
-                    isActive
-                      ? { scale: 1.12, y: -2 }
-                      : { scale: 1, y: 0 }
-                  }
-                  whileTap={{ scale: 0.9 }}
-                  transition={{
-                    type: 'spring',
-                    stiffness: 450,
-                    damping: 24,
-                    mass: 0.7,
-                  }}
-                  className="relative w-12 h-12 rounded-full p-[1.5px] 
-                             bg-gradient-to-tr from-cyan-300 via-white to-indigo-400 
-                             shadow-[0_10px_25px_-3px_rgba(6,182,212,0.55),0_4px_12px_rgba(79,70,229,0.4),inset_0_1.5px_2px_rgba(255,255,255,0.95)] 
-                             flex items-center justify-center overflow-hidden"
-                >
-                  {/* Deep Fluid Iridescent Core */}
-                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_25%,_#38bdf8_0%,_#0284c7_35%,_#4f46e5_75%,_#0f172a_100%)]" />
-
-                  {/* Rotating Liquid Light Rays */}
-                  <div className="absolute inset-0 bg-gradient-to-tr from-cyan-400/40 via-transparent to-fuchsia-400/40 animate-[spin_6s_linear_infinite]" />
-
-                  {/* Specular Top Crescent Glass Reflection */}
-                  <div className="absolute top-1 inset-x-2 h-3.5 rounded-full bg-gradient-to-b from-white/95 to-transparent opacity-90 pointer-events-none" />
-
-                  {/* Ambient Rim Glint */}
-                  <div className="absolute bottom-1 inset-x-2.5 h-1.5 rounded-full bg-gradient-to-t from-teal-300/80 to-transparent pointer-events-none" />
-
-                  {/* Center Glowing Sparkles Glyph */}
-                  <Sparkles className="relative z-10 w-5 h-5 text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)]" />
-                </motion.div>
 
                 {/* Minimal Chic AI Label */}
                 <span

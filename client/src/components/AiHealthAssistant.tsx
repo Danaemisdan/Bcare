@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { DoctorProfile, Hospital, OpSlot, PatientProfile } from '../types';
 import { ConsultationType } from './BookingConsultationScreen';
+import { SiriOrb } from './SiriOrb';
 
 export type BodyZone = 
   | 'head'
@@ -319,11 +320,9 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
             </p>
           </div>
 
-          <div className="hidden sm:flex flex-col items-end shrink-0">
-            <div className="w-10 h-10 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 flex items-center justify-center text-emerald-400 shadow-inner">
-              <Activity className="w-5 h-5" />
-            </div>
-            <span className="text-[10px] text-slate-400 mt-1 font-mono">ABDM Level-2</span>
+          <div className="flex flex-col items-center justify-center shrink-0 pr-1">
+            <SiriOrb size={56} state="thinking" />
+            <span className="text-[10px] text-emerald-300/80 mt-1.5 font-medium tracking-tight">Active Engine</span>
           </div>
         </div>
 
