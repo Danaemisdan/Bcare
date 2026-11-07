@@ -13,6 +13,7 @@ export interface LiquidNavItem<T extends string = string> {
   icon: LucideIcon;
   badge?: number | string;
   verifiedBeacon?: boolean;
+  highlight?: boolean;
 }
 
 export interface LiquidGlassNavbarProps<T extends string = string> {
@@ -174,10 +175,21 @@ export function LiquidGlassNavbar<T extends string = string>({
             >
               {/* Icon Container with Smooth Micro-Lift */}
               <div className="relative flex items-center justify-center">
+                {/* AI Middle Highlight Halo */}
+                {item.highlight && (
+                  <div
+                    className={`absolute -inset-1.5 rounded-full transition-opacity duration-300 pointer-events-none ${
+                      isActive
+                        ? 'bg-gradient-to-tr from-emerald-500/25 via-teal-400/30 to-sky-500/25 blur-xs opacity-100'
+                        : 'bg-emerald-400/10 opacity-70'
+                    }`}
+                  />
+                )}
+
                 <motion.div
                   animate={
                     isActive
-                      ? { scale: 1.06, y: -1 }
+                      ? { scale: item.highlight ? 1.12 : 1.06, y: -1 }
                       : { scale: 1, y: 0 }
                   }
                   transition={{
@@ -186,11 +198,21 @@ export function LiquidGlassNavbar<T extends string = string>({
                     damping: 26,
                     mass: 0.6,
                   }}
-                  className="flex items-center justify-center"
+                  className={`flex items-center justify-center ${
+                    item.highlight
+                      ? 'p-1 rounded-full bg-gradient-to-tr from-emerald-50 to-teal-50 border border-emerald-300/40 shadow-xs'
+                      : ''
+                  }`}
                 >
                   <Icon
                     className={`w-[19px] h-[19px] transition-transform duration-150 ${
-                      isActive ? 'stroke-[2.2] text-emerald-600' : 'stroke-[1.8] text-slate-500'
+                      item.highlight
+                        ? isActive
+                          ? 'stroke-[2.4] text-emerald-600'
+                          : 'stroke-[2] text-teal-600'
+                        : isActive
+                        ? 'stroke-[2.2] text-emerald-600'
+                        : 'stroke-[1.8] text-slate-500'
                     }`}
                   />
                 </motion.div>
@@ -214,7 +236,13 @@ export function LiquidGlassNavbar<T extends string = string>({
               {/* Label */}
               <span
                 className={`text-[10px] mt-0.5 leading-tight tracking-tight transition-all duration-200 ${
-                  isActive ? 'font-bold text-emerald-800 scale-100' : 'font-medium text-slate-500'
+                  isActive
+                    ? item.highlight
+                      ? 'font-extrabold text-teal-900 scale-100'
+                      : 'font-bold text-emerald-800 scale-100'
+                    : item.highlight
+                    ? 'font-semibold text-teal-700'
+                    : 'font-medium text-slate-500'
                 }`}
               >
                 {item.label}

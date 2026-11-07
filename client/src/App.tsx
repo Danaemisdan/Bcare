@@ -44,7 +44,8 @@ import {
   Landmark,
   Users,
   LogOut,
-  X
+  X,
+  Clock
 } from 'lucide-react';
 
 export function App() {
@@ -96,11 +97,11 @@ export function App() {
       setShowSplashScreen(true);
     }
   }, [currentRole]);
-  const [patientTab, setPatientTab] = useState<'op_booking' | 'telehealth' | 'prescriptions' | 'community' | 'profile'>(() => {
+  const [patientTab, setPatientTab] = useState<'op_booking' | 'telehealth' | 'ai_assist' | 'history' | 'profile'>(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const t = params.get('tab');
-      if (t === 'profile' || t === 'telehealth' || t === 'prescriptions' || t === 'community' || t === 'op_booking') return t;
+      if (t === 'profile' || t === 'telehealth' || t === 'ai_assist' || t === 'history' || t === 'op_booking') return t;
     }
     return 'op_booking';
   });
@@ -108,7 +109,7 @@ export function App() {
   const [doctorTab, setDoctorTab] = useState<'queue' | 'rx' | 'completed' | 'profile'>('queue');
   const [franchiseTab, setFranchiseTab] = useState<'territory' | 'hospitals' | 'nurses' | 'profile'>('territory');
   const [showProfileModal, setShowProfileModal] = useState(false);
-  const [previousPatientTab, setPreviousPatientTab] = useState<'op_booking' | 'telehealth' | 'prescriptions' | 'community'>('op_booking');
+  const [previousPatientTab, setPreviousPatientTab] = useState<'op_booking' | 'telehealth' | 'ai_assist' | 'history'>('op_booking');
   const [isPatientBookingActive, setIsPatientBookingActive] = useState(false);
 
   const roleDefaultUsers: Record<UserRole, any> = {
@@ -1133,7 +1134,7 @@ export function App() {
   };
 
   // Nimbus Liquid Glass Nav Items (@gughigug/components/liquid-glass-navbar)
-  const patientNavItems: LiquidNavItem<'op_booking' | 'telehealth' | 'prescriptions' | 'community' | 'profile'>[] = [
+  const patientNavItems: LiquidNavItem<'op_booking' | 'telehealth' | 'ai_assist' | 'history' | 'profile'>[] = [
     {
       id: 'op_booking',
       label: 'Tokens',
@@ -1145,15 +1146,18 @@ export function App() {
       icon: Video,
     },
     {
-      id: 'prescriptions',
-      label: 'Rx',
-      icon: FileText,
-      badge: prescriptions.length > 0 ? prescriptions.length : undefined,
+      id: 'ai_assist',
+      label: 'AI Health',
+      icon: Sparkles,
+      highlight: true,
     },
     {
-      id: 'community',
-      label: 'Community',
-      icon: MessageSquare,
+      id: 'history',
+      label: 'History',
+      icon: Clock,
+      badge: (prescriptions.length + (slots.filter(s => s.patientPhone === currentUser?.phone && (s.status === 'BOOKED' || s.status === 'IN_CONSULTATION')).length)) > 0
+        ? (prescriptions.length + (slots.filter(s => s.patientPhone === currentUser?.phone && (s.status === 'BOOKED' || s.status === 'IN_CONSULTATION')).length))
+        : undefined,
     },
     {
       id: 'profile',

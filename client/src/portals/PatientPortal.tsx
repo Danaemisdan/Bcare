@@ -15,6 +15,7 @@ import { ProgressiveProfileBanner } from '../components/ProgressiveProfileBanner
 import { TeleconsultRoomModal } from '../components/TeleconsultRoomModal';
 import { CheckoutSummary, ConsultationType } from '../components/CheckoutSummary';
 import { BookingConsultationScreen } from '../components/BookingConsultationScreen';
+import { AiHealthAssistant } from '../components/AiHealthAssistant';
 import { PhoneModalPortal } from '../components/PhoneModalPortal';
 import { generatePrescriptionPdf } from '../utils/pdfGenerator';
 import { 
@@ -58,7 +59,8 @@ import {
   LogOut,
   Search,
   MapPin,
-  Calendar
+  Calendar,
+  Ticket
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { RollingCounter } from '../components/RollingCounter';
@@ -76,8 +78,8 @@ interface PatientPortalProps {
   splitConfig: RevenueSplitConfig;
   platformSettings?: PlatformSettings;
   isMobile?: boolean;
-  activeTab?: 'op_booking' | 'telehealth' | 'prescriptions' | 'community' | 'profile';
-  onTabChange?: (tab: 'op_booking' | 'telehealth' | 'prescriptions' | 'community' | 'profile') => void;
+  activeTab?: 'op_booking' | 'telehealth' | 'ai_assist' | 'history' | 'profile';
+  onTabChange?: (tab: 'op_booking' | 'telehealth' | 'ai_assist' | 'history' | 'profile') => void;
   onBookSlot: (slotId: string, patientName: string, patientPhone: string, referralCode?: string) => Promise<any>;
   onBookVideoConsultation?: (bookingData: any) => Promise<any>;
   onUpdateProfile: (updatedData: Partial<PatientProfile>) => Promise<void>;
@@ -109,12 +111,13 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
   onBookingScreenToggle,
   onLogout
 }) => {
-  const [internalTab, setInternalTab] = useState<'op_booking' | 'telehealth' | 'prescriptions' | 'community' | 'profile'>('op_booking');
+  const [internalTab, setInternalTab] = useState<'op_booking' | 'telehealth' | 'ai_assist' | 'history' | 'profile'>('op_booking');
   const activeTab = controlledTab !== undefined ? controlledTab : internalTab;
-  const setActiveTab = (tab: 'op_booking' | 'telehealth' | 'prescriptions' | 'community' | 'profile') => {
+  const setActiveTab = (tab: 'op_booking' | 'telehealth' | 'ai_assist' | 'history' | 'profile') => {
     if (onTabChange) onTabChange(tab);
     setInternalTab(tab);
   };
+  const [historyFilter, setHistoryFilter] = useState<'ALL' | 'PRESCRIPTIONS' | 'TOKENS'>('ALL');
   const [copiedAbha, setCopiedAbha] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   
@@ -602,27 +605,27 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                 </button>
               </SlapBlock>
 
-              {/* 4. Prescriptions */}
+              {/* 4. Medical History & Prescriptions */}
               <SlapBlock variant="slap" delay={0.08}>
                 <button
                   type="button"
-                  onClick={() => setActiveTab('prescriptions')}
+                  onClick={() => setActiveTab('history')}
                   className="w-full p-3.5 rounded-2xl bg-white border border-slate-200/90 hover:border-slate-300 transition-all flex flex-col justify-between text-left cursor-pointer relative shadow-[0_1px_3px_rgba(0,0,0,0.02),0_4px_12px_rgba(0,0,0,0.03)] min-h-[105px]"
                 >
                   <div className="flex items-center justify-between w-full">
                     <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
-                      <FileText className="w-5 h-5 stroke-[2]" />
+                      <Clock className="w-5 h-5 stroke-[2]" />
                     </div>
                     <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-semibold border border-emerald-200/60">
-                      {prescriptions.length} Meds
+                      {prescriptions.length + activeUserTokens.length} Records
                     </span>
                   </div>
                   <div className="mt-2.5">
                     <h3 className="text-[13px] font-semibold text-slate-900 tracking-tight leading-tight">
-                      My Prescriptions
+                      History & Rx
                     </h3>
                     <p className="text-[11px] font-normal text-slate-400 mt-0.5">
-                      ABHA digital health Rx
+                      Prescriptions & OPD Passes
                     </p>
                   </div>
                 </button>
@@ -690,23 +693,23 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
             </button>
 
             <button
-              onClick={() => setActiveTab('prescriptions')}
+              onClick={() => setActiveTab('ai_assist')}
               className={`flex items-center gap-2 py-2 px-3.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
-                activeTab === 'prescriptions' ? 'bg-white text-zinc-950 shadow-xs' : 'text-zinc-600 hover:text-zinc-950'
+                activeTab === 'ai_assist' ? 'bg-white text-teal-900 shadow-xs ring-1 ring-emerald-500/30' : 'text-teal-700 hover:text-teal-950'
               }`}
             >
-              <FileText className="w-4 h-4" />
-              <span>Prescriptions ({prescriptions.length})</span>
+              <Sparkles className="w-4 h-4 text-emerald-600" />
+              <span>AI Health Assistant</span>
             </button>
 
             <button
-              onClick={() => setActiveTab('community')}
+              onClick={() => setActiveTab('history')}
               className={`flex items-center gap-2 py-2 px-3.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
-                activeTab === 'community' ? 'bg-white text-zinc-950 shadow-xs' : 'text-zinc-600 hover:text-zinc-950'
+                activeTab === 'history' ? 'bg-white text-zinc-950 shadow-xs' : 'text-zinc-600 hover:text-zinc-950'
               }`}
             >
-              <Users className="w-4 h-4" />
-              <span>Community Health Board</span>
+              <Clock className="w-4 h-4" />
+              <span>History ({prescriptions.length + activeUserTokens.length})</span>
             </button>
 
             <button
@@ -1334,214 +1337,255 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
 
       
       {/* ============================================================== */}
-      {/* TAB 3: PRESCRIPTIONS ARCHIVE */}
+      {/* TAB 3: TINY LOCAL AI HEALTH ASSISTANT                          */}
       {/* ============================================================== */}
-      {activeTab === 'prescriptions' && (
+      {activeTab === 'ai_assist' && (
         <motion.div
-          key="prescriptions"
+          key="ai_assist"
           initial={{ opacity: 0, y: 8, filter: 'blur(3px)' }}
           animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
           exit={{ opacity: 0, y: -6, filter: 'blur(2px)' }}
           transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-          className="space-y-4"
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-xs font-bold text-zinc-950 tracking-tight">Digital Prescriptions</h3>
-              <p className="text-[11px] text-zinc-500">QR-verifiable prescriptions for pharmacy pickup</p>
-            </div>
-          </div>
-
-          <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'} gap-3`}>
-            {prescriptions.map(rx => (
-              <div 
-                key={rx.id} 
-                className="bg-white rounded-2xl border border-zinc-200/80 p-4 shadow-subtle hover:border-zinc-300 transition-all space-y-2.5"
-              >
-                <div className="flex items-center justify-between pb-2.5 border-b border-zinc-100">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-zinc-100 text-zinc-700 flex items-center justify-center font-bold text-xs">
-                      Rx
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-xs text-zinc-900 tracking-tight">{rx.id}</h4>
-                      <p className="text-[10px] text-zinc-400 tabular-nums">{new Date(rx.issuedAt).toLocaleDateString()}</p>
-                    </div>
-                  </div>
-                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    Digitally Signed
-                  </span>
-                </div>
-
-                <div className="text-xs space-y-1">
-                  <div className="flex justify-between text-[11px]">
-                    <span className="text-zinc-400">Doctor:</span>
-                    <span className="font-medium text-zinc-900">{rx.doctorName}</span>
-                  </div>
-                  <div className="flex justify-between text-[11px]">
-                    <span className="text-zinc-400">Diagnosis:</span>
-                    <span className="font-semibold text-zinc-900 truncate ml-2">{rx.diagnosis}</span>
-                  </div>
-                </div>
-
-                {/* Medicines List */}
-                <div className="bg-zinc-50 p-2.5 rounded-xl border border-zinc-100 space-y-1 text-xs">
-                  <span className="text-[10px] text-zinc-400 uppercase tracking-wider block font-medium">Prescribed Medicines ({rx.medicines.length}):</span>
-                  {rx.medicines.map((m, idx) => (
-                    <div key={idx} className="flex justify-between text-zinc-700 text-[11px] tabular-nums">
-                      <span className="truncate mr-2">{m.name} ({m.dosage})</span>
-                      <span className="text-zinc-400 shrink-0">{m.frequency}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <button
-                  onClick={() => generatePrescriptionPdf(rx)}
-                  className="w-full py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors"
-                >
-                  <FileText className="w-3.5 h-3.5 text-zinc-300" />
-                  <span>Download Verified Prescription (PDF)</span>
-                </button>
-              </div>
-            ))}
-          </div>
+          <AiHealthAssistant
+            patientProfile={patientProfile}
+            hospitals={hospitals}
+            doctors={doctors}
+            slots={slots}
+            onOpenCheckout={(doc, type, explicitSlot) => handleOpenCheckout(doc, type, explicitSlot)}
+          />
         </motion.div>
       )}
 
-      
       {/* ============================================================== */}
-      {/* TAB 4: COMMUNITY HEALTH BOARD */}
+      {/* TAB 4: UNIFIED PATIENT MEDICAL HISTORY & PRESCRIPTIONS ARCHIVE */}
       {/* ============================================================== */}
-      {activeTab === 'community' && (
+      {activeTab === 'history' && (
         <motion.div
-          key="community"
+          key="history"
           initial={{ opacity: 0, y: 8, filter: 'blur(3px)' }}
           animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
           exit={{ opacity: 0, y: -6, filter: 'blur(2px)' }}
           transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-          className="space-y-4"
+          className="space-y-4 pb-32"
         >
-          <div className="flex items-center justify-between">
+          {/* Header & Filter Controls */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-zinc-100">
             <div>
-              <h3 className="text-xs font-bold text-zinc-950 tracking-tight">Condition Peer Board</h3>
-              <p className="text-[11px] text-zinc-500">Peer recovery & doctor answers</p>
+              <h3 className="text-sm font-bold text-zinc-950 tracking-tight flex items-center gap-2">
+                <Clock className="w-4 h-4 text-emerald-600" />
+                <span>Patient Records & History</span>
+              </h3>
+              <p className="text-[11px] text-zinc-500 mt-0.5">
+                Verified digital prescriptions, active OPD tokens, and consultation archives
+              </p>
             </div>
-            <button
-              onClick={() => setShowNewPostModal(true)}
-              className="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold shadow-xs transition-colors"
-            >
-              Ask Question
-            </button>
+
+            {/* Segmented Filter Pills */}
+            <div className="bg-zinc-100 p-0.5 rounded-xl flex items-center text-[10px] font-semibold select-none">
+              <button
+                type="button"
+                onClick={() => setHistoryFilter('ALL')}
+                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                  historyFilter === 'ALL'
+                    ? 'bg-white text-zinc-950 shadow-xs'
+                    : 'text-zinc-500 hover:text-zinc-800'
+                }`}
+              >
+                All ({prescriptions.length + activeUserTokens.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setHistoryFilter('PRESCRIPTIONS')}
+                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                  historyFilter === 'PRESCRIPTIONS'
+                    ? 'bg-white text-zinc-950 shadow-xs'
+                    : 'text-zinc-500 hover:text-zinc-800'
+                }`}
+              >
+                Prescriptions ({prescriptions.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setHistoryFilter('TOKENS')}
+                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                  historyFilter === 'TOKENS'
+                    ? 'bg-white text-zinc-950 shadow-xs'
+                    : 'text-zinc-500 hover:text-zinc-800'
+                }`}
+              >
+                OP Passes ({activeUserTokens.length})
+              </button>
+            </div>
           </div>
 
-          {/* Posts Feed */}
-          <div className="space-y-3">
-            {communityPosts.map(post => (
-              <div key={post.id} className="bg-white rounded-2xl border border-zinc-200/80 p-4 shadow-subtle space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-5 h-5 rounded-md bg-zinc-100 flex items-center justify-center font-bold text-[9px] text-zinc-700">
-                      {post.authorName[0]}
-                    </div>
-                    <span className="text-xs font-semibold text-zinc-900">{post.authorName}</span>
-                    <span className="text-[10px] text-zinc-400">• {post.category}</span>
-                  </div>
-                </div>
-
-                <h4 className="font-semibold text-xs text-zinc-950">{post.title}</h4>
-                <p className="text-[11px] text-zinc-600 leading-relaxed">{post.content}</p>
-
-                {post.comments && post.comments.length > 0 && (
-                  <div className="bg-zinc-50 rounded-xl p-2.5 space-y-1.5 border border-zinc-100 text-xs">
-                    <span className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider block">Clinical Replies:</span>
-                    {post.comments.map(c => (
-                      <div key={c.id} className="border-l-2 border-zinc-900 pl-2 text-[10px]">
-                        <span className="font-semibold text-zinc-900">{c.authorName} ({c.authorRole}):</span>
-                        <p className="text-zinc-600 mt-0.5">{c.content}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <div className="flex items-center gap-3 text-[10px] text-zinc-400 pt-0.5">
-                  <span 
-                    onClick={() => {
-                      setUpvotedPosts(prev => ({
-                        ...prev,
-                        [post.id]: (prev[post.id] ?? post.upvotes) + 1
-                      }));
-                    }}
-                    className="flex items-center gap-1 hover:text-emerald-700 cursor-pointer active:scale-95 transition-all"
-                  >
-                    <ThumbsUp className="w-3 h-3 text-emerald-600" />
-                    <RollingCounter 
-                      value={upvotedPosts[post.id] ?? post.upvotes} 
-                      suffix=" Upvotes" 
-                      height={14} 
-                    />
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <MessageSquare className="w-3 h-3" />
-                    <span>{post.commentCount} Comments</span>
-                  </span>
-                </div>
+          {/* Active / Past OP Token Passes */}
+          {(historyFilter === 'ALL' || historyFilter === 'TOKENS') && activeUserTokens.length > 0 && (
+            <div className="space-y-2.5">
+              <div className="flex items-center gap-1.5 text-[11px] font-bold text-zinc-700 uppercase tracking-wider px-0.5">
+                <Ticket className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Outpatient Token Passes ({activeUserTokens.length})</span>
               </div>
-            ))}
-          </div>
 
-          {/* Post Creation Modal */}
-          {showNewPostModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/40 backdrop-blur-sm">
-              <div className="bg-white rounded-2xl max-w-sm w-full p-4 border border-zinc-200 shadow-2xl space-y-3">
-                <h3 className="font-bold text-xs text-zinc-900">Start Discussion</h3>
-                <div>
-                  <label className="block text-[10px] font-semibold text-zinc-700 mb-1">Topic Title</label>
-                  <input
-                    type="text"
-                    value={newPostTitle}
-                    onChange={(e) => setNewPostTitle(e.target.value)}
-                    placeholder="e.g. Tips on dietary salt control"
-                    className="w-full text-xs p-2 rounded-xl border border-zinc-200"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-semibold text-zinc-700 mb-1">Content</label>
-                  <textarea
-                    rows={3}
-                    value={newPostContent}
-                    onChange={(e) => setNewPostContent(e.target.value)}
-                    placeholder="Describe your inquiry..."
-                    className="w-full text-xs p-2 rounded-xl border border-zinc-200"
-                  />
-                </div>
-                <div className="flex items-center justify-end gap-2 pt-2 border-t border-zinc-100">
-                  <button
-                    onClick={() => setShowNewPostModal(false)}
-                    className="px-3 py-1.5 rounded-xl text-xs font-medium text-zinc-600 hover:bg-zinc-100"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={async () => {
-                      if (!newPostTitle || !newPostContent) return;
-                      await onAddCommunityPost({
-                        category: newPostCategory,
-                        title: newPostTitle,
-                        content: newPostContent
-                      });
-                      setShowNewPostModal(false);
-                      setNewPostTitle('');
-                      setNewPostContent('');
-                    }}
-                    className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-white bg-zinc-900 hover:bg-zinc-800"
-                  >
-                    Post Topic
-                  </button>
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {activeUserTokens.map(token => {
+                  const doc = doctors.find(d => d.id === token.doctorId);
+                  const hosp = hospitals.find(h => h.id === token.hospitalId);
+
+                  return (
+                    <div
+                      key={token.id}
+                      className="bg-white rounded-2xl border border-zinc-200/90 p-4 shadow-sm space-y-3 hover:border-emerald-300 transition-all"
+                    >
+                      <div className="flex items-center justify-between pb-2 border-b border-zinc-100">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-800 font-bold text-xs flex items-center justify-center font-mono">
+                            #{token.tokenNumber}
+                          </div>
+                          <div>
+                            <span className="text-[10px] text-zinc-400 uppercase tracking-wider block font-medium">OPD Token</span>
+                            <h4 className="font-bold text-xs text-zinc-950">
+                              {doc ? doc.name : 'Attending Specialist'}
+                            </h4>
+                          </div>
+                        </div>
+
+                        <span className="px-2.5 py-0.5 rounded-full bg-emerald-100/70 border border-emerald-300 text-emerald-800 text-[10px] font-semibold">
+                          {token.status === 'IN_CONSULTATION' ? '● In Consultation' : '● Live in Queue'}
+                        </span>
+                      </div>
+
+                      <div className="text-xs space-y-1 text-zinc-600">
+                        <div className="flex justify-between text-[11px]">
+                          <span className="text-zinc-400">Hospital:</span>
+                          <span className="font-semibold text-zinc-900">{hosp ? hosp.name : 'City Care Hospital'}</span>
+                        </div>
+                        <div className="flex justify-between text-[11px]">
+                          <span className="text-zinc-400">Department & Room:</span>
+                          <span className="font-medium text-zinc-800">{doc?.specialty || 'General'} • Room 104</span>
+                        </div>
+                        <div className="flex justify-between text-[11px]">
+                          <span className="text-zinc-400">Slot Time:</span>
+                          <span className="font-mono font-medium text-zinc-900">{token.time}</span>
+                        </div>
+                      </div>
+
+                      <div className="pt-1 flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => onTriggerWhatsAppToast(
+                            'OP Queue Pass',
+                            `Token #${token.tokenNumber} details shared to your WhatsApp (+91 ${patientProfile.phone})`,
+                            'TOKEN_CONFIRMATION'
+                          )}
+                          className="flex-1 py-2 px-3 rounded-xl bg-zinc-950 hover:bg-zinc-800 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
+                          <span>WhatsApp Pass</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setShowLivePassModal(true)}
+                          className="py-2 px-3 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-800 font-semibold text-xs transition-colors cursor-pointer"
+                        >
+                          View Full Pass
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
 
+          {/* Prescriptions Section */}
+          {(historyFilter === 'ALL' || historyFilter === 'PRESCRIPTIONS') && prescriptions.length > 0 && (
+            <div className="space-y-2.5">
+              <div className="flex items-center gap-1.5 text-[11px] font-bold text-zinc-700 uppercase tracking-wider px-0.5">
+                <FileText className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Verified Digital Prescriptions ({prescriptions.length})</span>
+              </div>
+
+              <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'} gap-3`}>
+                {prescriptions.map(rx => (
+                  <div 
+                    key={rx.id} 
+                    className="bg-white rounded-2xl border border-zinc-200/80 p-4 shadow-subtle hover:border-zinc-300 transition-all space-y-2.5"
+                  >
+                    <div className="flex items-center justify-between pb-2.5 border-b border-zinc-100">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-xs">
+                          Rx
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-xs text-zinc-900 tracking-tight">{rx.id}</h4>
+                          <p className="text-[10px] text-zinc-400 tabular-nums">{new Date(rx.issuedAt).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        Digitally Signed
+                      </span>
+                    </div>
+
+                    <div className="text-xs space-y-1">
+                      <div className="flex justify-between text-[11px]">
+                        <span className="text-zinc-400">Doctor:</span>
+                        <span className="font-medium text-zinc-900">{rx.doctorName}</span>
+                      </div>
+                      <div className="flex justify-between text-[11px]">
+                        <span className="text-zinc-400">Diagnosis:</span>
+                        <span className="font-semibold text-zinc-900 truncate ml-2">{rx.diagnosis}</span>
+                      </div>
+                    </div>
+
+                    {/* Medicines List */}
+                    <div className="bg-zinc-50 p-2.5 rounded-xl border border-zinc-100 space-y-1 text-xs">
+                      <span className="text-[10px] text-zinc-400 uppercase tracking-wider block font-medium">Prescribed Medicines ({rx.medicines.length}):</span>
+                      {rx.medicines.map((m, idx) => (
+                        <div key={idx} className="flex justify-between text-zinc-700 text-[11px] tabular-nums">
+                          <span className="truncate mr-2">{m.name} ({m.dosage})</span>
+                          <span className="text-zinc-400 shrink-0">{m.frequency}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <button
+                      onClick={() => generatePrescriptionPdf(rx)}
+                      className="w-full py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                    >
+                      <FileText className="w-3.5 h-3.5 text-zinc-300" />
+                      <span>Download Verified Prescription (PDF)</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Empty State */}
+          {((historyFilter === 'PRESCRIPTIONS' && prescriptions.length === 0) ||
+            (historyFilter === 'TOKENS' && activeUserTokens.length === 0) ||
+            (historyFilter === 'ALL' && prescriptions.length === 0 && activeUserTokens.length === 0)) && (
+            <div className="p-8 text-center bg-white rounded-3xl border border-zinc-200/80 space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-zinc-100 text-zinc-400 flex items-center justify-center mx-auto">
+                <Clock className="w-6 h-6" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-zinc-900">No Records Found</h4>
+                <p className="text-[11px] text-zinc-500 max-w-xs mx-auto mt-0.5">
+                  Your consultation passes, verified prescriptions, and diagnostic records will appear here automatically.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveTab('op_booking')}
+                className="px-4 py-2 rounded-xl bg-zinc-950 text-white text-xs font-semibold hover:bg-zinc-800 transition-colors cursor-pointer"
+              >
+                Book OPD Token Now
+              </button>
+            </div>
+          )}
         </motion.div>
       )}
 
@@ -1555,7 +1599,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
           animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
           exit={{ opacity: 0, y: -6, filter: 'blur(2px)' }}
           transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-          className="space-y-4"
+          className="space-y-4 pb-32"
         >
           {/* Quick Back / Close Navigation Bar */}
           <div className="flex items-center justify-between px-1">
