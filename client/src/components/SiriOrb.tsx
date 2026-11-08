@@ -40,22 +40,21 @@ export const SiriOrb: React.FC<SiriOrbProps> = ({
 
   // Lighter, smoother, ethereal Apple Intelligence palette
   const defaultColors = {
-    bg: '#0c1322', // Deep twilight navy
-    c1: 'oklch(76% 0.18 350)', // Silky Soft Coral / Rose
-    c2: 'oklch(80% 0.17 215)', // Luminous Soft Sky Cyan
-    c3: 'oklch(74% 0.18 285)', // Silky Soft Lavender Violet
-    c4: 'oklch(82% 0.16 165)', // Fresh Ethereal Mint
+    bg: '#090d1a', // Deep twilight space
+    c1: '#ff375f', // Apple Vibrant Rose
+    c2: '#00d4ff', // Luminous Electric Cyan
+    c3: '#7952ff', // Electric Violet
+    c4: '#30e8bd', // Fresh Aurora Emerald
   };
 
   const finalColors = { ...defaultColors, ...colors };
   const sizeValue = typeof size === 'number' ? size : parseInt(size.replace('px', ''), 10) || 50;
 
-  // Responsive calculations based on 21st.dev component specifications
-  const blurAmount = Math.max(sizeValue * 0.014, 2.0);
-  const contrastAmount = Math.max(sizeValue * 0.006, 1.2);
-  const dotSize = Math.max(sizeValue * 0.006, 0.08);
-  const shadowSpread = Math.max(sizeValue * 0.006, 1);
-  const rim = Math.max(sizeValue * 0.065, 1.8);
+  // Ultra-smooth liquid blur calculations
+  const blurAmount = Math.max(sizeValue * 0.11, 7.0);
+  const contrastAmount = 1.15;
+  const shadowSpread = Math.max(sizeValue * 0.08, 4);
+  const rim = Math.max(sizeValue * 0.08, 2.5);
   const loopDuration = shouldReduceMotion ? animationDuration : animationDuration / config.speed;
   const driftDuration = (12 / (1 + config.speed)) * 1.5;
 
@@ -109,7 +108,6 @@ export const SiriOrb: React.FC<SiriOrbProps> = ({
           ['--c3' as any]: finalColors.c3,
           ['--c4' as any]: finalColors.c4,
           ['--contrast-amount' as any]: contrastAmount,
-          ['--dot-size' as any]: `${dotSize}px`,
           ['--drift-duration' as any]: `${driftDuration}s`,
           ['--rim' as any]: `${rim}px`,
           ['--shadow-spread' as any]: `${shadowSpread}px`,
@@ -138,9 +136,9 @@ export const SiriOrb: React.FC<SiriOrbProps> = ({
             position: relative;
             isolation: isolate;
             box-shadow: 
-              0 6px 20px -3px rgba(56, 189, 248, 0.45),
-              0 2px 8px rgba(168, 85, 247, 0.3),
-              inset 0 1.5px 2px rgba(255, 255, 255, 0.9);
+              0 14px 38px -4px rgba(0, 212, 255, 0.42),
+              0 6px 18px -2px rgba(121, 82, 255, 0.35),
+              inset 0 1.5px 2px rgba(255, 255, 255, 0.95);
           }
 
           .siri-orb-root::before,
@@ -157,27 +155,27 @@ export const SiriOrb: React.FC<SiriOrbProps> = ({
           /* Glassy highlight that drifts infinitely */
           .siri-orb-sheen {
             background:
-              radial-gradient(circle at 32% 26%, hsl(0 0% 100% / 0.55), transparent 38%),
-              radial-gradient(circle at 70% 75%, hsl(0 0% 100% / 0.18), transparent 50%);
+              radial-gradient(circle at 30% 22%, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.15) 28%, transparent 42%),
+              radial-gradient(circle at 68% 78%, rgba(255, 255, 255, 0.22) 0%, transparent 45%);
             mix-blend-mode: screen;
             animation: siri-sheen-drift var(--drift-duration) ease-in-out infinite alternate;
           }
 
-          /* 3D Glass Lit Rim - Light, Smooth, Pearlescent */
+          /* 3D Glass Lit Rim - Pure Apple Specular Sheen */
           .siri-orb-rim {
             box-shadow:
-              inset 0 0 0 1px hsl(0 0% 100% / 0.35),
-              inset 0 calc(var(--rim) * 1) calc(var(--rim) * 1.6) hsl(0 0% 100% / 0.55),
-              inset 0 calc(var(--rim) * -1) calc(var(--rim) * 1.8) hsl(225 45% 15% / 0.42);
+              inset 0 0 0 1px rgba(255, 255, 255, 0.4),
+              inset 0 calc(var(--rim) * 1) calc(var(--rim) * 1.5) rgba(255, 255, 255, 0.65),
+              inset 0 calc(var(--rim) * -1) calc(var(--rim) * 1.8) rgba(10, 15, 35, 0.5);
             pointer-events: none;
           }
 
           @keyframes siri-sheen-drift {
-            0% { transform: translate(-5%, -3%) scale(1.04); }
-            100% { transform: translate(5%, 5%) scale(1.08); }
+            0% { transform: translate(-4%, -3%) scale(1.02); }
+            100% { transform: translate(4%, 4%) scale(1.06); }
           }
 
-          /* Six layered conic gradients rotating at varied speed ratios */
+          /* Multi-layer rotating conic gradients blended with liquid softness */
           .siri-orb-root::before {
             background:
               conic-gradient(
@@ -222,21 +220,21 @@ export const SiriOrb: React.FC<SiriOrbProps> = ({
                 transparent 22% 78%,
                 var(--c3)
               );
-            box-shadow: inset var(--bg) 0 0 var(--shadow-spread) calc(var(--shadow-spread) * 0.2);
-            filter: blur(var(--blur-amount)) contrast(var(--contrast-amount)) saturate(1.22);
+            box-shadow: inset var(--bg) 0 0 var(--shadow-spread) calc(var(--shadow-spread) * 0.3);
+            filter: blur(var(--blur-amount)) contrast(var(--contrast-amount)) saturate(1.35);
             animation: siri-mesh-rotate var(--animation-duration) linear infinite;
           }
 
-          /* Dot Pattern & Backdrop Overlay */
+          /* Pure Silky Glass Specular Glaze (Zero Grain / No Dithering) */
           .siri-orb-root::after {
-            background-image: radial-gradient(
-              circle at center,
-              var(--bg) var(--dot-size),
-              transparent var(--dot-size)
+            background: radial-gradient(
+              circle at 45% 40%,
+              rgba(255, 255, 255, 0.35) 0%,
+              rgba(255, 255, 255, 0.08) 35%,
+              transparent 70%
             );
-            background-size: calc(var(--dot-size) * 2.2) calc(var(--dot-size) * 2.2);
-            backdrop-filter: blur(calc(var(--blur-amount) * 1.5)) contrast(calc(var(--contrast-amount) * 1.5));
             mix-blend-mode: overlay;
+            pointer-events: none;
           }
 
           @keyframes siri-mesh-rotate {

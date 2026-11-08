@@ -213,29 +213,29 @@ export function QuestionPrompt({
   if (!activeQuestion) return null;
 
   return (
-    <div className={`p-4 space-y-3.5 bg-white ${className}`}>
+    <div className={`p-3.5 space-y-3 bg-white ${className}`}>
       {/* Question Title & Step Badge */}
       <div className="flex items-start justify-between gap-2">
-        <div className="space-y-1">
+        <div className="space-y-0.5">
           <div className="flex items-center gap-2">
-            <span className="w-5 h-5 rounded-md bg-sky-100 text-sky-700 text-xs font-bold inline-flex items-center justify-center">
+            <span className="w-5 h-5 rounded-full bg-sky-100 text-sky-700 text-[11px] font-bold inline-flex items-center justify-center shrink-0">
               {clampedIndex}
             </span>
-            <h4 className="text-sm font-bold text-slate-900 leading-tight">
+            <h4 className="text-sm font-bold text-slate-900 leading-snug">
               {activeQuestion.title}
             </h4>
           </div>
           {activeQuestion.description && (
-            <p className="text-xs text-slate-500 pl-7 leading-relaxed">
+            <p className="text-[11px] text-slate-500 pl-7 leading-relaxed">
               {activeQuestion.description}
             </p>
           )}
         </div>
       </div>
 
-      {/* Choice Options List with 21st.dev Letter Badges (A, B, C, D) */}
+      {/* Choice Options List with Clean Letter Badges (A, B, C, D) */}
       {activeQuestion.kind !== 'text' && (activeQuestion.options?.length ?? 0) > 0 && (
-        <div className="space-y-2 pt-1">
+        <div className="space-y-1.5 pt-0.5">
           {activeQuestion.options!.map((option, idx) => {
             const checked = selectedIds.includes(option.id);
             return (
@@ -249,30 +249,30 @@ export function QuestionPrompt({
                     toggleMulti(option.id);
                   }
                 }}
-                className={`w-full text-left rounded-2xl p-3 flex items-start gap-3 border transition-all cursor-pointer ${
+                className={`w-full text-left rounded-xl p-2.5 flex items-start gap-2.5 border transition-all cursor-pointer ${
                   checked
-                    ? 'bg-sky-50/90 border-sky-400 text-sky-950 shadow-xs ring-1 ring-sky-200'
-                    : 'bg-white hover:bg-slate-50/80 border-slate-200 text-slate-700'
+                    ? 'bg-sky-50/80 border-sky-400 text-slate-900 shadow-2xs ring-1 ring-sky-100'
+                    : 'bg-white hover:bg-slate-50/80 border-slate-200/90 text-slate-700 shadow-2xs'
                 }`}
               >
-                {/* 21st.dev Letter Badge */}
+                {/* Clean Letter Circle Badge */}
                 <span
-                  className={`w-6 h-6 rounded-lg text-xs font-bold inline-flex items-center justify-center shrink-0 border transition-colors mt-0.5 ${
+                  className={`w-5 h-5 rounded-full text-[11px] font-bold inline-flex items-center justify-center shrink-0 border transition-all mt-0.5 ${
                     checked
-                      ? 'bg-sky-500 text-white border-sky-500 shadow-2xs'
+                      ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white border-transparent shadow-xs'
                       : 'bg-slate-100 text-slate-600 border-slate-200'
                   }`}
                 >
-                  {checked ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : optionBadge(idx)}
+                  {checked ? <Check className="w-3 h-3 stroke-[3]" /> : optionBadge(idx)}
                 </span>
 
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs font-bold flex items-center gap-1.5">
-                    {option.icon && <span className="text-base">{option.icon}</span>}
-                    <span>{option.label}</span>
+                  <div className="text-xs font-bold flex items-center gap-1.5 text-slate-900">
+                    {option.icon && <span className="text-sm">{option.icon}</span>}
+                    <span className="truncate">{option.label}</span>
                   </div>
                   {option.description && (
-                    <div className="text-[11px] text-slate-500 mt-0.5 leading-tight">
+                    <div className="text-[10px] text-slate-500 mt-0.5 leading-tight truncate">
                       {option.description}
                     </div>
                   )}
@@ -283,11 +283,11 @@ export function QuestionPrompt({
 
           {/* Optional Custom Free-Text Input */}
           {customEnabled && (
-            <div className="pt-1 flex items-center gap-2">
+            <div className="pt-0.5 flex items-center gap-2">
               <span
-                className={`w-6 h-6 rounded-lg text-xs font-bold inline-flex items-center justify-center shrink-0 border ${
+                className={`w-5 h-5 rounded-full text-[11px] font-bold inline-flex items-center justify-center shrink-0 border ${
                   selectedIds.includes(QUESTION_CUSTOM_ID)
-                    ? 'bg-sky-500 text-white border-sky-500 shadow-2xs'
+                    ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white border-transparent'
                     : 'bg-slate-100 text-slate-500 border-slate-200'
                 }`}
               >
@@ -297,7 +297,7 @@ export function QuestionPrompt({
                 value={customText}
                 onChange={e => handleCustomTextChange(e.target.value)}
                 placeholder={activeQuestion.customPlaceholder ?? 'Other (type your answer)'}
-                className="flex-1 h-9 rounded-xl border border-slate-200 bg-slate-50/80 focus:bg-white focus:border-sky-400 px-3 text-xs text-slate-900 outline-none transition-all placeholder:text-slate-400"
+                className="flex-1 h-8 rounded-xl border border-slate-200 bg-slate-50/80 focus:bg-white focus:border-sky-400 px-3 text-xs text-slate-900 outline-none transition-all placeholder:text-slate-400"
               />
             </div>
           )}
@@ -429,12 +429,12 @@ export function QuestionTool({ part, onReset }: QuestionToolProps) {
   };
 
   return (
-    <div className="rounded-2xl border border-sky-200/80 bg-white/95 backdrop-blur-md overflow-hidden shadow-sm transition-all">
-      {/* 21st.dev Tool Header Bar */}
-      <div className="h-8 border-b border-sky-100 bg-sky-50/60 px-3.5 flex items-center justify-between text-xs text-slate-600">
-        <div className="inline-flex items-center gap-1.5 font-bold text-sky-900">
-          <HelpCircle className="w-3.5 h-3.5 text-sky-600" />
-          <span>Interactive Clinical Clarification</span>
+    <div className="rounded-3xl border border-slate-200/80 bg-white/95 backdrop-blur-md overflow-hidden shadow-xs transition-all">
+      {/* Sleek Minimal Header Bar */}
+      <div className="h-9 border-b border-slate-100 bg-slate-50/60 px-4 flex items-center justify-between text-xs text-slate-600">
+        <div className="inline-flex items-center gap-1.5 font-bold text-slate-800">
+          <Sparkles className="w-3.5 h-3.5 text-sky-500" />
+          <span>Clinical Triage</span>
         </div>
 
         {showNavigation && (
@@ -443,19 +443,19 @@ export function QuestionTool({ part, onReset }: QuestionToolProps) {
               type="button"
               onClick={goPrev}
               disabled={!canGoPrev}
-              className="w-5 h-5 inline-flex items-center justify-center rounded hover:bg-sky-100 disabled:opacity-30 cursor-pointer"
+              className="w-5 h-5 inline-flex items-center justify-center rounded-md hover:bg-slate-200/60 disabled:opacity-30 cursor-pointer transition-colors"
               aria-label="Previous question"
             >
               <ChevronUp className="w-3.5 h-3.5" />
             </button>
-            <span>
+            <span className="px-1.5 py-0.5 rounded-full bg-white border border-slate-200/80 text-[10px] font-bold text-slate-700">
               {clampedIndex} of {totalQuestions}
             </span>
             <button
               type="button"
               onClick={goNext}
               disabled={!canGoNext}
-              className="w-5 h-5 inline-flex items-center justify-center rounded hover:bg-sky-100 disabled:opacity-30 cursor-pointer"
+              className="w-5 h-5 inline-flex items-center justify-center rounded-md hover:bg-slate-200/60 disabled:opacity-30 cursor-pointer transition-colors"
               aria-label="Next question"
             >
               <ChevronDown className="w-3.5 h-3.5" />
@@ -467,7 +467,7 @@ export function QuestionTool({ part, onReset }: QuestionToolProps) {
           <button
             type="button"
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="text-[11px] text-sky-700 font-bold hover:underline flex items-center gap-1 cursor-pointer"
+            className="text-[11px] text-sky-700 font-semibold hover:underline flex items-center gap-1 cursor-pointer"
           >
             <span>{isCollapsed ? 'Review Questions' : 'Hide Details'}</span>
             {isCollapsed ? <ChevronDown className="w-3 h-3" /> : <ChevronUp className="w-3 h-3" />}

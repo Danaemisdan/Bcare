@@ -93,7 +93,7 @@ interface SmartCategoryConfig {
 export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
   {
     id: 'vomiting_gi',
-    title: 'Vomiting & Upset Stomach',
+    title: 'Stomach & Vomiting',
     icon: '🤢',
     badge: 'Gastroenterology',
     keywords: ['vomit', 'vomiting', 'nausea', 'puke', 'puking', 'food poison', 'loose motion', 'diarrhea', 'stomach bug', 'dehydration', 'acid reflux', 'indigestion', 'stomach ache', 'belly pain'],
@@ -130,7 +130,7 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
   },
   {
     id: 'fever_infection',
-    title: 'High Fever, Chills & Viral Flu',
+    title: 'High Fever & Chills',
     icon: '🌡️',
     badge: 'Internal Medicine',
     keywords: ['fever', 'temperature', 'chills', 'shivering', 'shivers', 'flu', 'viral', 'body ache', 'dengue', 'malaria', 'pyrexia', 'sweat'],
@@ -167,7 +167,7 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
   },
   {
     id: 'cough_breathing',
-    title: 'Cough, Cold & Breathlessness',
+    title: 'Cough & Cold',
     icon: '🫁',
     badge: 'Pulmonology',
     keywords: ['cough', 'coughing', 'cold', 'breath', 'breathless', 'breathing', 'wheeze', 'wheezing', 'asthma', 'phlegm', 'sputum', 'bronchitis', 'chest congestion'],
@@ -204,7 +204,7 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
   },
   {
     id: 'headache_neuro',
-    title: 'Migraine, Throbbing Headache & Vertigo',
+    title: 'Migraine & Headache',
     icon: '🧠',
     badge: 'Neurology',
     keywords: ['headache', 'migraine', 'head', 'temple', 'head hurts', 'throbbing', 'aura', 'cluster headache', 'tension headache', 'dizziness', 'vertigo', 'spinning'],
@@ -241,7 +241,7 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
   },
   {
     id: 'chest_cardiac',
-    title: 'Chest Discomfort, Acidity & Heartburn',
+    title: 'Chest & Acidity',
     icon: '🫀',
     badge: 'Cardiology',
     keywords: ['chest', 'chest pain', 'heart', 'heartburn', 'palpitation', 'racing heart', 'angina', 'acid', 'gerd', 'substernal'],
@@ -278,7 +278,7 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
   },
   {
     id: 'pain_ortho',
-    title: 'Back, Neck & Joint Pain / Sprains',
+    title: 'Back & Joint Pain',
     icon: '🧘',
     badge: 'Orthopedics',
     keywords: ['back', 'back pain', 'lower back', 'neck', 'cervical', 'knee', 'joint', 'spine', 'sciatica', 'shoulder', 'sprain', 'twist', 'muscle ache', 'slip disc'],
@@ -315,7 +315,7 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
   },
   {
     id: 'skin_allergy',
-    title: 'Skin Rash, Hives & Allergies',
+    title: 'Skin & Rash',
     icon: '🩹',
     badge: 'Dermatology',
     keywords: ['rash', 'itching', 'itch', 'hives', 'allergy', 'allergic', 'skin', 'blister', 'welts', 'red spots', 'eczema', 'dermatitis'],
@@ -352,7 +352,7 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
   },
   {
     id: 'urinary_kidney',
-    title: 'Burning Urination & Infection',
+    title: 'Urinary & Bladder',
     icon: '💧',
     badge: 'Urology',
     keywords: ['urine', 'urination', 'burning', 'uti', 'kidney', 'flank', 'bladder', 'peeing', 'urinary', 'kidney stone'],
@@ -389,7 +389,7 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
   },
   {
     id: 'dizziness_vertigo',
-    title: 'Severe Dizziness & Spinning Vertigo',
+    title: 'Dizziness & Vertigo',
     icon: '💫',
     badge: 'Neurology & ENT',
     keywords: ['dizzy', 'dizziness', 'vertigo', 'spinning', 'faint', 'fainting', 'lightheaded', 'balance', 'unsteady', 'ear ring'],
@@ -687,26 +687,20 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
     <div className="space-y-4 pb-8 animate-in fade-in duration-300">
       
       {/* ========================================================================= */}
-      {/* 1. TOP NAV: MINIMAL BACK BUTTON + STATUS + VOICE CONTROLS                  */}
+      {/* 1. TOP NAV: CLEAN BACK ICON + VOICE CONTROLS                               */}
       {/* ========================================================================= */}
-      <div className="flex items-center justify-between gap-2 pt-1 select-none">
-        {/* Minimal Back Button to restore normal tabs and dock */}
+      <div className="flex items-center justify-between gap-3 pt-1 select-none">
+        {/* Minimal Circular Back Button */}
         <button
           type="button"
           onClick={onClose}
-          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all cursor-pointer group shadow-2xs"
+          className="w-9 h-9 rounded-full bg-white/90 hover:bg-slate-100 border border-slate-200/80 shadow-2xs flex items-center justify-center text-slate-700 transition-all cursor-pointer group active:scale-95"
+          title="Back to Clinics"
         >
-          <ChevronLeft className="w-4 h-4 text-slate-500 group-hover:-translate-x-0.5 transition-transform" />
-          <span>Back</span>
+          <ChevronLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
         </button>
 
-        {/* Center Subtle Pill */}
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 border border-sky-200/80 text-[11px] font-bold text-sky-800 shadow-2xs">
-          <Sparkles className="w-3.5 h-3.5 text-sky-500" />
-          <span>B Care AI</span>
-        </div>
-
-        {/* Voice Control Pill */}
+        {/* Voice Control Pill with live equalizers */}
         <button
           type="button"
           onClick={() => {
@@ -719,12 +713,12 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
               }
             }
           }}
-          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer shadow-2xs ${
+          className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer shadow-2xs ${
             isSpeaking
               ? 'bg-sky-500 text-white shadow-sky-500/25 ring-2 ring-sky-200'
               : isVoiceEnabled
-              ? 'bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100'
-              : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+              ? 'bg-white/90 text-sky-700 border border-sky-200 hover:bg-sky-50'
+              : 'bg-white/90 text-slate-500 border border-slate-200 hover:bg-slate-100'
           }`}
         >
           {isSpeaking ? (
@@ -752,11 +746,11 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
       </div>
 
       {/* ========================================================================= */}
-      {/* 2. HERO SIRI ORB (TRANSITIONS TO TOP MIDDLE, SIMPLE & MINIMAL)              */}
+      {/* 2. HERO SIRI ORB (HIGH-RES SILKY LIQUID, TOP MIDDLE)                       */}
       {/* ========================================================================= */}
-      <div className="flex flex-col items-center justify-center pt-2 pb-2 text-center relative select-none">
+      <div className="flex flex-col items-center justify-center pt-1 pb-1 text-center relative select-none">
         {/* Soft Radiant Ambient Glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-gradient-to-tr from-sky-400/20 via-fuchsia-400/15 to-emerald-400/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-44 h-44 bg-gradient-to-tr from-sky-400/20 via-fuchsia-400/15 to-emerald-400/15 rounded-full blur-3xl pointer-events-none" />
 
         {/* Hero 3D Siri Orb placed in Top Middle */}
         <motion.div
@@ -767,7 +761,7 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
           className="relative z-10"
         >
           <SiriOrb
-            size={76}
+            size={68}
             state={isSpeaking ? "streaming" : isListening ? "listening" : isAiThinking ? "thinking" : "idle"}
             className="cursor-pointer transition-transform duration-300 hover:scale-105"
             onClick={() => {
@@ -780,18 +774,18 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
           />
         </motion.div>
 
-        {/* Clean Typography */}
+        {/* Clean, Human Typography */}
         <motion.div
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.08, duration: 0.3 }}
-          className="relative z-10 mt-3"
+          className="relative z-10 mt-2.5"
         >
-          <h2 className="text-xl font-bold text-slate-900 tracking-tight">
-            How can I help you today?
+          <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
+            What are you experiencing?
           </h2>
-          <p className="text-xs text-slate-500 mt-1 max-w-[290px] mx-auto leading-relaxed">
-            Speak, type, or pick a symptom for clinical triage & direct hospital booking
+          <p className="text-[11.5px] text-slate-500 mt-0.5 max-w-[280px] mx-auto leading-relaxed">
+            Speak, type your symptoms, or pick an issue below
           </p>
         </motion.div>
       </div>
@@ -849,10 +843,10 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
               key={cat.id}
               type="button"
               onClick={() => handleSelectPill(cat)}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
                 isSelected
-                  ? 'bg-slate-900 text-white shadow-xs scale-[1.02]'
-                  : 'bg-white hover:bg-slate-50 text-slate-600 border border-slate-200/80 shadow-2xs'
+                  ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-sm shadow-sky-500/25 scale-[1.02]'
+                  : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/90 shadow-2xs'
               }`}
             >
               <span>{cat.icon}</span>
