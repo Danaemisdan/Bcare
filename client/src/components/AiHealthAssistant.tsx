@@ -34,7 +34,8 @@ import {
   VolumeX,
   Mic,
   MicOff,
-  Radio
+  Radio,
+  Video
 } from 'lucide-react';
 import { DoctorProfile, Hospital, OpSlot, PatientProfile } from '../types';
 import { ConsultationType } from './BookingConsultationScreen';
@@ -435,6 +436,8 @@ interface AiHealthAssistantProps {
   onClose?: () => void;
 }
 
+export type AiFlowStep = 'ISSUE' | 'QUESTION_1' | 'QUESTION_2' | 'RESULTS';
+
 export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
   patientProfile,
   hospitals,
@@ -443,26 +446,35 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
   onOpenCheckout,
   onClose
 }) => {
+  // Step-by-Step Slide State (Exactly 1 question in frame at a time)
+  const [currentStep, setCurrentStep] = useState<AiFlowStep>('ISSUE');
+  const [selectedQ1, setSelectedQ1] = useState<string>('');
+  const [selectedQ2, setSelectedQ2] = useState<string>('');
+
   // Free-Text Search & Active Category
-  const [inputText, setInputText] = useState<string>('Severe vomiting and stomach cramps since morning');
+  const [inputText, setInputText] = useState<string>('Severe vomiting and stomach cramps');
   const [selectedCategoryId, setSelectedCategoryId] = useState<ClinicalCategoryId>('vomiting_gi');
   const [isAiThinking, setIsAiThinking] = useState<boolean>(false);
-  const [isQuestionsComplete, setIsQuestionsComplete] = useState<boolean>(true);
 
   // Voice Engine State
   const [isVoiceEnabled, setIsVoiceEnabled] = useState<boolean>(true);
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
   const [isListening, setIsListening] = useState<boolean>(false);
 
-  // Geo Filters
-  const [distanceRadius, setDistanceRadius] = useState<number>(10);
-  const [viewMode, setViewMode] = useState<'HOSPITALS' | 'DOCTORS'>('HOSPITALS');
-  const [selectedHospitalId, setSelectedHospitalId] = useState<string>(() => hospitals[0]?.id || 'hosp-1');
-
   // Active Category Config
   const activeCategory = useMemo(() => {
     return SMART_CLINICAL_CATEGORIES.find(c => c.id === selectedCategoryId) || SMART_CLINICAL_CATEGORIES[0];
   }, [selectedCategoryId]);
+
+  // Sync initial question choices when category changes
+  useEffect(() => {
+    if (activeCategory.q1.options[0]) {
+      setSelectedQ1(activeCategory.q1.options[0].id);
+    }
+    if (activeCategory.q2.options[0]) {
+      setSelectedQ2(activeCategory.q2.options[0].id);
+    }
+  }, [activeCategory]);
 
   // Stop active speech
   const stopSpeaking = () => {
@@ -480,7 +492,6 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
       const utterance = new SpeechSynthesisUtterance(text);
       const voices = window.speechSynthesis.getVoices();
       
-      // Select best natural voice (Samantha, Google, or natural English)
       const naturalVoice = voices.find(v => 
         (v.name.includes('Samantha') || v.name.includes('Natural') || v.name.includes('Google') || v.lang.startsWith('en')) &&
         !v.name.includes('Bad')
@@ -538,59 +549,6 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
     }
   };
 
-  // Build QuestionTool questions for active category
-  const questionConfigs: QuestionConfig[] = useMemo(() => {
-    return [
-      {
-        kind: 'single',
-        title: activeCategory.q1.prompt,
-        description: 'Select the primary clinical indicator that matches your current condition.',
-        options: activeCategory.q1.options.map((opt) => ({
-          id: opt.id,
-          label: opt.label,
-          icon: opt.icon,
-          description: opt.sub,
-        })),
-        allowCustom: true,
-        customPlaceholder: 'Other specific sign...',
-      },
-      {
-        kind: 'single',
-        title: activeCategory.q2.prompt,
-        description: 'Helps determine onset speed and exposure source.',
-        options: activeCategory.q2.options.map((opt) => ({
-          id: opt.id,
-          label: opt.label,
-          icon: opt.icon,
-          description: opt.sub,
-        })),
-        allowCustom: true,
-        customPlaceholder: 'Other trigger...',
-      },
-    ];
-  }, [activeCategory]);
-
-  // QuestionTool Part Definition
-  const questionToolPart: QuestionToolPart = useMemo(() => ({
-    type: 'question',
-    toolCallId: `${selectedCategoryId}-${inputText}`,
-    input: {
-      questions: questionConfigs,
-      submitLabel: 'Analyze & View Nearby Care',
-      nextLabel: 'Next Question',
-      allowSkip: false,
-      onSubmitAnswer: (ans) => {
-        // Subtle haptic / audio feedback
-      },
-      onAllCompleted: () => {
-        setIsQuestionsComplete(true);
-        if (isVoiceEnabled) {
-          speakText(activeCategory.diagnosis.spokenSummary);
-        }
-      },
-    },
-  }), [selectedCategoryId, inputText, questionConfigs, isVoiceEnabled, activeCategory]);
-
   // Real-time AI Symptom Parser
   const handleQueryChange = (val: string) => {
     setInputText(val);
@@ -600,72 +558,88 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
     );
     if (matched && matched.id !== selectedCategoryId) {
       setIsAiThinking(true);
-      setIsQuestionsComplete(false);
       setTimeout(() => {
         setSelectedCategoryId(matched.id);
         setIsAiThinking(false);
-        if (isVoiceEnabled) {
-          speakText(matched.spokenIntro);
-        }
-      }, 250);
+      }, 200);
     }
   };
 
-  // Direct pill tap
+  // Direct pill tap: selects category and slides to Q1 immediately
   const handleSelectPill = (cat: SmartCategoryConfig) => {
-    setIsAiThinking(true);
+    stopSpeaking();
+    setSelectedCategoryId(cat.id);
     setInputText(cat.title);
-    setIsQuestionsComplete(false);
+    if (cat.q1.options[0]) setSelectedQ1(cat.q1.options[0].id);
+    if (cat.q2.options[0]) setSelectedQ2(cat.q2.options[0].id);
     setTimeout(() => {
-      setSelectedCategoryId(cat.id);
-      setIsAiThinking(false);
+      setCurrentStep('QUESTION_1');
       if (isVoiceEnabled) {
-        speakText(cat.spokenIntro);
+        speakText(cat.q1.prompt);
       }
     }, 200);
   };
 
-  // Geo-ranked hospitals
-  const rankedHospitals = useMemo(() => {
-    return hospitals.map((hosp, idx) => {
-      const distance = 1.2 + idx * 1.8;
-      return {
-        ...hosp,
-        distanceKm: distance,
-        liveWaitMins: 8 + idx * 5,
-        rating: 4.8 + (idx % 3) * 0.08
-      };
-    }).filter(h => h.distanceKm <= distanceRadius);
-  }, [hospitals, distanceRadius]);
+  // Slide Navigation Handlers
+  const handleBack = () => {
+    stopSpeaking();
+    if (currentStep === 'RESULTS') {
+      setCurrentStep('QUESTION_2');
+    } else if (currentStep === 'QUESTION_2') {
+      setCurrentStep('QUESTION_1');
+    } else if (currentStep === 'QUESTION_1') {
+      setCurrentStep('ISSUE');
+    } else {
+      onClose?.();
+    }
+  };
 
-  const activeHospital = rankedHospitals.find(h => h.id === selectedHospitalId) || rankedHospitals[0] || hospitals[0];
+  const handleGoToQ1 = () => {
+    stopSpeaking();
+    setCurrentStep('QUESTION_1');
+    if (isVoiceEnabled) {
+      speakText(activeCategory.q1.prompt);
+    }
+  };
 
-  // Matched doctors filtered by specialty
+  const handleGoToQ2 = () => {
+    stopSpeaking();
+    setCurrentStep('QUESTION_2');
+    if (isVoiceEnabled) {
+      speakText(activeCategory.q2.prompt);
+    }
+  };
+
+  const handleGoToResults = () => {
+    stopSpeaking();
+    setCurrentStep('RESULTS');
+    if (isVoiceEnabled) {
+      speakText(activeCategory.diagnosis.spokenSummary);
+    }
+  };
+
+  // Location-based care matching
+  const activeHospital = hospitals[0] || {
+    id: 'hosp-1',
+    name: 'City Care Multi-Specialty Hospital',
+    address: 'Near Race Course, Coimbatore South',
+    rating: 4.9,
+    distanceKm: 1.2,
+    liveWaitMins: 10
+  };
+
   const availableDoctors = useMemo(() => {
     const targetSpecialty = activeCategory.diagnosis.specialty.toLowerCase();
     let docs = doctors.filter(d => {
       const spec = d.specialty.toLowerCase();
-      const matchesSpecialty = 
-        spec.includes(targetSpecialty) ||
-        targetSpecialty.includes(spec) ||
-        spec.includes('general') ||
-        spec.includes('medicine');
-      const matchesHospital = !selectedHospitalId || d.hospitalId === selectedHospitalId;
-      return matchesSpecialty && matchesHospital;
+      return spec.includes(targetSpecialty) || targetSpecialty.includes(spec) || spec.includes('general') || spec.includes('medicine');
     });
-
-    if (docs.length === 0) {
-      docs = doctors.filter(d => d.hospitalId === activeHospital.id);
-    }
-    if (docs.length === 0) {
-      docs = doctors.slice(0, 4);
-    }
+    if (docs.length === 0) docs = doctors;
     return docs;
-  }, [doctors, activeCategory.diagnosis.specialty, selectedHospitalId, activeHospital.id]);
+  }, [doctors, activeCategory.diagnosis.specialty]);
 
   const topDoctor = availableDoctors[0] || doctors[0];
 
-  // Booking handoff
   const handleProceedBooking = (chosenDoc: DoctorProfile, type: ConsultationType = 'IN_PERSON_OPD') => {
     const targetSlot = slots.find(s => s.doctorId === chosenDoc.id && s.status === 'AVAILABLE') || slots[0];
     onOpenCheckout(chosenDoc, type, targetSlot);
@@ -676,6 +650,8 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
     return name.startsWith('Dr.') || name.startsWith('Dr ') ? name : `Dr. ${name}`;
   };
 
+  const optionBadge = (idx: number) => String.fromCharCode(65 + idx);
+
   // Cleanup speech on unmount
   useEffect(() => {
     return () => {
@@ -684,23 +660,31 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
   }, []);
 
   return (
-    <div className="space-y-4 pb-8 animate-in fade-in duration-300">
+    <div className="space-y-4 pb-6 animate-in fade-in duration-200">
       
       {/* ========================================================================= */}
-      {/* 1. TOP NAV: CLEAN BACK ICON + VOICE CONTROLS                               */}
+      {/* 1. TOP NAV: MINIMAL BACK BUTTON + STEP INDICATOR + VOICE TOGGLE            */}
       {/* ========================================================================= */}
       <div className="flex items-center justify-between gap-3 pt-1 select-none">
         {/* Minimal Circular Back Button */}
         <button
           type="button"
-          onClick={onClose}
+          onClick={handleBack}
           className="w-9 h-9 rounded-full bg-white/90 hover:bg-slate-100 border border-slate-200/80 shadow-2xs flex items-center justify-center text-slate-700 transition-all cursor-pointer group active:scale-95"
-          title="Back to Clinics"
+          title="Go Back"
         >
           <ChevronLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
         </button>
 
-        {/* Voice Control Pill with live equalizers */}
+        {/* Minimal Step Indicator */}
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 text-slate-700 text-[11px] font-semibold">
+          {currentStep === 'ISSUE' && <span>Issue Triage</span>}
+          {currentStep === 'QUESTION_1' && <span>Question 1 of 2</span>}
+          {currentStep === 'QUESTION_2' && <span>Question 2 of 2</span>}
+          {currentStep === 'RESULTS' && <span>Matched Care</span>}
+        </div>
+
+        {/* Voice Control Pill */}
         <button
           type="button"
           onClick={() => {
@@ -709,11 +693,14 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
             } else {
               setIsVoiceEnabled(!isVoiceEnabled);
               if (!isVoiceEnabled) {
-                speakText(activeCategory.spokenIntro);
+                if (currentStep === 'ISSUE') speakText(activeCategory.spokenIntro);
+                else if (currentStep === 'QUESTION_1') speakText(activeCategory.q1.prompt);
+                else if (currentStep === 'QUESTION_2') speakText(activeCategory.q2.prompt);
+                else speakText(activeCategory.diagnosis.spokenSummary);
               }
             }
           }}
-          className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer shadow-2xs ${
+          className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer shadow-2xs ${
             isSpeaking
               ? 'bg-sky-500 text-white shadow-sky-500/25 ring-2 ring-sky-200'
               : isVoiceEnabled
@@ -746,392 +733,434 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
       </div>
 
       {/* ========================================================================= */}
-      {/* 2. HERO SIRI ORB (HIGH-RES SILKY LIQUID, TOP MIDDLE)                       */}
+      {/* 2. SLIDE CONTAINER (EXACTLY 1 QUESTION / UX IN FRAME AT A TIME)             */}
       {/* ========================================================================= */}
-      <div className="flex flex-col items-center justify-center pt-1 pb-1 text-center relative select-none">
-        {/* Soft Radiant Ambient Glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-44 h-44 bg-gradient-to-tr from-sky-400/20 via-fuchsia-400/15 to-emerald-400/15 rounded-full blur-3xl pointer-events-none" />
-
-        {/* Hero 3D Siri Orb placed in Top Middle */}
-        <motion.div
-          layoutId="siri-hero-orb"
-          initial={{ scale: 0.5, y: 30, opacity: 0 }}
-          animate={{ scale: 1, y: 0, opacity: 1 }}
-          transition={{ type: 'spring', stiffness: 320, damping: 25 }}
-          className="relative z-10"
-        >
-          <SiriOrb
-            size={68}
-            state={isSpeaking ? "streaming" : isListening ? "listening" : isAiThinking ? "thinking" : "idle"}
-            className="cursor-pointer transition-transform duration-300 hover:scale-105"
-            onClick={() => {
-              if (isSpeaking) {
-                stopSpeaking();
-              } else if (isVoiceEnabled) {
-                speakText(activeCategory.spokenIntro);
-              }
-            }}
-          />
-        </motion.div>
-
-        {/* Clean, Human Typography */}
-        <motion.div
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.08, duration: 0.3 }}
-          className="relative z-10 mt-2.5"
-        >
-          <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
-            What are you experiencing?
-          </h2>
-          <p className="text-[11.5px] text-slate-500 mt-0.5 max-w-[280px] mx-auto leading-relaxed">
-            Speak, type your symptoms, or pick an issue below
-          </p>
-        </motion.div>
-      </div>
-
-      {/* ========================================================================= */}
-      {/* 3. SEXY MINIMAL SEARCH & VOICE BAR                                        */}
-      {/* ========================================================================= */}
-      <div className="relative">
-        <div className={`relative flex items-center bg-white/95 backdrop-blur-md rounded-full border shadow-2xs transition-all ${
-          isListening
-            ? 'border-rose-400 ring-2 ring-rose-100'
-            : 'border-slate-200/90 focus-within:border-sky-400 focus-within:ring-2 focus-within:ring-sky-100 hover:border-slate-300'
-        }`}>
-          <Search className="w-4 h-4 text-slate-400 ml-3.5 shrink-0" />
-          <input
-            type="text"
-            value={inputText}
-            onChange={(e) => handleQueryChange(e.target.value)}
-            placeholder="Describe symptoms (e.g. vomiting, fever, migraine)..."
-            className="w-full py-2.5 px-3 bg-transparent text-xs sm:text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none"
-          />
-          {inputText && (
-            <button
-              type="button"
-              onClick={() => {
-                setInputText('');
-                setIsQuestionsComplete(false);
-              }}
-              className="p-1.5 text-slate-400 hover:text-slate-600 rounded-full cursor-pointer shrink-0"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={toggleListening}
-            className={`p-2 mr-1 rounded-full transition-all cursor-pointer shrink-0 ${
-              isListening
-                ? 'bg-rose-500 text-white shadow-xs animate-pulse ring-2 ring-rose-200'
-                : 'bg-sky-50 text-sky-600 hover:bg-sky-100'
-            }`}
-            title={isListening ? "Listening... Speak now" : "Speak to AI"}
-          >
-            {isListening ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
-          </button>
-        </div>
-      </div>
-
-      {/* Quick Symptom Chips */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none select-none -mx-1 px-1">
-        {SMART_CLINICAL_CATEGORIES.map((cat) => {
-          const isSelected = selectedCategoryId === cat.id;
-          return (
-            <button
-              key={cat.id}
-              type="button"
-              onClick={() => handleSelectPill(cat)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
-                isSelected
-                  ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-sm shadow-sky-500/25 scale-[1.02]'
-                  : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/90 shadow-2xs'
-              }`}
-            >
-              <span>{cat.icon}</span>
-              <span>{cat.title}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* ========================================================================= */}
-      {/* 4. 21ST.DEV QUESTION-TOOL & CONTEXT-AWARE AI CLARIFICATION               */}
-      {/* ========================================================================= */}
-      <div className="space-y-3 pt-1">
-        {/* 21ST.DEV QUESTION-TOOL (@serafimcloud/components/question-tool) */}
-        <QuestionTool 
-          part={questionToolPart}
-          onReset={() => {
-            setIsQuestionsComplete(false);
-            if (isVoiceEnabled) {
-              speakText(activeCategory.spokenIntro);
-            }
-          }}
-        />
-
-        {/* AI Clinical Diagnostic Card */}
-        {isQuestionsComplete && (
+      <AnimatePresence mode="wait">
+        
+        {/* ===================================================================== */}
+        {/* SLIDE 0: PRIMARY ISSUE & SYMPTOMS                                    */}
+        {/* ===================================================================== */}
+        {currentStep === 'ISSUE' && (
           <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="p-4.5 rounded-3xl bg-gradient-to-br from-emerald-50/70 via-sky-50/50 to-white border border-emerald-200/80 shadow-xs space-y-2.5"
+            key="slide-issue"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            className="space-y-4"
           >
-            <div className="flex items-center justify-between gap-2">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                <span>AI Clinical Match: {activeCategory.diagnosis.confidence}%</span>
-                <span>•</span>
-                <span className="uppercase">{activeCategory.diagnosis.urgency} Urgency</span>
-              </div>
+            {/* Centered Hero Siri Orb */}
+            <div className="flex flex-col items-center justify-center pt-2 pb-1 text-center relative select-none">
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-44 h-44 bg-gradient-to-tr from-sky-400/20 via-fuchsia-400/15 to-emerald-400/15 rounded-full blur-3xl pointer-events-none" />
 
-              <div className="flex items-center gap-1.5">
+              <SiriOrb
+                size={68}
+                state={isSpeaking ? "streaming" : isListening ? "listening" : isAiThinking ? "thinking" : "idle"}
+                className="cursor-pointer transition-transform duration-300 hover:scale-105"
+                onClick={() => {
+                  if (isSpeaking) stopSpeaking();
+                  else if (isVoiceEnabled) speakText(activeCategory.spokenIntro);
+                }}
+              />
+
+              <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight mt-2.5">
+                What are you experiencing?
+              </h2>
+              <p className="text-[11.5px] text-slate-500 mt-0.5 max-w-[280px] mx-auto leading-relaxed">
+                Speak into the mic, type below, or tap a common symptom
+              </p>
+            </div>
+
+            {/* Glass Symptom Search & Voice Pill */}
+            <div className="relative">
+              <div className={`relative flex items-center bg-white/95 backdrop-blur-md rounded-full border shadow-2xs transition-all ${
+                isListening
+                  ? 'border-rose-400 ring-2 ring-rose-100'
+                  : 'border-slate-200/90 focus-within:border-sky-400 focus-within:ring-2 focus-within:ring-sky-100 hover:border-slate-300'
+              }`}>
+                <Search className="w-4 h-4 text-slate-400 ml-3.5 shrink-0" />
+                <input
+                  type="text"
+                  value={inputText}
+                  onChange={(e) => handleQueryChange(e.target.value)}
+                  placeholder="Describe what's wrong (e.g. fever, vomiting, back pain)..."
+                  className="w-full py-2.5 px-3 bg-transparent text-xs sm:text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none"
+                />
+                {inputText && (
+                  <button
+                    type="button"
+                    onClick={() => setInputText('')}
+                    className="p-1.5 text-slate-400 hover:text-slate-600 rounded-full cursor-pointer shrink-0"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
                 <button
                   type="button"
-                  onClick={() => speakText(activeCategory.diagnosis.spokenSummary)}
-                  className="px-2 py-0.5 rounded-lg bg-sky-50 border border-sky-200 text-sky-700 text-[11px] font-bold flex items-center gap-1 hover:bg-sky-100 cursor-pointer"
+                  onClick={toggleListening}
+                  className={`p-2 mr-1 rounded-full transition-all cursor-pointer shrink-0 ${
+                    isListening
+                      ? 'bg-rose-500 text-white shadow-xs animate-pulse ring-2 ring-rose-200'
+                      : 'bg-sky-50 text-sky-600 hover:bg-sky-100'
+                  }`}
+                  title={isListening ? "Listening... Speak now" : "Speak to AI"}
                 >
-                  <Volume2 className="w-3 h-3 text-sky-600" />
-                  <span>Listen</span>
+                  {isListening ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
                 </button>
-                <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
-                  {activeCategory.diagnosis.specialty}
-                </span>
               </div>
             </div>
 
-            <h4 className="text-sm font-bold text-slate-900">
-              {activeCategory.diagnosis.primary}
-            </h4>
+            {/* Quick Symptom Chips */}
+            <div className="space-y-1.5">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1">Common Categories:</span>
+              <div className="flex flex-wrap gap-1.5 select-none">
+                {SMART_CLINICAL_CATEGORIES.map((cat) => {
+                  const isSelected = selectedCategoryId === cat.id;
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => handleSelectPill(cat)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
+                        isSelected
+                          ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-sm shadow-sky-500/25 scale-[1.02]'
+                          : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/90 shadow-2xs'
+                      }`}
+                    >
+                      <span>{cat.icon}</span>
+                      <span>{cat.title}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
-            <p className="text-xs text-slate-600 leading-relaxed">
-              {activeCategory.diagnosis.explanation}
-            </p>
-
-            <div className="pt-2 border-t border-emerald-200/50 text-[11px] text-slate-700 leading-relaxed">
-              <strong className="text-emerald-900 font-bold">Physician Advice: </strong>
-              {activeCategory.diagnosis.advice}
+            {/* Next Button */}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={handleGoToQ1}
+                className="w-full py-3 rounded-2xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white font-bold text-xs shadow-md shadow-sky-500/25 flex items-center justify-center gap-1.5 active:scale-98 transition-all cursor-pointer"
+              >
+                <span>Continue to Clinical Assessment</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
             </div>
           </motion.div>
         )}
-      </div>
 
-      {/* ========================================================================= */}
-      {/* 3. GEO-MATCHED HOSPITALS & DOCTORS (INSTANT BOOKING IN SAME SCREEN)        */}
-      {/* ========================================================================= */}
-      <div className="rounded-3xl bg-white border border-slate-200/80 p-4.5 shadow-sm space-y-3.5">
-        
-        {/* Geo Header with GPS & Radius */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shrink-0">
-              <MapPin className="w-4 h-4" />
-            </div>
-            <div>
-              <div className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                <span>Coimbatore South</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[10px] text-emerald-700 font-medium">GPS Active</span>
-              </div>
-              <div className="text-[11px] text-slate-500">
-                Accredited centers matching {activeCategory.diagnosis.specialty}
-              </div>
-            </div>
-          </div>
+        {/* ===================================================================== */}
+        {/* SLIDE 1: CLINICAL QUESTION 1 (EXACTLY 1 QUESTION IN FRAME)            */}
+        {/* ===================================================================== */}
+        {currentStep === 'QUESTION_1' && (
+          <motion.div
+            key="slide-q1"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            className="space-y-4"
+          >
+            {/* Centered Hero Orb & Question Title */}
+            <div className="flex flex-col items-center justify-center pt-1 pb-1 text-center relative select-none">
+              <SiriOrb
+                size={56}
+                state={isSpeaking ? "streaming" : "idle"}
+                className="cursor-pointer"
+                onClick={() => {
+                  if (isSpeaking) stopSpeaking();
+                  else if (isVoiceEnabled) speakText(activeCategory.q1.prompt);
+                }}
+              />
 
-          {/* Distance Filter Chips */}
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] font-bold text-slate-400 uppercase mr-1">Radius:</span>
-            {[5, 10, 25].map((rad) => (
+              <div className="mt-2 text-center space-y-0.5">
+                <span className="text-[10px] font-bold text-sky-600 uppercase tracking-wider">
+                  Question 1 of 2 • Clinical Indicator
+                </span>
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight leading-snug">
+                  {activeCategory.q1.prompt}
+                </h3>
+                <p className="text-[11px] text-slate-500">
+                  Select the sign that best describes your situation
+                </p>
+              </div>
+            </div>
+
+            {/* Options List with Badges A, B, C, D */}
+            <div className="space-y-2 select-none">
+              {activeCategory.q1.options.map((opt, idx) => {
+                const isChecked = selectedQ1 === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setSelectedQ1(opt.id)}
+                    className={`w-full text-left rounded-2xl p-3 flex items-start gap-3 border transition-all cursor-pointer ${
+                      isChecked
+                        ? 'bg-sky-50/80 border-sky-500 text-slate-900 shadow-2xs ring-2 ring-sky-100'
+                        : 'bg-white hover:bg-slate-50 border-slate-200/90 text-slate-700 shadow-2xs'
+                    }`}
+                  >
+                    <span
+                      className={`w-6 h-6 rounded-full text-xs font-bold inline-flex items-center justify-center shrink-0 border transition-all mt-0.5 ${
+                        isChecked
+                          ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white border-transparent shadow-xs'
+                          : 'bg-slate-100 text-slate-600 border-slate-200'
+                      }`}
+                    >
+                      {isChecked ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : optionBadge(idx)}
+                    </span>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-bold flex items-center gap-1.5 text-slate-900">
+                        {opt.icon && <span className="text-base">{opt.icon}</span>}
+                        <span>{opt.label}</span>
+                      </div>
+                      {opt.sub && (
+                        <div className="text-[11px] text-slate-500 mt-0.5 leading-tight">
+                          {opt.sub}
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Next Button */}
+            <div className="pt-2">
               <button
-                key={rad}
                 type="button"
-                onClick={() => setDistanceRadius(rad)}
-                className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  distanceRadius === rad
-                    ? 'bg-sky-500 text-white shadow-2xs'
-                    : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
-                }`}
+                onClick={handleGoToQ2}
+                className="w-full py-3 rounded-2xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white font-bold text-xs shadow-md shadow-sky-500/25 flex items-center justify-center gap-1.5 active:scale-98 transition-all cursor-pointer"
               >
-                {rad} km
+                <span>Next Question (2 of 2)</span>
+                <ArrowRight className="w-4 h-4" />
               </button>
-            ))}
-          </div>
-        </div>
-
-        {/* View Mode Segmented Control */}
-        <div className="flex rounded-2xl bg-slate-100 p-1">
-          <button
-            type="button"
-            onClick={() => setViewMode('HOSPITALS')}
-            className={`flex-1 py-1.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-              viewMode === 'HOSPITALS'
-                ? 'bg-white text-slate-900 shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <Building2 className="w-3.5 h-3.5 text-sky-600" />
-            <span>Hospitals Nearby ({rankedHospitals.length})</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setViewMode('DOCTORS')}
-            className={`flex-1 py-1.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-              viewMode === 'DOCTORS'
-                ? 'bg-white text-slate-900 shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <Stethoscope className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Available Doctors ({availableDoctors.length})</span>
-          </button>
-        </div>
-
-        {/* ===================================================================== */}
-        {/* HOSPITALS LIST                                                        */}
-        {/* ===================================================================== */}
-        {viewMode === 'HOSPITALS' && (
-          <div className="space-y-3 pt-1">
-            {rankedHospitals.map((hospital) => {
-              const isSelected = hospital.id === selectedHospitalId;
-              const hospitalDoctors = doctors.filter(d => d.hospitalId === hospital.id);
-              const assignedDoctor = hospitalDoctors.find(d => 
-                d.specialty.toLowerCase().includes(activeCategory.diagnosis.specialty.toLowerCase())
-              ) || hospitalDoctors[0] || topDoctor;
-
-              return (
-                <div
-                  key={hospital.id}
-                  className={`rounded-2xl border p-4 transition-all ${
-                    isSelected
-                      ? 'bg-white border-sky-400 shadow-sm ring-2 ring-sky-100'
-                      : 'bg-white hover:border-slate-300 border-slate-200/80 shadow-2xs'
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3">
-                      <div className="w-11 h-11 rounded-2xl bg-sky-50 border border-sky-200/80 flex items-center justify-center text-sky-600 shrink-0 mt-0.5">
-                        <Building2 className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h4 className="text-sm font-bold text-slate-900">{hospital.name}</h4>
-                          <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold">
-                            {hospital.distanceKm.toFixed(1)} km
-                          </span>
-                        </div>
-                        <p className="text-xs text-slate-500 mt-0.5">{hospital.address}</p>
-                        <div className="flex items-center gap-2 mt-1.5 text-[11px] text-slate-600">
-                          <span className="flex items-center gap-1 font-semibold text-amber-600">
-                            <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                            {hospital.rating.toFixed(1)}
-                          </span>
-                          <span>•</span>
-                          <span className="text-emerald-700 font-semibold flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            Token #4 (~{hospital.liveWaitMins}m wait)
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="text-right shrink-0">
-                      <div className="text-[11px] text-slate-400">OPD Pass</div>
-                      <div className="text-sm font-bold text-slate-900">₹{assignedDoctor?.opConsultationFee || 200}</div>
-                    </div>
-                  </div>
-
-                  {/* One-Tap Booking CTA */}
-                  <div className="mt-3.5 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                    <div className="text-xs text-slate-500">
-                      Physician: <strong>{formatDocName(assignedDoctor?.name)}</strong>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleProceedBooking(assignedDoctor, 'IN_PERSON_OPD')}
-                      className="px-4 py-2 rounded-2xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-sm shadow-sky-600/20 flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all"
-                    >
-                      <span>Book OPD Token</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+            </div>
+          </motion.div>
         )}
 
         {/* ===================================================================== */}
-        {/* DOCTORS LIST                                                          */}
+        {/* SLIDE 2: CLINICAL QUESTION 2 (EXACTLY 1 QUESTION IN FRAME)            */}
         {/* ===================================================================== */}
-        {viewMode === 'DOCTORS' && (
-          <div className="space-y-3 pt-1">
-            {availableDoctors.map((doc) => {
-              const docHospital = hospitals.find(h => h.id === doc.hospitalId) || activeHospital;
+        {currentStep === 'QUESTION_2' && (
+          <motion.div
+            key="slide-q2"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            className="space-y-4"
+          >
+            {/* Centered Hero Orb & Question Title */}
+            <div className="flex flex-col items-center justify-center pt-1 pb-1 text-center relative select-none">
+              <SiriOrb
+                size={56}
+                state={isSpeaking ? "streaming" : "idle"}
+                className="cursor-pointer"
+                onClick={() => {
+                  if (isSpeaking) stopSpeaking();
+                  else if (isVoiceEnabled) speakText(activeCategory.q2.prompt);
+                }}
+              />
 
-              return (
-                <div
-                  key={doc.id}
-                  className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-2xs hover:border-slate-300 transition-all"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3">
-                      <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-sky-100 to-indigo-100 border border-slate-200 flex items-center justify-center font-bold text-indigo-700 text-base shrink-0">
-                        {doc.name.charAt(0)}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h4 className="text-sm font-bold text-slate-900">{formatDocName(doc.name)}</h4>
-                          <span className="px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 text-[10px] font-bold">
-                            {doc.specialty}
-                          </span>
-                        </div>
-                        <p className="text-xs text-slate-500 mt-0.5">{docHospital.name}</p>
-                        <div className="flex items-center gap-2 mt-1.5 text-[11px] text-slate-600">
-                          <span className="flex items-center gap-1 font-semibold text-amber-600">
-                            <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                            {doc.rating}
-                          </span>
-                          <span>•</span>
-                          <span className="text-slate-500">{doc.experienceYears} yrs exp</span>
-                          <span>•</span>
-                          <span className="text-emerald-700 font-semibold">Available Today</span>
-                        </div>
-                      </div>
-                    </div>
+              <div className="mt-2 text-center space-y-0.5">
+                <span className="text-[10px] font-bold text-sky-600 uppercase tracking-wider">
+                  Question 2 of 2 • Exposure & Onset
+                </span>
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight leading-snug">
+                  {activeCategory.q2.prompt}
+                </h3>
+                <p className="text-[11px] text-slate-500">
+                  Helps identify triggers and triage urgency
+                </p>
+              </div>
+            </div>
 
-                    <div className="text-right shrink-0">
-                      <div className="text-[11px] text-slate-400">Consult Fee</div>
-                      <div className="text-sm font-bold text-slate-900">₹{doc.opConsultationFee}</div>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="mt-3.5 pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleProceedBooking(doc, 'VIDEO_CONSULTATION')}
-                      className="px-3 py-1.5 rounded-2xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all"
+            {/* Options List with Badges A, B, C, D */}
+            <div className="space-y-2 select-none">
+              {activeCategory.q2.options.map((opt, idx) => {
+                const isChecked = selectedQ2 === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setSelectedQ2(opt.id)}
+                    className={`w-full text-left rounded-2xl p-3 flex items-start gap-3 border transition-all cursor-pointer ${
+                      isChecked
+                        ? 'bg-sky-50/80 border-sky-500 text-slate-900 shadow-2xs ring-2 ring-sky-100'
+                        : 'bg-white hover:bg-slate-50 border-slate-200/90 text-slate-700 shadow-2xs'
+                    }`}
+                  >
+                    <span
+                      className={`w-6 h-6 rounded-full text-xs font-bold inline-flex items-center justify-center shrink-0 border transition-all mt-0.5 ${
+                        isChecked
+                          ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white border-transparent shadow-xs'
+                          : 'bg-slate-100 text-slate-600 border-slate-200'
+                      }`}
                     >
-                      <PhoneCall className="w-3.5 h-3.5 text-sky-600" />
-                      <span>Video Call</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleProceedBooking(doc, 'IN_PERSON_OPD')}
-                      className="px-3.5 py-1.5 rounded-2xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white font-bold text-xs shadow-sm shadow-sky-500/20 flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all"
-                    >
-                      <span>Book OPD Token</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
+                      {isChecked ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : optionBadge(idx)}
+                    </span>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-bold flex items-center gap-1.5 text-slate-900">
+                        {opt.icon && <span className="text-base">{opt.icon}</span>}
+                        <span>{opt.label}</span>
+                      </div>
+                      {opt.sub && (
+                        <div className="text-[11px] text-slate-500 mt-0.5 leading-tight">
+                          {opt.sub}
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Action Button */}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={handleGoToResults}
+                className="w-full py-3 rounded-2xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white font-bold text-xs shadow-md shadow-sky-500/25 flex items-center justify-center gap-1.5 active:scale-98 transition-all cursor-pointer"
+              >
+                <span>Find Matched Hospitals & Doctors</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ===================================================================== */}
+        {/* SLIDE 3: LOCATION-BASED HOSPITALS & DOCS + 1-TAP BOOKING (LAST SLIDE)  */}
+        {/* ===================================================================== */}
+        {currentStep === 'RESULTS' && (
+          <motion.div
+            key="slide-results"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            className="space-y-3.5"
+          >
+            {/* AI Clinical Diagnostic Card */}
+            <div className="p-4 rounded-3xl bg-gradient-to-br from-emerald-50/70 via-sky-50/50 to-white border border-emerald-200/80 shadow-xs space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>AI Match: {activeCategory.diagnosis.confidence}%</span>
+                  <span>•</span>
+                  <span className="uppercase">{activeCategory.diagnosis.urgency}</span>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => speakText(activeCategory.diagnosis.spokenSummary)}
+                    className="px-2 py-0.5 rounded-lg bg-sky-50 border border-sky-200 text-sky-700 text-[11px] font-bold flex items-center gap-1 hover:bg-sky-100 cursor-pointer"
+                  >
+                    <Volume2 className="w-3 h-3 text-sky-600" />
+                    <span>Listen</span>
+                  </button>
+                  <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200">
+                    {activeCategory.diagnosis.specialty}
+                  </span>
+                </div>
+              </div>
+
+              <h4 className="text-sm font-bold text-slate-900">
+                {activeCategory.diagnosis.primary}
+              </h4>
+
+              <p className="text-xs text-slate-600 leading-relaxed">
+                {activeCategory.diagnosis.explanation}
+              </p>
+
+              <div className="pt-2 border-t border-emerald-200/50 text-[11px] text-slate-700 leading-relaxed">
+                <strong className="text-emerald-900 font-bold">Physician Advice: </strong>
+                {activeCategory.diagnosis.advice}
+              </div>
+            </div>
+
+            {/* Location-Based Hospital & Doctor Card */}
+            <div className="rounded-3xl border border-slate-200/80 bg-white p-4 shadow-xs space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
+                  <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Coimbatore South • 1.2 km away</span>
+                </div>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold">
+                  Token #4 Ready (~10m wait)
+                </span>
+              </div>
+
+              <div className="flex items-start gap-3 pt-1 border-t border-slate-100">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-100 to-indigo-100 border border-slate-200 flex items-center justify-center font-bold text-indigo-700 text-lg shrink-0">
+                  {topDoctor.name.charAt(0)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-sm font-bold text-slate-900 truncate">{formatDocName(topDoctor.name)}</h4>
+                  <p className="text-xs text-slate-500 truncate">{topDoctor.specialty} • {activeHospital.name}</p>
+                  <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-600">
+                    <span className="flex items-center gap-1 font-semibold text-amber-600">
+                      <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                      {topDoctor.rating}
+                    </span>
+                    <span>•</span>
+                    <span className="text-slate-500">{topDoctor.experienceYears} yrs exp</span>
+                    <span>•</span>
+                    <span className="text-emerald-700 font-semibold">Available Today</span>
                   </div>
                 </div>
-              );
-            })}
-          </div>
+              </div>
+
+              {/* Direct Booking Actions (In-Person Visit or Video Consult -> Payment) */}
+              <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => handleProceedBooking(topDoctor, 'IN_PERSON_OPD')}
+                  className="p-3.5 rounded-2xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white font-bold shadow-md shadow-sky-500/25 flex flex-col items-center justify-center gap-1 active:scale-95 transition-all cursor-pointer"
+                >
+                  <div className="flex items-center gap-1.5 text-xs font-bold">
+                    <Building2 className="w-4 h-4" />
+                    <span>In-Person Visit</span>
+                  </div>
+                  <span className="text-[10px] opacity-90 font-medium">OPD Token • ₹{topDoctor?.opConsultationFee || 200}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleProceedBooking(topDoctor, 'VIDEO_CONSULTATION')}
+                  className="p-3.5 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-900 font-bold shadow-xs flex flex-col items-center justify-center gap-1 active:scale-95 transition-all cursor-pointer"
+                >
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-sky-700">
+                    <Video className="w-4 h-4 text-sky-600" />
+                    <span>Video Consult</span>
+                  </div>
+                  <span className="text-[10px] text-slate-500 font-medium">Direct Call • ₹399</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Restart Triage Option */}
+            <div className="pt-1 text-center">
+              <button
+                type="button"
+                onClick={() => {
+                  stopSpeaking();
+                  setCurrentStep('ISSUE');
+                }}
+                className="text-xs text-slate-400 hover:text-slate-600 font-medium cursor-pointer"
+              >
+                ← Start another health inquiry
+              </button>
+            </div>
+          </motion.div>
         )}
-      </div>
+
+      </AnimatePresence>
 
     </div>
   );
