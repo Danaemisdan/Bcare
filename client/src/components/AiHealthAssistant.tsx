@@ -432,6 +432,7 @@ interface AiHealthAssistantProps {
   doctors: DoctorProfile[];
   slots: OpSlot[];
   onOpenCheckout: (doctor: DoctorProfile, consultationType: ConsultationType, explicitSlot?: OpSlot) => void;
+  onClose?: () => void;
 }
 
 export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
@@ -439,7 +440,8 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
   hospitals,
   doctors,
   slots,
-  onOpenCheckout
+  onOpenCheckout,
+  onClose
 }) => {
   // Free-Text Search & Active Category
   const [inputText, setInputText] = useState<string>('Severe vomiting and stomach cramps since morning');
@@ -682,171 +684,188 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
   }, []);
 
   return (
-    <div className="space-y-4 pb-36 animate-in fade-in duration-200">
+    <div className="space-y-4 pb-8 animate-in fade-in duration-300">
       
       {/* ========================================================================= */}
-      {/* 1. SEAMLESS AI HEADER & VOICE CONTROLS (CLEAN, SUBTLE, SINGLE-SCREEN)      */}
+      {/* 1. TOP NAV: MINIMAL BACK BUTTON + STATUS + VOICE CONTROLS                  */}
       {/* ========================================================================= */}
-      <div className="relative overflow-hidden rounded-3xl bg-white/90 backdrop-blur-xl border border-slate-200/80 p-5 shadow-sm space-y-4">
-        
-        {/* Ambient Top Glow */}
-        <div className="absolute top-0 right-1/4 w-72 h-44 bg-gradient-to-br from-sky-100/50 via-indigo-50/40 to-transparent rounded-full blur-3xl pointer-events-none" />
-        
-        {/* Animated Siri Orb & Live Audio Equalizer */}
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3.5 min-w-0">
-            <SiriOrb 
-              size={56} 
-              state={isSpeaking ? "streaming" : isListening ? "listening" : isAiThinking ? "thinking" : "idle"} 
-            />
-            <div className="min-w-0">
-              <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-sky-700 bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-200/60">
-                <Sparkles className="w-3 h-3 text-sky-500 animate-pulse" />
-                <span>B Care Intelligence</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                <span className="text-slate-500 font-normal">Voice & Clinical Engine</span>
-              </div>
-              <h2 className="text-base sm:text-lg font-bold text-slate-900 mt-1 truncate">
-                How can I help you, {patientProfile.name.split(' ')[0] || 'Ramesh'}?
-              </h2>
-              <p className="text-xs text-slate-500 truncate">
-                Talk or type any health concern.
-              </p>
-            </div>
-          </div>
+      <div className="flex items-center justify-between gap-2 pt-1 select-none">
+        {/* Minimal Back Button to restore normal tabs and dock */}
+        <button
+          type="button"
+          onClick={onClose}
+          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all cursor-pointer group shadow-2xs"
+        >
+          <ChevronLeft className="w-4 h-4 text-slate-500 group-hover:-translate-x-0.5 transition-transform" />
+          <span>Back</span>
+        </button>
 
-          {/* Voice Toggle Button & Live Audio Wave Bars */}
-          <button
-            type="button"
+        {/* Center Subtle Pill */}
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 border border-sky-200/80 text-[11px] font-bold text-sky-800 shadow-2xs">
+          <Sparkles className="w-3.5 h-3.5 text-sky-500" />
+          <span>B Care AI</span>
+        </div>
+
+        {/* Voice Control Pill */}
+        <button
+          type="button"
+          onClick={() => {
+            if (isSpeaking) {
+              stopSpeaking();
+            } else {
+              setIsVoiceEnabled(!isVoiceEnabled);
+              if (!isVoiceEnabled) {
+                speakText(activeCategory.spokenIntro);
+              }
+            }
+          }}
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer shadow-2xs ${
+            isSpeaking
+              ? 'bg-sky-500 text-white shadow-sky-500/25 ring-2 ring-sky-200'
+              : isVoiceEnabled
+              ? 'bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100'
+              : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+          }`}
+        >
+          {isSpeaking ? (
+            <>
+              <div className="flex items-end gap-0.5 h-3">
+                <span className="w-0.5 h-full bg-white rounded-full animate-[bounce_0.6s_ease-in-out_infinite]" />
+                <span className="w-0.5 h-2/3 bg-white rounded-full animate-[bounce_0.8s_ease-in-out_infinite_0.15s]" />
+                <span className="w-0.5 h-full bg-white rounded-full animate-[bounce_0.5s_ease-in-out_infinite_0.3s]" />
+                <span className="w-0.5 h-1/2 bg-white rounded-full animate-[bounce_0.7s_ease-in-out_infinite_0.1s]" />
+              </div>
+              <span className="text-[11px] font-bold">Speaking</span>
+            </>
+          ) : isVoiceEnabled ? (
+            <>
+              <Volume2 className="w-3.5 h-3.5 text-sky-600" />
+              <span className="text-[11px] font-bold">Voice On</span>
+            </>
+          ) : (
+            <>
+              <VolumeX className="w-3.5 h-3.5 text-slate-400" />
+              <span className="text-[11px] font-medium">Muted</span>
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 2. HERO SIRI ORB (TRANSITIONS TO TOP MIDDLE, SIMPLE & MINIMAL)              */}
+      {/* ========================================================================= */}
+      <div className="flex flex-col items-center justify-center pt-2 pb-2 text-center relative select-none">
+        {/* Soft Radiant Ambient Glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-gradient-to-tr from-sky-400/20 via-fuchsia-400/15 to-emerald-400/15 rounded-full blur-3xl pointer-events-none" />
+
+        {/* Hero 3D Siri Orb placed in Top Middle */}
+        <motion.div
+          layoutId="siri-hero-orb"
+          initial={{ scale: 0.5, y: 30, opacity: 0 }}
+          animate={{ scale: 1, y: 0, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 320, damping: 25 }}
+          className="relative z-10"
+        >
+          <SiriOrb
+            size={76}
+            state={isSpeaking ? "streaming" : isListening ? "listening" : isAiThinking ? "thinking" : "idle"}
+            className="cursor-pointer transition-transform duration-300 hover:scale-105"
             onClick={() => {
               if (isSpeaking) {
                 stopSpeaking();
-              } else {
-                setIsVoiceEnabled(!isVoiceEnabled);
-                if (!isVoiceEnabled) {
-                  speakText(activeCategory.spokenIntro);
-                }
+              } else if (isVoiceEnabled) {
+                speakText(activeCategory.spokenIntro);
               }
             }}
-            className={`px-3 py-1.5 rounded-2xl border text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shrink-0 ${
-              isSpeaking
-                ? 'bg-sky-500 text-white border-sky-500 shadow-sm shadow-sky-500/25'
-                : isVoiceEnabled
-                ? 'bg-sky-50 text-sky-700 border-sky-200'
-                : 'bg-slate-100 text-slate-500 border-slate-200'
-            }`}
-          >
-            {isSpeaking ? (
-              <>
-                <Volume2 className="w-4 h-4 animate-pulse" />
-                {/* 4 Animated Audio Equalizer Bars */}
-                <div className="flex items-end gap-0.5 h-3">
-                  <span className="w-0.5 h-full bg-white rounded-full animate-[bounce_0.6s_ease-in-out_infinite]" />
-                  <span className="w-0.5 h-2/3 bg-white rounded-full animate-[bounce_0.8s_ease-in-out_infinite_0.15s]" />
-                  <span className="w-0.5 h-full bg-white rounded-full animate-[bounce_0.5s_ease-in-out_infinite_0.3s]" />
-                  <span className="w-0.5 h-1/2 bg-white rounded-full animate-[bounce_0.7s_ease-in-out_infinite_0.1s]" />
-                </div>
-                <span className="text-[11px]">Speaking</span>
-              </>
-            ) : isVoiceEnabled ? (
-              <>
-                <Volume2 className="w-4 h-4 text-sky-600" />
-                <span className="text-[11px]">Voice On</span>
-              </>
-            ) : (
-              <>
-                <VolumeX className="w-4 h-4 text-slate-400" />
-                <span className="text-[11px]">Muted</span>
-              </>
-            )}
-          </button>
-        </div>
+          />
+        </motion.div>
 
-        {/* Free-Text & Microphone Voice Input Bar */}
-        <div className="relative flex items-center">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+        {/* Clean Typography */}
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.08, duration: 0.3 }}
+          className="relative z-10 mt-3"
+        >
+          <h2 className="text-xl font-bold text-slate-900 tracking-tight">
+            How can I help you today?
+          </h2>
+          <p className="text-xs text-slate-500 mt-1 max-w-[290px] mx-auto leading-relaxed">
+            Speak, type, or pick a symptom for clinical triage & direct hospital booking
+          </p>
+        </motion.div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 3. SEXY MINIMAL SEARCH & VOICE BAR                                        */}
+      {/* ========================================================================= */}
+      <div className="relative">
+        <div className={`relative flex items-center bg-white/95 backdrop-blur-md rounded-full border shadow-2xs transition-all ${
+          isListening
+            ? 'border-rose-400 ring-2 ring-rose-100'
+            : 'border-slate-200/90 focus-within:border-sky-400 focus-within:ring-2 focus-within:ring-sky-100 hover:border-slate-300'
+        }`}>
+          <Search className="w-4 h-4 text-slate-400 ml-3.5 shrink-0" />
           <input
             type="text"
             value={inputText}
             onChange={(e) => handleQueryChange(e.target.value)}
-            placeholder="Type or speak symptoms (e.g. throwing up food, fever, migraine)..."
-            className="w-full pl-10 pr-20 py-3 bg-slate-50/80 hover:bg-slate-50 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl border border-slate-200 focus:border-sky-400 focus:ring-4 focus:ring-sky-100 outline-none transition-all placeholder:text-slate-400"
+            placeholder="Describe symptoms (e.g. vomiting, fever, migraine)..."
+            className="w-full py-2.5 px-3 bg-transparent text-xs sm:text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none"
           />
-
-          <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
-            {inputText && (
-              <button
-                type="button"
-                onClick={() => setInputText('')}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-full cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
-
-            {/* Microphone Voice Input Button */}
+          {inputText && (
             <button
               type="button"
-              onClick={toggleListening}
-              className={`p-2 rounded-xl transition-all cursor-pointer ${
-                isListening
-                  ? 'bg-rose-500 text-white animate-pulse shadow-md shadow-rose-500/30'
-                  : 'bg-sky-100 text-sky-700 hover:bg-sky-200'
-              }`}
-              title={isListening ? "Listening... Speak now" : "Speak to AI"}
+              onClick={() => {
+                setInputText('');
+                setIsQuestionsComplete(false);
+              }}
+              className="p-1.5 text-slate-400 hover:text-slate-600 rounded-full cursor-pointer shrink-0"
             >
-              {isListening ? <Mic className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+              <X className="w-3.5 h-3.5" />
             </button>
-          </div>
-        </div>
-
-        {/* Subtle Horizontal Quick Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none select-none">
-          {SMART_CLINICAL_CATEGORIES.map((cat) => {
-            const isSelected = selectedCategoryId === cat.id;
-            return (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() => handleSelectPill(cat)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
-                  isSelected
-                    ? 'bg-sky-500 text-white shadow-sm shadow-sky-500/25 scale-[1.02]'
-                    : 'bg-slate-100/90 hover:bg-slate-200/80 text-slate-600'
-                }`}
-              >
-                <span>{cat.icon}</span>
-                <span>{cat.title}</span>
-              </button>
-            );
-          })}
+          )}
+          <button
+            type="button"
+            onClick={toggleListening}
+            className={`p-2 mr-1 rounded-full transition-all cursor-pointer shrink-0 ${
+              isListening
+                ? 'bg-rose-500 text-white shadow-xs animate-pulse ring-2 ring-rose-200'
+                : 'bg-sky-50 text-sky-600 hover:bg-sky-100'
+            }`}
+            title={isListening ? "Listening... Speak now" : "Speak to AI"}
+          >
+            {isListening ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
+          </button>
         </div>
       </div>
 
-      {/* ========================================================================= */}
-      {/* 2. 21ST.DEV QUESTION-TOOL & CONTEXT-AWARE AI CLARIFICATION               */}
-      {/* ========================================================================= */}
-      <div className="space-y-3">
-        {/* AI Greeting Message Bubble with Speak Button */}
-        <div className="flex items-start gap-2.5 bg-white/80 backdrop-blur-md rounded-2xl p-3 border border-slate-200/80">
-          <div className="w-8 h-8 rounded-full bg-sky-50 border border-sky-200 flex items-center justify-center shrink-0 mt-0.5">
-            <Bot className="w-4 h-4 text-sky-600" />
-          </div>
-          <div className="flex-1 text-xs text-slate-700 leading-relaxed">
-            <div className="flex items-center justify-between gap-1 mb-0.5">
-              <span className="font-bold text-slate-900">Clinical Assistant</span>
-              <button
-                type="button"
-                onClick={() => speakText(activeCategory.aiGreeting)}
-                className="text-[10px] text-sky-600 font-bold hover:underline flex items-center gap-1 cursor-pointer"
-              >
-                <Volume2 className="w-3 h-3" /> Speak
-              </button>
-            </div>
-            {activeCategory.aiGreeting}
-          </div>
-        </div>
+      {/* Quick Symptom Chips */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none select-none -mx-1 px-1">
+        {SMART_CLINICAL_CATEGORIES.map((cat) => {
+          const isSelected = selectedCategoryId === cat.id;
+          return (
+            <button
+              key={cat.id}
+              type="button"
+              onClick={() => handleSelectPill(cat)}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
+                isSelected
+                  ? 'bg-slate-900 text-white shadow-xs scale-[1.02]'
+                  : 'bg-white hover:bg-slate-50 text-slate-600 border border-slate-200/80 shadow-2xs'
+              }`}
+            >
+              <span>{cat.icon}</span>
+              <span>{cat.title}</span>
+            </button>
+          );
+        })}
+      </div>
 
+      {/* ========================================================================= */}
+      {/* 4. 21ST.DEV QUESTION-TOOL & CONTEXT-AWARE AI CLARIFICATION               */}
+      {/* ========================================================================= */}
+      <div className="space-y-3 pt-1">
         {/* 21ST.DEV QUESTION-TOOL (@serafimcloud/components/question-tool) */}
         <QuestionTool 
           part={questionToolPart}

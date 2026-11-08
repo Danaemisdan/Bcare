@@ -1490,43 +1490,60 @@ export function App() {
                   </div>
 
                   {/* Scrollable Screen Content (Strict Overflow Protection) */}
-                  <div className={`flex-1 overflow-y-auto overflow-x-hidden ${isPatientBookingActive ? 'p-0' : isAuthOpen || !currentUser ? 'px-1 pt-1 pb-4' : 'px-3.5 pt-3 pb-24'} scrollbar-none w-full relative`}>
+                  <div className={`flex-1 overflow-y-auto overflow-x-hidden ${
+                    isPatientBookingActive 
+                      ? 'p-0' 
+                      : isAuthOpen || !currentUser 
+                      ? 'px-1 pt-1 pb-4' 
+                      : (currentRole === 'PATIENT' && patientTab === 'ai_assist')
+                      ? 'px-3.5 pt-2 pb-6'
+                      : 'px-3.5 pt-3 pb-24'
+                  } scrollbar-none w-full relative`}>
                     {renderPortal()}
                   </div>
 
                   {/* Nimbus Liquid Glass Navbar Dock for ALL Roles */}
-                  {currentUser && !isAuthOpen && currentRole !== 'SUPER_ADMIN' && !isPatientBookingActive && (
-                    <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-40 w-[93%] max-w-[344px]">
-                      {currentRole === 'PATIENT' && (
-                        <LiquidGlassNavbar
-                          items={patientNavItems}
-                          activeId={patientTab}
-                          onChange={setPatientTab}
-                        />
-                      )}
-                      {currentRole === 'NURSE' && (
-                        <LiquidGlassNavbar
-                          items={nurseNavItems}
-                          activeId={nurseTab}
-                          onChange={setNurseTab}
-                        />
-                      )}
-                      {currentRole === 'DOCTOR' && (
-                        <LiquidGlassNavbar
-                          items={doctorNavItems}
-                          activeId={doctorTab}
-                          onChange={setDoctorTab}
-                        />
-                      )}
-                      {currentRole === 'FRANCHISE_ADMIN' && (
-                        <LiquidGlassNavbar
-                          items={franchiseNavItems}
-                          activeId={franchiseTab}
-                          onChange={setFranchiseTab}
-                        />
-                      )}
-                    </div>
-                  )}
+                  <AnimatePresence>
+                    {currentUser && !isAuthOpen && currentRole !== 'SUPER_ADMIN' && !isPatientBookingActive && !(currentRole === 'PATIENT' && patientTab === 'ai_assist') && (
+                      <motion.div
+                        key="liquid-glass-dock-ios"
+                        initial={{ y: 90, opacity: 0, scale: 0.94 }}
+                        animate={{ y: 0, opacity: 1, scale: 1 }}
+                        exit={{ y: 90, opacity: 0, scale: 0.94 }}
+                        transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+                        className="absolute bottom-5 left-1/2 -translate-x-1/2 z-40 w-[93%] max-w-[344px]"
+                      >
+                        {currentRole === 'PATIENT' && (
+                          <LiquidGlassNavbar
+                            items={patientNavItems}
+                            activeId={patientTab}
+                            onChange={setPatientTab}
+                          />
+                        )}
+                        {currentRole === 'NURSE' && (
+                          <LiquidGlassNavbar
+                            items={nurseNavItems}
+                            activeId={nurseTab}
+                            onChange={setNurseTab}
+                          />
+                        )}
+                        {currentRole === 'DOCTOR' && (
+                          <LiquidGlassNavbar
+                            items={doctorNavItems}
+                            activeId={doctorTab}
+                            onChange={setDoctorTab}
+                          />
+                        )}
+                        {currentRole === 'FRANCHISE_ADMIN' && (
+                          <LiquidGlassNavbar
+                            items={franchiseNavItems}
+                            activeId={franchiseTab}
+                            onChange={setFranchiseTab}
+                          />
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
 
 
@@ -1659,43 +1676,60 @@ export function App() {
                   </div>
 
                   {/* Scrollable Screen Content */}
-                  <div className={`flex-1 overflow-y-auto overflow-x-hidden ${isPatientBookingActive ? 'p-0' : isAuthOpen || !currentUser ? 'px-1 pt-1 pb-4' : 'px-3.5 pt-3 pb-24'} scrollbar-none w-full relative`}>
+                  <div className={`flex-1 overflow-y-auto overflow-x-hidden ${
+                    isPatientBookingActive 
+                      ? 'p-0' 
+                      : isAuthOpen || !currentUser 
+                      ? 'px-1 pt-1 pb-4' 
+                      : (currentRole === 'PATIENT' && patientTab === 'ai_assist')
+                      ? 'px-3.5 pt-2 pb-6'
+                      : 'px-3.5 pt-3 pb-24'
+                  } scrollbar-none w-full relative`}>
                     {renderPortal()}
                   </div>
 
                   {/* Nimbus Liquid Glass Navbar Dock for ALL Roles */}
-                  {currentUser && !isAuthOpen && currentRole !== 'SUPER_ADMIN' && !isPatientBookingActive && (
-                    <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-40 w-[93%] max-w-[344px]">
-                      {currentRole === 'PATIENT' && (
-                        <LiquidGlassNavbar
-                          items={patientNavItems}
-                          activeId={patientTab}
-                          onChange={setPatientTab}
-                        />
-                      )}
-                      {currentRole === 'NURSE' && (
-                        <LiquidGlassNavbar
-                          items={nurseNavItems}
-                          activeId={nurseTab}
-                          onChange={setNurseTab}
-                        />
-                      )}
-                      {currentRole === 'DOCTOR' && (
-                        <LiquidGlassNavbar
-                          items={doctorNavItems}
-                          activeId={doctorTab}
-                          onChange={setDoctorTab}
-                        />
-                      )}
-                      {currentRole === 'FRANCHISE_ADMIN' && (
-                        <LiquidGlassNavbar
-                          items={franchiseNavItems}
-                          activeId={franchiseTab}
-                          onChange={setFranchiseTab}
-                        />
-                      )}
-                    </div>
-                  )}
+                  <AnimatePresence>
+                    {currentUser && !isAuthOpen && currentRole !== 'SUPER_ADMIN' && !isPatientBookingActive && !(currentRole === 'PATIENT' && patientTab === 'ai_assist') && (
+                      <motion.div
+                        key="liquid-glass-dock-android"
+                        initial={{ y: 90, opacity: 0, scale: 0.94 }}
+                        animate={{ y: 0, opacity: 1, scale: 1 }}
+                        exit={{ y: 90, opacity: 0, scale: 0.94 }}
+                        transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+                        className="absolute bottom-5 left-1/2 -translate-x-1/2 z-40 w-[93%] max-w-[344px]"
+                      >
+                        {currentRole === 'PATIENT' && (
+                          <LiquidGlassNavbar
+                            items={patientNavItems}
+                            activeId={patientTab}
+                            onChange={setPatientTab}
+                          />
+                        )}
+                        {currentRole === 'NURSE' && (
+                          <LiquidGlassNavbar
+                            items={nurseNavItems}
+                            activeId={nurseTab}
+                            onChange={setNurseTab}
+                          />
+                        )}
+                        {currentRole === 'DOCTOR' && (
+                          <LiquidGlassNavbar
+                            items={doctorNavItems}
+                            activeId={doctorTab}
+                            onChange={setDoctorTab}
+                          />
+                        )}
+                        {currentRole === 'FRANCHISE_ADMIN' && (
+                          <LiquidGlassNavbar
+                            items={franchiseNavItems}
+                            activeId={franchiseTab}
+                            onChange={setFranchiseTab}
+                          />
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
 
 

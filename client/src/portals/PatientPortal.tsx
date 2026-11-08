@@ -1232,6 +1232,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
             doctors={doctors}
             slots={slots}
             onOpenCheckout={(doc, type, explicitSlot) => handleOpenCheckout(doc, type, explicitSlot)}
+            onClose={() => setActiveTab('op_booking')}
           />
         </motion.div>
       )}
