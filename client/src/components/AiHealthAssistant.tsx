@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Sparkles, 
@@ -29,11 +29,17 @@ import {
   Flame,
   Droplet,
   Send,
-  Bot
+  Bot,
+  Volume2,
+  VolumeX,
+  Mic,
+  MicOff,
+  Radio
 } from 'lucide-react';
 import { DoctorProfile, Hospital, OpSlot, PatientProfile } from '../types';
 import { ConsultationType } from './BookingConsultationScreen';
 import { SiriOrb } from './SiriOrb';
+import { QuestionTool, QuestionConfig, QuestionToolPart, QuestionAnswer } from './QuestionTool';
 
 // ============================================================================
 // CLINICAL AI KNOWLEDGE BASE (MULTI-SYMPTOM INTELLIGENCE)
@@ -63,6 +69,7 @@ interface SmartCategoryConfig {
   badge: string;
   keywords: string[];
   aiGreeting: string;
+  spokenIntro: string;
   q1: {
     prompt: string;
     options: SmartChipOption[];
@@ -79,6 +86,7 @@ interface SmartCategoryConfig {
     urgency: 'ROUTINE' | 'ELEVATED' | 'PRIORITY';
     explanation: string;
     advice: string;
+    spokenSummary: string;
   };
 }
 
@@ -89,23 +97,24 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     icon: '🤢',
     badge: 'Gastroenterology',
     keywords: ['vomit', 'vomiting', 'nausea', 'puke', 'puking', 'food poison', 'loose motion', 'diarrhea', 'stomach bug', 'dehydration', 'acid reflux', 'indigestion', 'stomach ache', 'belly pain'],
-    aiGreeting: "I've analyzed your vomiting & gastrointestinal distress. Let's quickly assess your dehydration risk and possible triggers:",
+    aiGreeting: "I've noted acute vomiting and stomach distress. Let's evaluate your fluid retention and likely triggers with two quick clinical questions.",
+    spokenIntro: "I've noted acute vomiting and stomach distress. Can you keep any water down right now?",
     q1: {
       prompt: "Can you keep fluids down right now?",
       options: [
-        { id: 'cannot_retain', label: "Cannot keep water down", icon: '⚠️', sub: 'High dehydration risk' },
-        { id: 'vomiting_food', label: "Throwing up food / bile", icon: '🤢', sub: '3 to 5 times today' },
-        { id: 'nausea_only', label: "Severe nausea & dry retching", icon: '🌀', sub: 'Queasy stomach' },
-        { id: 'dark_blood', label: "Dark or blood-tinged vomit", icon: '🚨', sub: 'Needs urgent review' }
+        { id: 'cannot_retain', label: "Cannot keep any water or fluids down", icon: '⚠️', sub: 'High risk of acute dehydration' },
+        { id: 'vomiting_food', label: "Throwing up food and clear bile", icon: '🤢', sub: '3 to 5 times today' },
+        { id: 'nausea_only', label: "Severe nausea with dry retching", icon: '🌀', sub: 'Queasy stomach, no food staying' },
+        { id: 'dark_blood', label: "Dark or blood-tinged vomit", icon: '🚨', sub: 'Requires immediate emergency review' }
       ]
     },
     q2: {
       prompt: "When did it start, and what was the likely trigger?",
       options: [
-        { id: 'after_meal', label: "1-6 hrs after restaurant food", icon: '🍔', sub: 'Likely foodborne toxin' },
-        { id: 'started_today', label: "Started suddenly today", icon: '⏱️', sub: 'Acute stomach irritation' },
-        { id: 'few_days', label: "Ongoing for 2 to 3 days", icon: '🗓️', sub: 'Persistent gastroenteritis' },
-        { id: 'chronic_flare', label: "Recurrent episodes over weeks", icon: '🔄', sub: 'Chronic acid peptic issue' }
+        { id: 'after_meal', label: "1 to 6 hours after outside restaurant food", icon: '🍔', sub: 'Classic foodborne enterotoxin' },
+        { id: 'started_today', label: "Started suddenly earlier today", icon: '⏱️', sub: 'Acute stomach irritation' },
+        { id: 'few_days', label: "Ongoing for 2 to 3 days", icon: '🗓️', sub: 'Persistent infectious gastroenteritis' },
+        { id: 'chronic_flare', label: "Recurrent episodes over weeks", icon: '🔄', sub: 'Chronic acid peptic disorder' }
       ]
     },
     diagnosis: {
@@ -115,7 +124,8 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
       secondary: 'Staphylococcal / Enterotoxin Triage',
       urgency: 'PRIORITY',
       explanation: 'Symptom profile indicates acute gastrointestinal mucosal inflammation. Immediate priority is preventing systemic electrolyte imbalance and hypovolemia.',
-      advice: 'Take oral rehydration salts (ORS) in small sips every 5 minutes. Avoid milk, solid dairy, or oily foods. If unable to retain liquids for over 6 hours, an in-person OPD token is recommended for IV fluid hydration.'
+      advice: 'Take oral rehydration salts (ORS) in small sips every 5 minutes. Avoid milk, solid dairy, or oily foods. If unable to retain liquids for over 6 hours, an in-person OPD token is recommended for IV fluid hydration.',
+      spokenSummary: "Based on your symptoms, this strongly points to acute foodborne gastroenteritis with dehydration risk. I've matched City Care Multi-Specialty Hospital 1.2 kilometers away with Token number 4 ready for booking."
     }
   },
   {
@@ -124,23 +134,24 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     icon: '🌡️',
     badge: 'Internal Medicine',
     keywords: ['fever', 'temperature', 'chills', 'shivering', 'shivers', 'flu', 'viral', 'body ache', 'dengue', 'malaria', 'pyrexia', 'sweat'],
-    aiGreeting: "Fever detected. Let's check your temperature severity and screen for Dengue or viral infections:",
+    aiGreeting: "Fever detected. Let's evaluate your temperature severity and check for Dengue or viral warning signs.",
+    spokenIntro: "Fever detected. How high is your temperature feeling right now?",
     q1: {
-      prompt: "How high is your temperature feeling?",
+      prompt: "How high is your body temperature feeling?",
       options: [
         { id: 'high_fever', label: "High fever (> 102°F) with intense chills", icon: '🔥', sub: 'Shivering under blankets' },
         { id: 'moderate_fever', label: "Moderate fever (100°F - 102°F)", icon: '🌡️', sub: 'Noticeable flushed heat' },
-        { id: 'low_grade', label: "Low-grade fever (99°F - 100°F)", icon: '🌤️', sub: 'Warm and tired' },
-        { id: 'night_spikes', label: "Spiking fever with night sweats", icon: '⚡', sub: 'Comes in waves' }
+        { id: 'low_grade', label: "Low-grade fever (99°F - 100°F)", icon: '🌤️', sub: 'Feeling warm and fatigued' },
+        { id: 'night_spikes', label: "Spiking fever with night sweats", icon: '⚡', sub: 'Comes in recurring waves' }
       ]
     },
     q2: {
       prompt: "Any secondary symptoms accompanying the fever?",
       options: [
-        { id: 'severe_body_ache', label: "Severe eye socket & joint aches", icon: '🦴', sub: 'Screening for Dengue' },
-        { id: 'throat_cough', label: "Sore throat, cough & runny nose", icon: '🧣', sub: 'Viral influenza signs' },
-        { id: 'skin_rash', label: "Red skin spots or bruising", icon: '🩹', sub: 'Platelet alert' },
-        { id: 'none', label: "Isolated fever & weakness only", icon: '✨', sub: 'Pure pyrexia' }
+        { id: 'severe_body_ache', label: "Severe eye socket and joint aches", icon: '🦴', sub: 'Screening for Dengue' },
+        { id: 'throat_cough', label: "Sore throat, cough, and runny nose", icon: '🧣', sub: 'Viral influenza signs' },
+        { id: 'skin_rash', label: "Red skin spots or easy bruising", icon: '🩹', sub: 'Platelet alert' },
+        { id: 'none', label: "Isolated fever and weakness only", icon: '✨', sub: 'Pure pyrexia' }
       ]
     },
     diagnosis: {
@@ -150,7 +161,8 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
       secondary: 'Suspected Dengue / Viral Mononucleosis Protocol',
       urgency: 'PRIORITY',
       explanation: 'Symptom trajectory matches an acute systemic viral pathogen. Clinical oversight ensures timely monitoring of hematocrit and platelet counts.',
-      advice: 'Maintain high fluid intake (coconut water, ORS, soups). Sponge with lukewarm water if fever exceeds 101°F. Avoid self-medicating with aspirin; take paracetamol if prescribed. In-person OPD consult is advised if fever extends past 48 hours.'
+      advice: 'Maintain high fluid intake (coconut water, ORS, soups). Sponge with lukewarm water if fever exceeds 101°F. Avoid self-medicating with aspirin; take paracetamol if prescribed. In-person OPD consult is advised if fever extends past 48 hours.',
+      spokenSummary: "Clinical analysis indicates acute viral pyrexia. Hydration and platelet monitoring are prioritized. I've located verified doctors nearby in Coimbatore South."
     }
   },
   {
@@ -159,7 +171,8 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     icon: '🫁',
     badge: 'Pulmonology',
     keywords: ['cough', 'coughing', 'cold', 'breath', 'breathless', 'breathing', 'wheeze', 'wheezing', 'asthma', 'phlegm', 'sputum', 'bronchitis', 'chest congestion'],
-    aiGreeting: "Respiratory symptoms detected. Let's evaluate your airway resistance and breathing comfort:",
+    aiGreeting: "Respiratory symptoms detected. Let's evaluate your airway resistance and breathing comfort.",
+    spokenIntro: "Respiratory symptoms detected. Is your breathing restricted at rest or while talking?",
     q1: {
       prompt: "Is your breathing restricted at rest or while talking?",
       options: [
@@ -173,9 +186,9 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
       prompt: "What kind of sputum or duration do you have?",
       options: [
         { id: 'dry_persistent', label: "Dry tickling persistent cough", icon: '🌵', sub: 'Post-viral or allergy' },
-        { id: 'thick_yellow', label: "Productive yellow / green phlegm", icon: '🟡', sub: 'Bacterial bronchitis' },
-        { id: 'asthma_history', label: "Known history of asthma / allergy", icon: '🔄', sub: 'Bronchial spasm flare' },
-        { id: 'acute_few_days', label: "Started in last 2-3 days", icon: '⚡', sub: 'Early acute cold' }
+        { id: 'thick_yellow', label: "Productive yellow or green phlegm", icon: '🟡', sub: 'Bacterial bronchitis' },
+        { id: 'asthma_history', label: "Known history of asthma or allergy", icon: '🔄', sub: 'Bronchial spasm flare' },
+        { id: 'acute_few_days', label: "Started in last 2 to 3 days", icon: '⚡', sub: 'Early acute cold' }
       ]
     },
     diagnosis: {
@@ -185,7 +198,8 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
       secondary: 'Asthmatic Bronchospasm vs Viral Bronchitis',
       urgency: 'ROUTINE',
       explanation: 'Airway irritability and mucosal congestion consistent with respiratory infection or allergic bronchospasm.',
-      advice: 'Perform steam inhalation twice daily, drink warm fluids, and avoid cold air or dust exposure. If shortness of breath occurs at rest, proceed immediately to hospital OPD.'
+      advice: 'Perform steam inhalation twice daily, drink warm fluids, and avoid cold air or dust exposure. If shortness of breath occurs at rest, proceed immediately to hospital OPD.',
+      spokenSummary: "Assessment suggests bronchial hyperreactivity and airway congestion. Steam inhalation is recommended, and available pulmonology and general medicine slots are listed below."
     }
   },
   {
@@ -194,20 +208,21 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     icon: '🧠',
     badge: 'Neurology',
     keywords: ['headache', 'migraine', 'head', 'temple', 'head hurts', 'throbbing', 'aura', 'cluster headache', 'tension headache', 'dizziness', 'vertigo', 'spinning'],
-    aiGreeting: "Cranial discomfort detected. Let's assess vascular vs tension factors and neurological aura:",
+    aiGreeting: "Cranial discomfort detected. Let's assess vascular vs tension factors and neurological aura.",
+    spokenIntro: "Cranial discomfort detected. What does the headache feel like?",
     q1: {
       prompt: "What does the headache feel like?",
       options: [
         { id: 'one_sided_pulse', label: "Throbbing on one side of head", icon: '⚡', sub: 'Classic migraine' },
-        { id: 'tight_band', label: "Tight squeezing band on forehead", icon: '💆', sub: 'Tension / stress strain' },
-        { id: 'thunderclap', label: "Sudden explosive 'worst headache'", icon: '🚨', sub: 'Emergency triage' },
+        { id: 'tight_band', label: "Tight squeezing band on forehead", icon: '💆', sub: 'Tension and stress strain' },
+        { id: 'thunderclap', label: "Sudden explosive 'worst headache of life'", icon: '🚨', sub: 'Emergency triage' },
         { id: 'room_spinning', label: "The entire room is spinning (Vertigo)", icon: '🌀', sub: 'Inner ear / vestibular' }
       ]
     },
     q2: {
       prompt: "Are you sensitive to light, sound, or nausea?",
       options: [
-        { id: 'light_sensitive', label: "Sensitivity to light & screen glare", icon: '💡', sub: 'Photophobia' },
+        { id: 'light_sensitive', label: "Sensitivity to light and screen glare", icon: '💡', sub: 'Photophobia' },
         { id: 'nausea_queasy', label: "Queasy stomach or vomiting", icon: '🤢', sub: 'Autonomic migraine sign' },
         { id: 'zigzag_aura', label: "Flashing zigzag lines in vision", icon: '✨', sub: 'Visual migraine aura' },
         { id: 'none', label: "No sensory changes, just head pain", icon: '✨', sub: 'Isolated headache' }
@@ -220,7 +235,8 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
       secondary: 'Tension-Type Myofascial Cephalea',
       urgency: 'ROUTINE',
       explanation: 'Unilateral or throbbing cranial vasodilation exacerbated by sensory stimuli and postural stress.',
-      advice: 'Rest in a cool, quiet, dark room. Apply a cold compress to temples. Stay hydrated. A neurology consultation can provide targeted abortive and preventive migraine relief.'
+      advice: 'Rest in a cool, quiet, dark room. Apply a cold compress to temples. Stay hydrated. A neurology consultation can provide targeted abortive and preventive migraine relief.',
+      spokenSummary: "This matches an episodic neurovascular migraine with photophobia. Rest in a dark room. Nearby neurological care centers are ready for consultation."
     }
   },
   {
@@ -229,7 +245,8 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     icon: '🫀',
     badge: 'Cardiology',
     keywords: ['chest', 'chest pain', 'heart', 'heartburn', 'palpitation', 'racing heart', 'angina', 'acid', 'gerd', 'substernal'],
-    aiGreeting: "Chest sensation detected. Let's distinguish gastroesophageal acid reflux from cardiac signs:",
+    aiGreeting: "Chest sensation detected. Let's distinguish gastroesophageal acid reflux from cardiac signs.",
+    spokenIntro: "Chest sensation detected. What is the sensation in your chest feeling like?",
     q1: {
       prompt: "What is the sensation in your chest?",
       options: [
@@ -244,7 +261,7 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
       options: [
         { id: 'radiates_left_arm', label: "Radiates to left arm or jaw", icon: '🚨', sub: 'Cardiac radiation alert' },
         { id: 'center_chest_only', label: "Stays centered in middle of chest", icon: '🎯', sub: 'Retrosternal / GERD' },
-        { id: 'after_heavy_meal', label: "Happens after heavy/spicy food", icon: '🍽️', sub: 'Gastric acid trigger' },
+        { id: 'after_heavy_meal', label: "Happens after heavy or spicy food", icon: '🍽️', sub: 'Gastric acid trigger' },
         { id: 'on_walking', label: "Triggers on walking or exertion", icon: '🏃', sub: 'Exertional angina sign' }
       ]
     },
@@ -255,7 +272,8 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
       secondary: 'Costochondritis / Anterior Chest Wall Spasm',
       urgency: 'PRIORITY',
       explanation: 'Retrosternal discomfort requires objective cardiac baseline exclusion via ECG alongside gastrointestinal antacid regulation.',
-      advice: 'Remain upright and avoid lying down. Do not exert physically. If heaviness spreads to the left arm or is accompanied by cold sweating, seek immediate emergency care. A prompt OPD ECG offers complete reassurance.'
+      advice: 'Remain upright and avoid lying down. Do not exert physically. If heaviness spreads to the left arm or is accompanied by cold sweating, seek immediate emergency care. A prompt OPD ECG offers complete reassurance.',
+      spokenSummary: "Clinical analysis notes retrosternal acid reflux with atypical cardiac screening advised. Resting 12-lead ECG is available at City Care Hospital."
     }
   },
   {
@@ -264,23 +282,24 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     icon: '🧘',
     badge: 'Orthopedics',
     keywords: ['back', 'back pain', 'lower back', 'neck', 'cervical', 'knee', 'joint', 'spine', 'sciatica', 'shoulder', 'sprain', 'twist', 'muscle ache', 'slip disc'],
-    aiGreeting: "Musculoskeletal pain detected. Let's isolate the spinal or joint stress point:",
+    aiGreeting: "Musculoskeletal pain detected. Let's isolate the spinal or joint stress point.",
+    spokenIntro: "Musculoskeletal pain detected. Which joint or spinal area is affected?",
     q1: {
       prompt: "Which joint or spinal area is affected?",
       options: [
-        { id: 'lower_lumbar', label: "Lower back / spine (Sciatica)", icon: '🧘', sub: 'L4-L5 lumbar strain' },
-        { id: 'knee_joint', label: "Knee joint with swelling/clicking", icon: '🦵', sub: 'Patellar / meniscal strain' },
-        { id: 'cervical_neck', label: "Neck & shoulder spasm", icon: '🧣', sub: 'Desk posture strain' },
-        { id: 'shoulder_arm', label: "Shoulder restriction / rotator cuff", icon: '🦾', sub: 'Tendon impingement' }
+        { id: 'lower_lumbar', label: "Lower back and lumbar spine (Sciatica)", icon: '🧘', sub: 'L4-L5 lumbar strain' },
+        { id: 'knee_joint', label: "Knee joint with swelling or clicking", icon: '🦵', sub: 'Patellar / meniscal strain' },
+        { id: 'cervical_neck', label: "Neck and shoulder muscle spasm", icon: '🧣', sub: 'Desk posture strain' },
+        { id: 'shoulder_arm', label: "Shoulder restriction or rotator cuff", icon: '🦾', sub: 'Tendon impingement' }
       ]
     },
     q2: {
       prompt: "How is your mobility and weight bearing?",
       options: [
-        { id: 'sciatica_leg', label: "Pain shoots down leg / tingling", icon: '⚡', sub: 'Nerve root irritation' },
+        { id: 'sciatica_leg', label: "Pain shoots down leg with tingling", icon: '⚡', sub: 'Nerve root irritation' },
         { id: 'cannot_bear_weight', label: "Cannot stand or bear weight", icon: '🚫', sub: 'Acute joint stress' },
         { id: 'morning_stiff', label: "Stiff in morning, eases with walk", icon: '🌅', sub: 'Facet joint wear' },
-        { id: 'lifting_trigger', label: "Started after heavy lifting/twist", icon: '🏋️', sub: 'Acute muscular sprain' }
+        { id: 'lifting_trigger', label: "Started after heavy lifting or twist", icon: '🏋️', sub: 'Acute muscular sprain' }
       ]
     },
     diagnosis: {
@@ -290,7 +309,8 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
       secondary: 'L4-L5 Postural Disc Overload',
       urgency: 'ROUTINE',
       explanation: 'Biomechanical lumbar facet joint stress and muscular paraspinal guarding without acute cauda equina red flags.',
-      advice: 'Avoid forward bending and heavy lifting. Apply warm fomentation to ease muscle spasms. An orthopedic consultation and physical examination will guide core stabilization exercises.'
+      advice: 'Avoid forward bending and heavy lifting. Apply warm fomentation to ease muscle spasms. An orthopedic consultation and physical examination will guide core stabilization exercises.',
+      spokenSummary: "Likely lumbar spondylosis and paraspinal muscle strain. Avoid heavy lifting. Top orthopedic physicians nearby are available today."
     }
   },
   {
@@ -299,12 +319,13 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     icon: '🩹',
     badge: 'Dermatology',
     keywords: ['rash', 'itching', 'itch', 'hives', 'allergy', 'allergic', 'skin', 'blister', 'welts', 'red spots', 'eczema', 'dermatitis'],
-    aiGreeting: "Dermatological reaction detected. Let's screen for hives and ensure no facial swelling:",
+    aiGreeting: "Dermatological reaction detected. Let's screen for hives and check for facial swelling.",
+    spokenIntro: "Dermatological reaction detected. What does the skin reaction look like?",
     q1: {
       prompt: "What does the skin reaction look like?",
       options: [
-        { id: 'raised_hives', label: "Raised itchy pink wheals / hives", icon: '🔴', sub: 'Acute urticaria reaction' },
-        { id: 'red_patchy_bumps', label: "Red patchy bumps or eczema", icon: '🩹', sub: 'Contact irritation' },
+        { id: 'raised_hives', label: "Raised itchy pink wheals or hives", icon: '🔴', sub: 'Acute urticaria reaction' },
+        { id: 'red_patchy_bumps', label: "Red patchy bumps or rough eczema", icon: '🩹', sub: 'Contact irritation' },
         { id: 'blisters_peeling', label: "Fluid blisters or peeling skin", icon: '💧', sub: 'Dermatological review' },
         { id: 'spreading_hot', label: "Spreading warm red rash with fever", icon: '🔥', sub: 'Infection / cellulitis' }
       ]
@@ -312,8 +333,8 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     q2: {
       prompt: "Any facial swelling or known allergen trigger?",
       options: [
-        { id: 'lip_eye_swelling', label: "Swelling of lips, eyes or face", icon: '🚨', sub: 'Urgent angioedema alert' },
-        { id: 'new_medication', label: "Started new medicine / antibiotic", icon: '💊', sub: 'Drug hypersensitivity' },
+        { id: 'lip_eye_swelling', label: "Swelling of lips, eyes, or face", icon: '🚨', sub: 'Urgent angioedema alert' },
+        { id: 'new_medication', label: "Started new medicine or antibiotic", icon: '💊', sub: 'Drug hypersensitivity' },
         { id: 'food_insect', label: "After street food or insect bite", icon: '🍤', sub: 'Histaminergic reaction' },
         { id: 'none', label: "Isolated skin itch, no swelling", icon: '✨', sub: 'Pure cutaneous rash' }
       ]
@@ -325,7 +346,8 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
       secondary: 'Histaminergic Cutaneous Hypersensitivity',
       urgency: 'ROUTINE',
       explanation: 'Mast cell degranulation and cutaneous histamine release causing erythematous pruritic wheals.',
-      advice: 'Do not scratch or apply hot water, which triggers further histamine release. Apply calamine lotion or cool compresses. If facial or lip swelling develops, seek urgent hospital attention immediately.'
+      advice: 'Do not scratch or apply hot water, which triggers further histamine release. Apply calamine lotion or cool compresses. If facial or lip swelling develops, seek urgent hospital attention immediately.',
+      spokenSummary: "Identified acute urticaria and allergic dermatitis. Calamine lotion provides cooling relief. Available dermatology slots are ready below."
     }
   },
   {
@@ -334,7 +356,8 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     icon: '💧',
     badge: 'Urology',
     keywords: ['urine', 'urination', 'burning', 'uti', 'kidney', 'flank', 'bladder', 'peeing', 'urinary', 'kidney stone'],
-    aiGreeting: "Urinary symptoms detected. Let's assess for UTI versus renal stone irritation:",
+    aiGreeting: "Urinary symptoms detected. Let's assess for UTI versus renal stone irritation.",
+    spokenIntro: "Urinary symptoms detected. What specific urinary discomfort are you feeling?",
     q1: {
       prompt: "What specific urinary discomfort are you feeling?",
       options: [
@@ -360,7 +383,8 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
       secondary: 'Suspected Micro-Calculus / Renal Gravel',
       urgency: 'ROUTINE',
       explanation: 'Bacterial colonization of the urothelium causing dysuria and bladder tenesmus.',
-      advice: 'Significantly increase fluid intake (3+ liters of water daily). Avoid coffee, alcohol, and spicy spices that irritate the bladder lining. A urine routine and culture test at hospital OPD is recommended for targeted antibiotic clearance.'
+      advice: 'Significantly increase fluid intake (3+ liters of water daily). Avoid coffee, alcohol, and spicy spices that irritate the bladder lining. A urine routine and culture test at hospital OPD is recommended for targeted antibiotic clearance.',
+      spokenSummary: "Likely lower urinary tract infection. Increase water intake immediately. Urine culture and general medicine consultation are recommended."
     }
   },
   {
@@ -369,14 +393,15 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     icon: '💫',
     badge: 'Neurology & ENT',
     keywords: ['dizzy', 'dizziness', 'vertigo', 'spinning', 'faint', 'fainting', 'lightheaded', 'balance', 'unsteady', 'ear ring'],
-    aiGreeting: "Dizziness detected. Let's distinguish inner-ear vertigo from low blood pressure:",
+    aiGreeting: "Dizziness detected. Let's distinguish inner-ear vertigo from low blood pressure.",
+    spokenIntro: "Dizziness detected. What does the sensation feel like?",
     q1: {
       prompt: "What does the dizziness feel like?",
       options: [
         { id: 'room_spinning', label: "The whole room is spinning around me", icon: '🌀', sub: 'Vestibular vertigo / BPPV' },
         { id: 'faint_standing', label: "Vision dims & feeling faint on standing", icon: '🌑', sub: 'Low BP / orthostatic' },
         { id: 'unsteady_balance', label: "Off-balance, walking unsteadily", icon: '🚶', sub: 'Sensory / ataxia' },
-        { id: 'ear_ringing', label: "Buzzing / ringing in one ear", icon: '👂', sub: 'Tinnitus / labyrinthitis' }
+        { id: 'ear_ringing', label: "Buzzing or ringing in one ear", icon: '👂', sub: 'Tinnitus / labyrinthitis' }
       ]
     },
     q2: {
@@ -395,7 +420,8 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
       secondary: 'Orthostatic Presyncope & Inner Ear Canalithiasis',
       urgency: 'ROUTINE',
       explanation: 'Displaced otoconia within the inner ear semicircular canals triggering transient paroxysmal nystagmus and spinning vertigo.',
-      advice: 'Avoid sudden head movements or quick turns in bed. Sit on edge of bed for 1 minute before standing. An OPD consultation with a neurologist or ENT specialist can perform the Epley canalith repositioning maneuver for instant relief.'
+      advice: 'Avoid sudden head movements or quick turns in bed. Sit on edge of bed for 1 minute before standing. An OPD consultation with a neurologist or ENT specialist can perform the Epley canalith repositioning maneuver for instant relief.',
+      spokenSummary: "Symptoms are consistent with benign paroxysmal positional vertigo. Avoid sudden head turns. Neurological and ENT care slots are ready."
     }
   }
 ];
@@ -419,10 +445,12 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
   const [inputText, setInputText] = useState<string>('Severe vomiting and stomach cramps since morning');
   const [selectedCategoryId, setSelectedCategoryId] = useState<ClinicalCategoryId>('vomiting_gi');
   const [isAiThinking, setIsAiThinking] = useState<boolean>(false);
+  const [isQuestionsComplete, setIsQuestionsComplete] = useState<boolean>(true);
 
-  // Dynamic Selected Chips for Q1 and Q2
-  const [selectedQ1, setSelectedQ1] = useState<string>('cannot_retain');
-  const [selectedQ2, setSelectedQ2] = useState<string>('after_meal');
+  // Voice Engine State
+  const [isVoiceEnabled, setIsVoiceEnabled] = useState<boolean>(true);
+  const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
+  const [isListening, setIsListening] = useState<boolean>(false);
 
   // Geo Filters
   const [distanceRadius, setDistanceRadius] = useState<number>(10);
@@ -434,6 +462,133 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
     return SMART_CLINICAL_CATEGORIES.find(c => c.id === selectedCategoryId) || SMART_CLINICAL_CATEGORIES[0];
   }, [selectedCategoryId]);
 
+  // Stop active speech
+  const stopSpeaking = () => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    }
+  };
+
+  // Speak text naturally using Web Speech API
+  const speakText = (text: string) => {
+    if (!isVoiceEnabled || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    try {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      const voices = window.speechSynthesis.getVoices();
+      
+      // Select best natural voice (Samantha, Google, or natural English)
+      const naturalVoice = voices.find(v => 
+        (v.name.includes('Samantha') || v.name.includes('Natural') || v.name.includes('Google') || v.lang.startsWith('en')) &&
+        !v.name.includes('Bad')
+      ) || voices[0];
+      
+      if (naturalVoice) utterance.voice = naturalVoice;
+      utterance.pitch = 1.05;
+      utterance.rate = 1.0;
+
+      utterance.onstart = () => setIsSpeaking(true);
+      utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = () => setIsSpeaking(false);
+
+      window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      console.warn('Speech error:', e);
+      setIsSpeaking(false);
+    }
+  };
+
+  // Voice Input (Microphone Speech-to-Text)
+  const toggleListening = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('Speech recognition is not supported in this browser. Please type your symptoms.');
+      return;
+    }
+
+    if (isListening) {
+      setIsListening(false);
+      return;
+    }
+
+    try {
+      stopSpeaking();
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => setIsListening(true);
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        if (transcript) {
+          handleQueryChange(transcript);
+        }
+      };
+      recognition.onerror = () => setIsListening(false);
+      recognition.onend = () => setIsListening(false);
+
+      recognition.start();
+    } catch (e) {
+      console.warn('Recognition error:', e);
+      setIsListening(false);
+    }
+  };
+
+  // Build QuestionTool questions for active category
+  const questionConfigs: QuestionConfig[] = useMemo(() => {
+    return [
+      {
+        kind: 'single',
+        title: activeCategory.q1.prompt,
+        description: 'Select the primary clinical indicator that matches your current condition.',
+        options: activeCategory.q1.options.map((opt) => ({
+          id: opt.id,
+          label: opt.label,
+          icon: opt.icon,
+          description: opt.sub,
+        })),
+        allowCustom: true,
+        customPlaceholder: 'Other specific sign...',
+      },
+      {
+        kind: 'single',
+        title: activeCategory.q2.prompt,
+        description: 'Helps determine onset speed and exposure source.',
+        options: activeCategory.q2.options.map((opt) => ({
+          id: opt.id,
+          label: opt.label,
+          icon: opt.icon,
+          description: opt.sub,
+        })),
+        allowCustom: true,
+        customPlaceholder: 'Other trigger...',
+      },
+    ];
+  }, [activeCategory]);
+
+  // QuestionTool Part Definition
+  const questionToolPart: QuestionToolPart = useMemo(() => ({
+    type: 'question',
+    toolCallId: `${selectedCategoryId}-${inputText}`,
+    input: {
+      questions: questionConfigs,
+      submitLabel: 'Analyze & View Nearby Care',
+      nextLabel: 'Next Question',
+      allowSkip: false,
+      onSubmitAnswer: (ans) => {
+        // Subtle haptic / audio feedback
+      },
+      onAllCompleted: () => {
+        setIsQuestionsComplete(true);
+        if (isVoiceEnabled) {
+          speakText(activeCategory.diagnosis.spokenSummary);
+        }
+      },
+    },
+  }), [selectedCategoryId, inputText, questionConfigs, isVoiceEnabled, activeCategory]);
+
   // Real-time AI Symptom Parser
   const handleQueryChange = (val: string) => {
     setInputText(val);
@@ -443,11 +598,13 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
     );
     if (matched && matched.id !== selectedCategoryId) {
       setIsAiThinking(true);
+      setIsQuestionsComplete(false);
       setTimeout(() => {
         setSelectedCategoryId(matched.id);
-        setSelectedQ1(matched.q1.options[0]?.id || '');
-        setSelectedQ2(matched.q2.options[0]?.id || '');
         setIsAiThinking(false);
+        if (isVoiceEnabled) {
+          speakText(matched.spokenIntro);
+        }
       }, 250);
     }
   };
@@ -456,11 +613,13 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
   const handleSelectPill = (cat: SmartCategoryConfig) => {
     setIsAiThinking(true);
     setInputText(cat.title);
+    setIsQuestionsComplete(false);
     setTimeout(() => {
       setSelectedCategoryId(cat.id);
-      setSelectedQ1(cat.q1.options[0]?.id || '');
-      setSelectedQ2(cat.q2.options[0]?.id || '');
       setIsAiThinking(false);
+      if (isVoiceEnabled) {
+        speakText(cat.spokenIntro);
+      }
     }, 200);
   };
 
@@ -515,55 +674,130 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
     return name.startsWith('Dr.') || name.startsWith('Dr ') ? name : `Dr. ${name}`;
   };
 
+  // Cleanup speech on unmount
+  useEffect(() => {
+    return () => {
+      stopSpeaking();
+    };
+  }, []);
+
   return (
     <div className="space-y-4 pb-36 animate-in fade-in duration-200">
       
       {/* ========================================================================= */}
-      {/* 1. SEAMLESS AI HEADER & INPUT (CLEAN, SUBTLE, SINGLE-SCREEN)               */}
+      {/* 1. SEAMLESS AI HEADER & VOICE CONTROLS (CLEAN, SUBTLE, SINGLE-SCREEN)      */}
       {/* ========================================================================= */}
       <div className="relative overflow-hidden rounded-3xl bg-white/90 backdrop-blur-xl border border-slate-200/80 p-5 shadow-sm space-y-4">
         
         {/* Ambient Top Glow */}
         <div className="absolute top-0 right-1/4 w-72 h-44 bg-gradient-to-br from-sky-100/50 via-indigo-50/40 to-transparent rounded-full blur-3xl pointer-events-none" />
         
-        {/* Animated Siri Orb & Friendly Status */}
-        <div className="flex items-center gap-3.5">
-          <SiriOrb size={54} state={isAiThinking ? "thinking" : "idle"} />
-          <div className="flex-1 min-w-0">
-            <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-sky-700 bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-200/60">
-              <Sparkles className="w-3 h-3 text-sky-500 animate-pulse" />
-              <span>B Care Intelligence</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              <span className="text-slate-500 font-normal">Active Local Triage</span>
+        {/* Animated Siri Orb & Live Audio Equalizer */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <SiriOrb 
+              size={56} 
+              state={isSpeaking ? "streaming" : isListening ? "listening" : isAiThinking ? "thinking" : "idle"} 
+            />
+            <div className="min-w-0">
+              <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-sky-700 bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-200/60">
+                <Sparkles className="w-3 h-3 text-sky-500 animate-pulse" />
+                <span>B Care Intelligence</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span className="text-slate-500 font-normal">Voice & Clinical Engine</span>
+              </div>
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 mt-1 truncate">
+                How can I help you, {patientProfile.name.split(' ')[0] || 'Ramesh'}?
+              </h2>
+              <p className="text-xs text-slate-500 truncate">
+                Talk or type any health concern.
+              </p>
             </div>
-            <h2 className="text-base sm:text-lg font-bold text-slate-900 mt-1 truncate">
-              How can I help you feel better, {patientProfile.name.split(' ')[0] || 'Ramesh'}?
-            </h2>
-            <p className="text-xs text-slate-500 truncate">
-              Describe any symptom, illness, or discomfort below.
-            </p>
           </div>
+
+          {/* Voice Toggle Button & Live Audio Wave Bars */}
+          <button
+            type="button"
+            onClick={() => {
+              if (isSpeaking) {
+                stopSpeaking();
+              } else {
+                setIsVoiceEnabled(!isVoiceEnabled);
+                if (!isVoiceEnabled) {
+                  speakText(activeCategory.spokenIntro);
+                }
+              }
+            }}
+            className={`px-3 py-1.5 rounded-2xl border text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shrink-0 ${
+              isSpeaking
+                ? 'bg-sky-500 text-white border-sky-500 shadow-sm shadow-sky-500/25'
+                : isVoiceEnabled
+                ? 'bg-sky-50 text-sky-700 border-sky-200'
+                : 'bg-slate-100 text-slate-500 border-slate-200'
+            }`}
+          >
+            {isSpeaking ? (
+              <>
+                <Volume2 className="w-4 h-4 animate-pulse" />
+                {/* 4 Animated Audio Equalizer Bars */}
+                <div className="flex items-end gap-0.5 h-3">
+                  <span className="w-0.5 h-full bg-white rounded-full animate-[bounce_0.6s_ease-in-out_infinite]" />
+                  <span className="w-0.5 h-2/3 bg-white rounded-full animate-[bounce_0.8s_ease-in-out_infinite_0.15s]" />
+                  <span className="w-0.5 h-full bg-white rounded-full animate-[bounce_0.5s_ease-in-out_infinite_0.3s]" />
+                  <span className="w-0.5 h-1/2 bg-white rounded-full animate-[bounce_0.7s_ease-in-out_infinite_0.1s]" />
+                </div>
+                <span className="text-[11px]">Speaking</span>
+              </>
+            ) : isVoiceEnabled ? (
+              <>
+                <Volume2 className="w-4 h-4 text-sky-600" />
+                <span className="text-[11px]">Voice On</span>
+              </>
+            ) : (
+              <>
+                <VolumeX className="w-4 h-4 text-slate-400" />
+                <span className="text-[11px]">Muted</span>
+              </>
+            )}
+          </button>
         </div>
 
-        {/* Free-Text Symptom Prompt Input Bar */}
-        <div className="relative">
+        {/* Free-Text & Microphone Voice Input Bar */}
+        <div className="relative flex items-center">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
           <input
             type="text"
             value={inputText}
             onChange={(e) => handleQueryChange(e.target.value)}
-            placeholder="e.g. Throwing up food, high fever with chills, acute knee pain..."
-            className="w-full pl-10 pr-10 py-3 bg-slate-50/80 hover:bg-slate-50 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl border border-slate-200 focus:border-sky-400 focus:ring-4 focus:ring-sky-100 outline-none transition-all placeholder:text-slate-400"
+            placeholder="Type or speak symptoms (e.g. throwing up food, fever, migraine)..."
+            className="w-full pl-10 pr-20 py-3 bg-slate-50/80 hover:bg-slate-50 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl border border-slate-200 focus:border-sky-400 focus:ring-4 focus:ring-sky-100 outline-none transition-all placeholder:text-slate-400"
           />
-          {inputText && (
+
+          <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            {inputText && (
+              <button
+                type="button"
+                onClick={() => setInputText('')}
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-full cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+
+            {/* Microphone Voice Input Button */}
             <button
               type="button"
-              onClick={() => setInputText('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-full cursor-pointer"
+              onClick={toggleListening}
+              className={`p-2 rounded-xl transition-all cursor-pointer ${
+                isListening
+                  ? 'bg-rose-500 text-white animate-pulse shadow-md shadow-rose-500/30'
+                  : 'bg-sky-100 text-sky-700 hover:bg-sky-200'
+              }`}
+              title={isListening ? "Listening... Speak now" : "Speak to AI"}
             >
-              <X className="w-4 h-4" />
+              {isListening ? <Mic className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
             </button>
-          )}
+          </div>
         </div>
 
         {/* Subtle Horizontal Quick Pills */}
@@ -590,98 +824,68 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
       </div>
 
       {/* ========================================================================= */}
-      {/* 2. DYNAMIC AI CLINICAL INTERACTION & SMART CHIPS (ONE SEAMLESS STREAM)    */}
+      {/* 2. 21ST.DEV QUESTION-TOOL & CONTEXT-AWARE AI CLARIFICATION               */}
       {/* ========================================================================= */}
-      <div className="rounded-3xl bg-white/95 backdrop-blur-xl border border-slate-200/80 p-5 shadow-sm space-y-4">
-        
-        {/* AI Greeting Message Bubble */}
-        <div className="flex items-start gap-2.5">
+      <div className="space-y-3">
+        {/* AI Greeting Message Bubble with Speak Button */}
+        <div className="flex items-start gap-2.5 bg-white/80 backdrop-blur-md rounded-2xl p-3 border border-slate-200/80">
           <div className="w-8 h-8 rounded-full bg-sky-50 border border-sky-200 flex items-center justify-center shrink-0 mt-0.5">
             <Bot className="w-4 h-4 text-sky-600" />
           </div>
-          <div className="flex-1 bg-slate-50/80 border border-slate-200/70 rounded-2xl p-3 text-xs text-slate-700 leading-relaxed">
-            <span className="font-bold text-slate-900 block mb-0.5">Clinical Assistant:</span>
+          <div className="flex-1 text-xs text-slate-700 leading-relaxed">
+            <div className="flex items-center justify-between gap-1 mb-0.5">
+              <span className="font-bold text-slate-900">Clinical Assistant</span>
+              <button
+                type="button"
+                onClick={() => speakText(activeCategory.aiGreeting)}
+                className="text-[10px] text-sky-600 font-bold hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <Volume2 className="w-3 h-3" /> Speak
+              </button>
+            </div>
             {activeCategory.aiGreeting}
           </div>
         </div>
 
-        {/* AI Smart Question 1 Chips */}
-        <div className="space-y-2 pt-1">
-          <div className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
-            <span>{activeCategory.q1.prompt}</span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {activeCategory.q1.options.map((opt) => {
-              const isSelected = selectedQ1 === opt.id;
-              return (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => setSelectedQ1(opt.id)}
-                  className={`flex items-center gap-2.5 p-2.5 rounded-2xl border text-left text-xs transition-all cursor-pointer ${
-                    isSelected
-                      ? 'bg-sky-50 border-sky-400 text-sky-950 font-bold shadow-xs ring-1 ring-sky-200'
-                      : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'
-                  }`}
-                >
-                  <span className="text-xl shrink-0">{opt.icon}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="truncate">{opt.label}</div>
-                    {opt.sub && <div className="text-[10px] text-slate-500 font-normal">{opt.sub}</div>}
-                  </div>
-                  {isSelected && <Check className="w-4 h-4 text-sky-600 stroke-[3] shrink-0" />}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        {/* 21ST.DEV QUESTION-TOOL (@serafimcloud/components/question-tool) */}
+        <QuestionTool 
+          part={questionToolPart}
+          onReset={() => {
+            setIsQuestionsComplete(false);
+            if (isVoiceEnabled) {
+              speakText(activeCategory.spokenIntro);
+            }
+          }}
+        />
 
-        {/* AI Smart Question 2 Chips */}
-        <div className="space-y-2 pt-2 border-t border-slate-100">
-          <div className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-            <span>{activeCategory.q2.prompt}</span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {activeCategory.q2.options.map((opt) => {
-              const isSelected = selectedQ2 === opt.id;
-              return (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => setSelectedQ2(opt.id)}
-                  className={`flex items-center gap-2.5 p-2.5 rounded-2xl border text-left text-xs transition-all cursor-pointer ${
-                    isSelected
-                      ? 'bg-indigo-50 border-indigo-400 text-indigo-950 font-bold shadow-xs ring-1 ring-indigo-200'
-                      : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'
-                  }`}
-                >
-                  <span className="text-xl shrink-0">{opt.icon}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="truncate">{opt.label}</div>
-                    {opt.sub && <div className="text-[10px] text-slate-500 font-normal">{opt.sub}</div>}
-                  </div>
-                  {isSelected && <Check className="w-4 h-4 text-indigo-600 stroke-[3] shrink-0" />}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* AI Clinical Diagnostic Card (Right here in the stream) */}
-        <div className="mt-4 pt-3 border-t border-slate-100 space-y-2.5">
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-50/70 via-sky-50/50 to-white border border-emerald-200/80 shadow-2xs space-y-2">
+        {/* AI Clinical Diagnostic Card */}
+        {isQuestionsComplete && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-4.5 rounded-3xl bg-gradient-to-br from-emerald-50/70 via-sky-50/50 to-white border border-emerald-200/80 shadow-xs space-y-2.5"
+          >
             <div className="flex items-center justify-between gap-2">
-              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-100/80 text-emerald-800 text-[10px] font-bold">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                 <span>AI Clinical Match: {activeCategory.diagnosis.confidence}%</span>
                 <span>•</span>
                 <span className="uppercase">{activeCategory.diagnosis.urgency} Urgency</span>
               </div>
-              <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
-                {activeCategory.diagnosis.specialty}
-              </span>
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => speakText(activeCategory.diagnosis.spokenSummary)}
+                  className="px-2 py-0.5 rounded-lg bg-sky-50 border border-sky-200 text-sky-700 text-[11px] font-bold flex items-center gap-1 hover:bg-sky-100 cursor-pointer"
+                >
+                  <Volume2 className="w-3 h-3 text-sky-600" />
+                  <span>Listen</span>
+                </button>
+                <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
+                  {activeCategory.diagnosis.specialty}
+                </span>
+              </div>
             </div>
 
             <h4 className="text-sm font-bold text-slate-900">
@@ -692,12 +896,12 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
               {activeCategory.diagnosis.explanation}
             </p>
 
-            <div className="pt-1.5 border-t border-emerald-200/50 text-[11px] text-slate-700 leading-relaxed">
+            <div className="pt-2 border-t border-emerald-200/50 text-[11px] text-slate-700 leading-relaxed">
               <strong className="text-emerald-900 font-bold">Physician Advice: </strong>
               {activeCategory.diagnosis.advice}
             </div>
-          </div>
-        </div>
+          </motion.div>
+        )}
       </div>
 
       {/* ========================================================================= */}
