@@ -45,7 +45,8 @@ import {
   Users,
   LogOut,
   X,
-  Clock
+  Clock,
+  Home
 } from 'lucide-react';
 
 export function App() {
@@ -1137,8 +1138,8 @@ export function App() {
   const patientNavItems: LiquidNavItem<'op_booking' | 'telehealth' | 'ai_assist' | 'history' | 'profile'>[] = [
     {
       id: 'op_booking',
-      label: 'Tokens',
-      icon: Building2,
+      label: 'Home',
+      icon: Home,
     },
     {
       id: 'telehealth',

@@ -60,7 +60,8 @@ import {
   Search,
   MapPin,
   Calendar,
-  Ticket
+  Ticket,
+  Home
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { RollingCounter } from '../components/RollingCounter';
@@ -121,8 +122,8 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
   const [copiedAbha, setCopiedAbha] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   
-  // Discovery and Area Navigation States
-  const [directoryMode, setDirectoryMode] = useState<'doctors' | 'hospitals'>('doctors');
+  // Discovery and Area Navigation States (Defaults to Hospitals near you)
+  const [directoryMode, setDirectoryMode] = useState<'doctors' | 'hospitals'>('hospitals');
   const [selectedArea, setSelectedArea] = useState<string>('All');
   const [consultationFilter, setConsultationFilter] = useState<'ALL' | 'IN_PERSON' | 'VIDEO'>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -557,8 +558,8 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                 activeTab === 'op_booking' ? 'bg-white text-zinc-950 shadow-xs' : 'text-zinc-600 hover:text-zinc-950'
               }`}
             >
-              <Building2 className="w-4 h-4" />
-              <span>Outpatient (OP) Tokens</span>
+              <Home className="w-4 h-4" />
+              <span>Home & Nearby Hospitals</span>
             </button>
 
             <button
@@ -682,9 +683,9 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={
-                directoryMode === 'doctors'
-                  ? "Search doctors, specialties, conditions..."
-                  : "Search hospitals, areas, facilities..."
+                directoryMode === 'hospitals'
+                  ? "Search hospitals near you, facilities, areas..."
+                  : "Search doctors, specialties, conditions..."
               }
               className="w-full text-xs pl-10 pr-9 py-2.5 rounded-xl border border-slate-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.02)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/15 focus:border-emerald-600 transition-all placeholder:text-slate-400 font-sans tracking-tight"
             />
@@ -702,8 +703,23 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
 
           {/* Directory Switcher & Area Selector Bar */}
           <div className="flex items-center justify-between gap-2 px-0.5">
-            {/* Minimalist Segmented Control */}
+            {/* Minimalist Segmented Control (Hospitals Near You primary) */}
             <div className="inline-flex p-0.5 bg-slate-100 rounded-xl border border-slate-200/70 shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  setDirectoryMode('hospitals');
+                  setConsultationFilter('ALL');
+                }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  directoryMode === 'hospitals'
+                    ? 'bg-white text-slate-900 shadow-xs'
+                    : 'text-slate-500 hover:text-slate-900'
+                }`}
+              >
+                <Building2 className={`w-3.5 h-3.5 ${directoryMode === 'hospitals' ? 'text-emerald-600' : 'text-slate-500'}`} />
+                <span>Hospitals ({allFilteredHospitals.length})</span>
+              </button>
               <button
                 type="button"
                 onClick={() => {
@@ -716,20 +732,8 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                     : 'text-slate-500 hover:text-slate-900'
                 }`}
               >
-                <Stethoscope className="w-3.5 h-3.5 text-emerald-600" />
+                <Stethoscope className={`w-3.5 h-3.5 ${directoryMode === 'doctors' ? 'text-emerald-600' : 'text-slate-500'}`} />
                 <span>Doctors ({allFilteredDoctors.length})</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setDirectoryMode('hospitals')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  directoryMode === 'hospitals'
-                    ? 'bg-white text-slate-900 shadow-xs'
-                    : 'text-slate-500 hover:text-slate-900'
-                }`}
-              >
-                <Building2 className="w-3.5 h-3.5 text-slate-500" />
-                <span>Hospitals ({allFilteredHospitals.length})</span>
               </button>
             </div>
 
@@ -872,7 +876,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                       <div className="pt-2 border-t border-slate-100 space-y-2">
                         <div className="grid grid-cols-2 gap-2">
                           
-                          {/* Button 1: Book In-Person Visit (OPD) */}
+                          {/* Button 1: Book Normal Visit (OPD) */}
                           <motion.button
                             whileTap={{ scale: 0.97 }}
                             type="button"
@@ -884,7 +888,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                             className="py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer"
                           >
                             <Stethoscope className="w-3.5 h-3.5 text-white" />
-                            <span>Visit • ₹{doc.opConsultationFee || splitConfig.baseOpFee}</span>
+                            <span>Normal Visit • ₹{doc.opConsultationFee || splitConfig.baseOpFee}</span>
                           </motion.button>
 
                           {/* Button 2: Book HD Video Consultation */}
@@ -896,10 +900,10 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                               if (hosp) setSelectedHospital(hosp);
                               handleOpenCheckout(doc, 'VIDEO_CONSULTATION');
                             }}
-                            className="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                            className="py-2 px-3 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                           >
-                            <Video className="w-3.5 h-3.5 text-slate-600" />
-                            <span>Video • ₹{doc.teleConsultationFee || 200}</span>
+                            <Video className="w-3.5 h-3.5 text-sky-600" />
+                            <span>Video Call • ₹{doc.teleConsultationFee || 200}</span>
                           </motion.button>
                         </div>
 
@@ -967,90 +971,162 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
           )}
 
           {/* ============================================================== */}
-          {/* VIEW B: ALL HOSPITALS & CLINICS IN THE AREA */}
+          {/* VIEW B: ALL HOSPITALS & CLINICS NEAR YOU (DIRECT BOOKING)     */}
           {/* ============================================================== */}
           {directoryMode === 'hospitals' && (
             <div className="space-y-3">
               <div className="flex items-center justify-between px-0.5">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500">
-                  Hospital & Healthcare Facilities in Area
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Hospitals & Healthcare Centres Near You
                 </h3>
-                <span className="text-xs text-zinc-400">
-                  {allFilteredHospitals.length} centres
+                <span className="text-xs text-slate-400 font-medium tabular-nums">
+                  {allFilteredHospitals.length} centres available
                 </span>
               </div>
 
               <div className="grid grid-cols-1 gap-3.5">
-                {allFilteredHospitals.map(hosp => {
+                {allFilteredHospitals.map((hosp, idx) => {
                   const hospDoctors = doctors.filter(d => d.hospitalId === hosp.id);
+                  const primaryDoc = hospDoctors[0] || doctors[0];
 
                   return (
-                    <div
+                    <SlapBlock
                       key={hosp.id}
-                      className="rounded-2xl border border-zinc-200/80 p-3.5 bg-white hover:border-zinc-300 shadow-xs transition-all space-y-3 flex flex-col justify-between"
+                      variant="subtle-slap"
+                      delay={Math.min(idx * 0.05, 0.25)}
+                      className="w-full"
                     >
-                      <div>
-                        <div className="h-32 rounded-xl overflow-hidden mb-2.5 bg-zinc-100 relative group">
-                          <img src={hosp.imageUrl} alt={hosp.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                          
-                          <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full text-[10px] font-semibold text-white shadow-2xs flex items-center gap-1 border border-white/10">
-                            <Star className="w-2.5 h-2.5 text-amber-400 fill-amber-400" />
-                            <span>{hosp.rating}</span>
+                      <motion.div
+                        whileHover={{ y: -1 }}
+                        transition={{ duration: 0.15 }}
+                        className="rounded-2xl border border-slate-200/80 bg-white hover:border-[#4a6cf0]/40 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_4px_12px_rgba(0,0,0,0.03)] p-3.5 space-y-3 flex flex-col justify-between relative overflow-hidden group transition-all"
+                      >
+                        <div>
+                          {/* Hospital Image Banner */}
+                          <div className="h-32 rounded-xl overflow-hidden mb-2.5 bg-slate-100 relative group/img">
+                            <img
+                              src={hosp.imageUrl}
+                              alt={hosp.name}
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover/img:scale-105"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent" />
+                            
+                            {/* Rating Tag */}
+                            <div className="absolute top-2 right-2 bg-slate-900/80 backdrop-blur-md px-2 py-0.5 rounded-full text-[10px] font-semibold text-white shadow-2xs flex items-center gap-1 border border-white/10">
+                              <Star className="w-2.5 h-2.5 text-amber-400 fill-amber-400" />
+                              <span>{hosp.rating}</span>
+                            </div>
+
+                            {/* Emergency Badge */}
+                            {hosp.emergencyAvailable && (
+                              <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-600 text-[10px] font-semibold text-white shadow-xs">
+                                <span>24/7 Emergency & OPD</span>
+                              </div>
+                            )}
+
+                            {/* Distance Tag on Image */}
+                            <div className="absolute bottom-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-900/80 backdrop-blur-md text-[10px] font-medium text-white border border-white/10">
+                              <MapPin className="w-2.5 h-2.5 text-emerald-400" />
+                              <span>{hosp.distance || '1.2 km'} away</span>
+                            </div>
                           </div>
 
-                          {hosp.emergencyAvailable && (
-                            <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-600 text-[10px] font-semibold text-white shadow-xs">
-                              <span>24/7 Emergency</span>
+                          {/* Hospital Name & Address */}
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0 flex-1">
+                              <h4 className="font-semibold text-sm text-slate-900 tracking-tight truncate">
+                                {hosp.name}
+                              </h4>
+                              <p className="text-xs text-slate-500 mt-0.5 truncate font-normal">
+                                {hosp.address}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Live Queue & Specialists Count */}
+                          <div className="mt-2.5 flex items-center gap-1.5 flex-wrap text-[11px]">
+                            <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-medium border border-emerald-200/50 flex items-center gap-1">
+                              <Clock className="w-3 h-3 text-emerald-600" />
+                              <span>Next: Token #{primaryDoc?.nextAvailableToken || 4} (~10m wait)</span>
+                            </span>
+                            <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-medium">
+                              {hospDoctors.length} Specialists On Duty
+                            </span>
+                          </div>
+
+                          {/* Specialties Pills */}
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {hosp.specialties.slice(0, 4).map(s => (
+                              <span key={s} className="px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-medium">
+                                {s}
+                              </span>
+                            ))}
+                          </div>
+
+                          {/* Doctor Quick Preview */}
+                          {primaryDoc && (
+                            <div className="mt-2.5 p-2 rounded-xl bg-slate-50 border border-slate-100 flex items-center gap-2">
+                              <div className="w-7 h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-xs shrink-0">
+                                {primaryDoc.name.replace('Dr. ', '').split(' ')[0][0]}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-[11px] font-semibold text-slate-800 truncate">
+                                  {primaryDoc.name} • <span className="text-slate-500 font-normal">{primaryDoc.specialty}</span>
+                                </p>
+                                <p className="text-[10px] text-emerald-600 font-medium">Available for immediate consult</p>
+                              </div>
                             </div>
                           )}
                         </div>
 
-                        <h4 className="font-semibold text-xs text-zinc-950 tracking-tight line-clamp-1">{hosp.name}</h4>
-                        <p className="text-[11px] text-zinc-500 mt-0.5 truncate">{hosp.address} • {hosp.distance || '1.4 km'}</p>
+                        {/* Direct 1-Tap Booking Buttons: Normal Visit vs Video Call */}
+                        <div className="pt-2 border-t border-slate-100 space-y-2">
+                          <div className="grid grid-cols-2 gap-2">
+                            {/* Button 1: Normal Visit */}
+                            <motion.button
+                              whileTap={{ scale: 0.97 }}
+                              type="button"
+                              onClick={() => {
+                                setSelectedHospital(hosp);
+                                setSelectedDoctor(primaryDoc);
+                                handleOpenCheckout(primaryDoc, 'IN_PERSON_OPD');
+                              }}
+                              className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                            >
+                              <Stethoscope className="w-3.5 h-3.5 text-white" />
+                              <span>Normal Visit • ₹{hosp.baseOpFee || 100}</span>
+                            </motion.button>
 
-                        <div className="mt-2 flex flex-wrap gap-1">
-                          {hosp.specialties.slice(0, 3).map(s => (
-                            <span key={s} className="px-1.5 py-0.5 rounded-md bg-zinc-100 text-zinc-600 text-[10px] font-medium">
-                              {s}
-                            </span>
-                          ))}
+                            {/* Button 2: Video Call */}
+                            <motion.button
+                              whileTap={{ scale: 0.97 }}
+                              type="button"
+                              onClick={() => {
+                                setSelectedHospital(hosp);
+                                setSelectedDoctor(primaryDoc);
+                                handleOpenCheckout(primaryDoc, 'VIDEO_CONSULTATION');
+                              }}
+                              className="py-2.5 px-3 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                            >
+                              <Video className="w-3.5 h-3.5 text-sky-600" />
+                              <span>Video Call • ₹{primaryDoc?.teleConsultationFee || 200}</span>
+                            </motion.button>
+                          </div>
+
+                          {/* Link to view individual doctors at this hospital */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedHospital(hosp);
+                              setDirectoryMode('doctors');
+                            }}
+                            className="w-full text-center text-[11px] font-semibold text-slate-500 hover:text-emerald-700 py-0.5 transition-colors cursor-pointer flex items-center justify-center gap-1"
+                          >
+                            <span>Browse all {hospDoctors.length} doctors at {hosp.name.split(' ')[0]} →</span>
+                          </button>
                         </div>
-
-                        <div className="mt-3 pt-2 border-t border-zinc-100 flex items-center justify-between text-xs">
-                          <span className="text-[11px] text-zinc-400">Base OPD Consultation</span>
-                          <span className="font-semibold text-zinc-900 text-xs flex items-center">
-                            <RollingCounter value={hosp.baseOpFee} prefix="₹" height={16} />
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="pt-2 border-t border-zinc-100 grid grid-cols-2 gap-2">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedHospital(hosp);
-                            setDirectoryMode('doctors');
-                          }}
-                          className="py-2 rounded-xl bg-zinc-100 hover:bg-zinc-200/80 text-zinc-800 font-semibold text-xs text-center transition-colors cursor-pointer"
-                        >
-                          View Doctors ({hospDoctors.length})
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const firstDoc = hospDoctors[0] || doctors[0];
-                            setSelectedHospital(hosp);
-                            setSelectedDoctor(firstDoc);
-                            handleOpenCheckout(firstDoc, 'IN_PERSON_OPD');
-                          }}
-                          className="py-2 rounded-xl bg-zinc-950 hover:bg-zinc-800 text-white font-semibold text-xs text-center transition-colors cursor-pointer"
-                        >
-                          Book OPD Token
-                        </button>
-                      </div>
-                    </div>
+                      </motion.div>
+                    </SlapBlock>
                   );
                 })}
               </div>
