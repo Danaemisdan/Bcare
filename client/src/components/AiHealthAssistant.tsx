@@ -1072,79 +1072,77 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
     <div className="h-full flex flex-col justify-between overflow-hidden select-none animate-in fade-in duration-150 relative">
       
       {/* ========================================================================= */}
-      {/* 1. TOP NAV: MINIMAL BACK BUTTON + STEP INDICATOR + VOICE TOGGLE (SHRINK-0) */}
+      {/* 1. TOP PROGRESS BAR: 3 MINIMALIST HAIRLINE SEGMENTS                       */}
       {/* ========================================================================= */}
-      <div className="flex items-center justify-between gap-2 shrink-0 pt-1 pb-1.5 border-b border-slate-100/80">
-        {/* Minimal Circular Back Button */}
+      <div className="shrink-0 pt-1 pb-1">
+        <div className="grid grid-cols-3 gap-1.5 px-1">
+          {['Symptom', 'Severity', 'Duration'].map((label, idx) => {
+            const stepNum = idx + 1;
+            const currentStepNum = 
+              currentStep === 'QUESTION_1' ? 1 : 
+              currentStep === 'QUESTION_2' ? 2 : 
+              currentStep === 'QUESTION_3' ? 3 : 4;
+            const isCompleted = currentStepNum > stepNum;
+            const isCurrent = currentStepNum === stepNum;
+
+            return (
+              <div key={label} className="space-y-1">
+                <div className="h-1 rounded-full overflow-hidden bg-slate-200/80">
+                  <div 
+                    className={`h-full transition-all duration-300 ${
+                      isCompleted || isCurrent ? 'bg-slate-950 w-full' : 'w-0'
+                    }`} 
+                  />
+                </div>
+                <div className="flex items-center justify-between text-[9px] font-semibold">
+                  <span className={isCurrent ? 'text-slate-900 font-bold' : isCompleted ? 'text-slate-600' : 'text-slate-400'}>
+                    {label}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Top Header Navigation */}
+      <div className="flex items-center justify-between px-1 pb-1 border-b border-slate-100">
         <button
           type="button"
           onClick={handleBack}
-          className="w-8 h-8 rounded-full bg-white hover:bg-slate-100 border border-slate-200/90 shadow-2xs flex items-center justify-center text-slate-700 transition-all cursor-pointer group active:scale-95"
+          className="p-1 rounded-full text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
           title="Go Back"
         >
-          <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+          <ChevronLeft className="w-5 h-5" />
         </button>
 
-        {/* Minimal Step Indicator */}
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 text-slate-700 text-[11px] font-bold">
-          {currentStep === 'QUESTION_1' && <span>Question 1 of 3 • Symptom</span>}
-          {currentStep === 'QUESTION_2' && <span>Question 2 of 3 • Severity</span>}
-          {currentStep === 'QUESTION_3' && <span>Question 3 of 3 • Duration</span>}
-          {currentStep === 'ANALYSIS' && <span>Clinical AI Diagnosis</span>}
-          {currentStep === 'HOSPITALS' && <span>Nearby Hospitals & Booking</span>}
-        </div>
+        <span className="text-xs font-bold text-slate-900 tracking-tight">
+          {currentStep === 'QUESTION_1' && 'Clinical Intake'}
+          {currentStep === 'QUESTION_2' && 'Symptom Severity'}
+          {currentStep === 'QUESTION_3' && 'Onset Profile'}
+          {currentStep === 'ANALYSIS' && 'Diagnostic Synthesis'}
+          {currentStep === 'HOSPITALS' && 'Direct Care & Booking'}
+        </span>
 
-        {/* Voice Control Pill */}
         <button
           type="button"
           onClick={() => {
-            if (isSpeaking) {
-              stopSpeaking();
-            } else {
-              setIsVoiceEnabled(!isVoiceEnabled);
-              if (!isVoiceEnabled) {
-                if (currentStep === 'QUESTION_1') speakText("What is your main symptom or health concern?");
-                else if (currentStep === 'QUESTION_2') speakText(activeCategory.q2.prompt);
-                else if (currentStep === 'QUESTION_3') speakText("How long have you had this?");
-                else if (currentStep === 'ANALYSIS') speakText(activeCategory.diagnosis.spokenSummary);
-              }
-            }
+            if (isSpeaking) stopSpeaking();
+            else setIsVoiceEnabled(!isVoiceEnabled);
           }}
-          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold transition-all cursor-pointer shadow-2xs ${
-            isSpeaking
-              ? 'bg-sky-500 text-white shadow-sky-500/25 ring-2 ring-sky-200'
-              : isVoiceEnabled
-              ? 'bg-white text-sky-700 border border-sky-200 hover:bg-sky-50'
-              : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-100'
+          className={`p-1.5 rounded-full transition-colors cursor-pointer ${
+            isSpeaking ? 'bg-emerald-500 text-white' : isVoiceEnabled ? 'text-slate-900 hover:bg-slate-100' : 'text-slate-400 hover:bg-slate-100'
           }`}
+          title={isVoiceEnabled ? "Voice Enabled" : "Voice Muted"}
         >
-          {isSpeaking ? (
-            <>
-              <div className="flex items-end gap-0.5 h-2.5">
-                <span className="w-0.5 h-full bg-white rounded-full animate-[bounce_0.6s_ease-in-out_infinite]" />
-                <span className="w-0.5 h-2/3 bg-white rounded-full animate-[bounce_0.8s_ease-in-out_infinite_0.15s]" />
-                <span className="w-0.5 h-full bg-white rounded-full animate-[bounce_0.5s_ease-in-out_infinite_0.3s]" />
-              </div>
-              <span>Speaking</span>
-            </>
-          ) : isVoiceEnabled ? (
-            <>
-              <Volume2 className="w-3 h-3 text-sky-600" />
-              <span>Voice On</span>
-            </>
-          ) : (
-            <>
-              <VolumeX className="w-3 h-3 text-slate-400" />
-              <span className="text-slate-400">Muted</span>
-            </>
-          )}
+          {isVoiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
         </button>
       </div>
 
       {/* ========================================================================= */}
       {/* 2. MAIN SLIDE VIEW (EXACTLY 1 QUESTION / UX PER FRAME, ZERO SCROLLING)     */}
       {/* ========================================================================= */}
-      <div className="flex-1 flex flex-col justify-between overflow-hidden min-h-0 py-2">
+      <div className="flex-1 flex flex-col justify-between overflow-hidden min-h-0 py-1.5">
         <AnimatePresence mode="wait">
           
           {/* ===================================================================== */}
@@ -1160,38 +1158,38 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
               className="h-full flex flex-col justify-between overflow-hidden"
             >
               {/* Question Header & Siri Orb */}
-              <div className="flex flex-col items-center text-center shrink-0 pt-1">
+              <div className="flex flex-col items-center text-center shrink-0 pt-0.5">
                 <SiriOrb
                   size={46}
                   state={isSpeaking ? "streaming" : isListening ? "listening" : "idle"}
-                  className="cursor-pointer transition-transform hover:scale-105"
+                  className="cursor-pointer transition-transform hover:scale-105 active:scale-95"
                   onClick={() => {
                     if (isSpeaking) stopSpeaking();
                     else if (isVoiceEnabled) speakText("What is your main symptom or health concern?");
                   }}
                 />
-                <h3 className="text-base font-bold text-slate-900 tracking-tight mt-1.5 leading-snug">
-                  What is your main symptom?
+                <h3 className="text-base font-extrabold text-slate-900 tracking-tight mt-1.5 leading-snug">
+                  What are you experiencing?
                 </h3>
                 <p className="text-[11px] text-slate-500 mt-0.5">
-                  Type, speak, or select a medical specialty below
+                  Select a clinical specialty or search by symptom
                 </p>
               </div>
 
               {/* Free-Text Search & Voice Mic Bar */}
-              <div className="shrink-0 my-2">
-                <div className={`relative flex items-center bg-white rounded-xl border shadow-2xs transition-all ${
+              <div className="shrink-0 my-1.5">
+                <div className={`relative flex items-center bg-slate-100/90 rounded-2xl border transition-all ${
                   isListening
-                    ? 'border-rose-400 ring-2 ring-rose-100'
-                    : 'border-slate-200 focus-within:border-sky-400 focus-within:ring-2 focus-within:ring-sky-100'
+                    ? 'border-rose-400 ring-2 ring-rose-100 bg-white'
+                    : 'border-transparent focus-within:border-slate-300 focus-within:bg-white'
                 }`}>
-                  <Search className="w-3.5 h-3.5 text-slate-400 ml-2.5 shrink-0" />
+                  <Search className="w-3.5 h-3.5 text-slate-400 ml-3 shrink-0" />
                   <input
                     type="text"
                     value={inputText}
                     onChange={(e) => handleQueryChange(e.target.value)}
-                    placeholder="Describe symptoms (e.g. toothache, back pain, fever)..."
-                    className="w-full py-2 px-2 bg-transparent text-xs font-semibold text-slate-900 placeholder:text-slate-400 outline-none"
+                    placeholder="Describe symptoms (e.g. fever, toothache, back pain)..."
+                    className="w-full py-2.5 px-2 bg-transparent text-xs font-semibold text-slate-900 placeholder:text-slate-400 outline-none"
                   />
                   {inputText && (
                     <button
@@ -1205,10 +1203,10 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                   <button
                     type="button"
                     onClick={toggleListening}
-                    className={`p-1.5 mr-1 rounded-lg transition-all cursor-pointer shrink-0 ${
+                    className={`p-1.5 mr-1.5 rounded-xl transition-all cursor-pointer shrink-0 ${
                       isListening
                         ? 'bg-rose-500 text-white shadow-xs animate-pulse ring-1 ring-rose-300'
-                        : 'bg-sky-50 text-sky-600 hover:bg-sky-100'
+                        : 'bg-white text-slate-700 hover:bg-slate-200/80 shadow-2xs'
                     }`}
                     title={isListening ? "Listening... Speak now" : "Speak to AI"}
                   >
@@ -1218,16 +1216,15 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
 
                 {/* AI Detected Specialty Pill & Quick Nearby Button */}
                 <div className="mt-1 flex items-center justify-between px-1">
-                  <div className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-sky-700 min-w-0 truncate">
-                    <Sparkles className="w-3 h-3 text-sky-500 shrink-0" />
-                    <span className="truncate">AI Matched: <strong className="font-bold text-slate-800">{activeCategory.title}</strong></span>
+                  <div className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-slate-600 min-w-0 truncate">
+                    <Sparkles className="w-3 h-3 text-emerald-600 shrink-0" />
+                    <span className="truncate">Matched: <strong className="font-bold text-slate-900">{activeCategory.title}</strong></span>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <button
                       type="button"
                       onClick={() => handleGoToHospitals(true)}
-                      className="text-[10px] font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-0.5 cursor-pointer bg-emerald-50 hover:bg-emerald-100 px-1.5 py-0.5 rounded-md border border-emerald-200 transition-all shadow-2xs"
-                      title="Ask location & show nearby hospitals on Google Maps"
+                      className="text-[10px] font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-0.5 cursor-pointer bg-emerald-50 hover:bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-200 transition-all shadow-2xs"
                     >
                       <MapPin className="w-2.5 h-2.5 text-emerald-600" />
                       <span>Nearby</span>
@@ -1235,18 +1232,17 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                     <button
                       type="button"
                       onClick={() => setShowMoreModal(true)}
-                      className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 cursor-pointer"
+                      className="text-[10px] font-bold text-slate-600 hover:text-slate-900 cursor-pointer"
                     >
-                      All Specialties +
+                      All Fields +
                     </button>
                   </div>
                 </div>
               </div>
 
-              {/* Compact, Stable 2x4 Grid (Never Collapses, Zero Empty Space!) */}
+              {/* Compact, Stable 2x4 Grid */}
               <div className="flex-1 flex flex-col justify-center min-h-0 py-0.5">
                 <div className="grid grid-cols-2 gap-1.5">
-                  {/* First 7 Core Categories */}
                   {primaryCategories.map((cat) => {
                     const isSelected = selectedCategoryId === cat.id;
                     const IconComponent = cat.icon;
@@ -1257,18 +1253,20 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                         onClick={() => handleSelectCategory(cat)}
                         className={`p-2 rounded-xl text-left border transition-all cursor-pointer flex items-center gap-2 ${
                           isSelected
-                            ? 'bg-sky-50/90 border-sky-500 text-sky-950 shadow-2xs ring-1.5 ring-sky-200'
-                            : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700 shadow-2xs'
+                            ? 'bg-slate-950 text-white border-slate-950 shadow-sm ring-1 ring-slate-950'
+                            : 'bg-white hover:bg-slate-50 border-slate-200/80 text-slate-800 shadow-2xs'
                         }`}
                       >
-                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${cat.iconBg} ${cat.iconColor}`}>
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                          isSelected ? 'bg-white/10 text-white' : 'bg-slate-100 text-slate-700'
+                        }`}>
                           <IconComponent className="w-4 h-4" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <div className="text-[11.5px] font-bold truncate leading-tight">{cat.title}</div>
-                          <div className="text-[9.5px] text-slate-400 truncate leading-none mt-0.5">{cat.badge}</div>
+                          <div className={`text-[11.5px] font-bold truncate leading-tight ${isSelected ? 'text-white' : 'text-slate-900'}`}>{cat.title}</div>
+                          <div className={`text-[9.5px] truncate leading-none mt-0.5 ${isSelected ? 'text-slate-300' : 'text-slate-400'}`}>{cat.badge}</div>
                         </div>
-                        {isSelected && <Check className="w-3.5 h-3.5 text-sky-600 shrink-0 stroke-[2.5]" />}
+                        {isSelected && <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0 stroke-[2.5]" />}
                       </button>
                     );
                   })}
@@ -1278,29 +1276,29 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                     <button
                       type="button"
                       onClick={() => setShowMoreModal(true)}
-                      className="p-2 rounded-xl text-left border border-sky-500 bg-sky-50/90 text-sky-950 shadow-2xs ring-1.5 ring-sky-200 transition-all cursor-pointer flex items-center gap-2"
+                      className="p-2 rounded-xl text-left border border-slate-950 bg-slate-950 text-white shadow-sm ring-1 ring-slate-950 transition-all cursor-pointer flex items-center gap-2"
                     >
-                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${activeCategory.iconBg} ${activeCategory.iconColor}`}>
+                      <div className="w-7 h-7 rounded-lg bg-white/10 text-white flex items-center justify-center shrink-0">
                         <activeCategory.icon className="w-4 h-4" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="text-[11.5px] font-bold truncate leading-tight">{activeCategory.title}</div>
-                        <div className="text-[9.5px] text-slate-400 truncate leading-none mt-0.5">{activeCategory.badge}</div>
+                        <div className="text-[11.5px] font-bold text-white truncate leading-tight">{activeCategory.title}</div>
+                        <div className="text-[9.5px] text-slate-300 truncate leading-none mt-0.5">{activeCategory.badge}</div>
                       </div>
-                      <Check className="w-3.5 h-3.5 text-sky-600 shrink-0 stroke-[2.5]" />
+                      <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0 stroke-[2.5]" />
                     </button>
                   ) : (
                     <button
                       type="button"
                       onClick={() => setShowMoreModal(true)}
-                      className="p-2 rounded-xl text-left border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-700 shadow-2xs transition-all cursor-pointer flex items-center gap-2 group"
+                      className="p-2 rounded-xl text-left border border-slate-200/80 bg-white hover:bg-slate-50 text-slate-800 shadow-2xs transition-all cursor-pointer flex items-center gap-2 group"
                     >
-                      <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                      <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                         <MoreHorizontal className="w-4 h-4" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="text-[11.5px] font-bold truncate leading-tight">More Specialties</div>
-                        <div className="text-[9.5px] text-indigo-600 truncate leading-none mt-0.5">+ 11 clinical fields</div>
+                        <div className="text-[11.5px] font-bold text-slate-900 truncate leading-tight">More Specialties</div>
+                        <div className="text-[9.5px] text-slate-400 truncate leading-none mt-0.5">+11 clinical fields</div>
                       </div>
                     </button>
                   )}
@@ -1312,16 +1310,14 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                 <button
                   type="button"
                   onClick={handleGoToQ2}
-                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white font-bold text-xs shadow-md shadow-sky-500/25 flex items-center justify-center gap-1.5 active:scale-98 transition-all cursor-pointer"
+                  className="w-full py-3 rounded-2xl bg-slate-950 hover:bg-slate-900 text-white font-semibold text-xs shadow-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all cursor-pointer"
                 >
-                  <span>Continue to Severity (Question 2 of 3)</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <span>Continue to Severity</span>
+                  <ArrowRight className="w-4 h-4 text-slate-400" />
                 </button>
               </div>
 
-              {/* ============================================================= */}
-              {/* "MORE SPECIALTIES" MODAL PICKER OVERLAY                       */}
-              {/* ============================================================= */}
+              {/* "MORE SPECIALTIES" MODAL PICKER OVERLAY */}
               <AnimatePresence>
                 {showMoreModal && (
                   <motion.div
@@ -1361,18 +1357,20 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                               onClick={() => handleSelectCategory(cat)}
                               className={`p-2 rounded-xl text-left border transition-all cursor-pointer flex items-center gap-2 ${
                                 isSelected
-                                  ? 'bg-sky-50 border-sky-500 text-sky-950 ring-1 ring-sky-200'
+                                  ? 'bg-slate-950 text-white border-slate-950 shadow-sm'
                                   : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'
                               }`}
                             >
-                              <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 ${cat.iconBg} ${cat.iconColor}`}>
+                              <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 ${
+                                isSelected ? 'bg-white/10 text-white' : 'bg-slate-100 text-slate-700'
+                              }`}>
                                 <IconComp className="w-3.5 h-3.5" />
                               </div>
                               <div className="min-w-0 flex-1">
-                                <div className="text-[11px] font-bold truncate leading-tight">{cat.title}</div>
-                                <div className="text-[9px] text-slate-400 truncate leading-none mt-0.5">{cat.badge}</div>
+                                <div className={`text-[11px] font-bold truncate leading-tight ${isSelected ? 'text-white' : 'text-slate-900'}`}>{cat.title}</div>
+                                <div className={`text-[9px] truncate leading-none mt-0.5 ${isSelected ? 'text-slate-300' : 'text-slate-400'}`}>{cat.badge}</div>
                               </div>
-                              {isSelected && <Check className="w-3 h-3 text-sky-600 shrink-0 stroke-[2.5]" />}
+                              {isSelected && <Check className="w-3 h-3 text-emerald-400 shrink-0 stroke-[2.5]" />}
                             </button>
                           );
                         })}
@@ -1409,54 +1407,47 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                 <SiriOrb
                   size={42}
                   state={isSpeaking ? "streaming" : "idle"}
-                  className="cursor-pointer"
+                  className="cursor-pointer transition-transform hover:scale-105 active:scale-95"
                   onClick={() => {
                     if (isSpeaking) stopSpeaking();
                     else if (isVoiceEnabled) speakText(activeCategory.q2.prompt);
                   }}
                 />
-                <span className="text-[9.5px] font-bold text-sky-600 uppercase tracking-wider mt-1">
-                  Question 2 of 3 • Severity & Indicators
-                </span>
-                <h3 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight leading-snug">
+                <h3 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight mt-1 leading-snug">
                   {activeCategory.q2.prompt}
                 </h3>
-                <p className="text-[10.5px] text-slate-500">
+                <p className="text-[11px] text-slate-500 mt-0.5">
                   {activeCategory.q2.sub}
                 </p>
               </div>
 
-              {/* 4 Options (A, B, C, D) with Crisp Letter Badges (Zero Emojis) */}
+              {/* 4 Clean Options (No exam letters) */}
               <div className="flex-1 flex flex-col justify-center space-y-1.5 min-h-0 py-1">
-                {activeCategory.q2.options.map((opt, idx) => {
+                {activeCategory.q2.options.map((opt) => {
                   const isChecked = selectedQ2 === opt.id;
                   return (
                     <button
                       key={opt.id}
                       type="button"
                       onClick={() => setSelectedQ2(opt.id)}
-                      className={`w-full text-left rounded-xl p-2.5 flex items-center gap-2.5 border transition-all cursor-pointer ${
+                      className={`w-full text-left rounded-2xl p-2.5 flex items-center gap-3 border transition-all cursor-pointer ${
                         isChecked
-                          ? 'bg-sky-50/90 border-sky-500 text-slate-900 shadow-2xs ring-1.5 ring-sky-200'
-                          : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700 shadow-2xs'
+                          ? 'bg-slate-950 border-slate-950 text-white shadow-sm ring-1 ring-slate-950'
+                          : 'bg-white hover:bg-slate-50 border-slate-200/80 text-slate-800 shadow-2xs'
                       }`}
                     >
-                      <span
-                        className={`w-5 h-5 rounded-full text-[10px] font-bold inline-flex items-center justify-center shrink-0 border transition-all ${
-                          isChecked
-                            ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white border-transparent shadow-xs'
-                            : 'bg-slate-100 text-slate-600 border-slate-200'
-                        }`}
-                      >
-                        {isChecked ? <Check className="w-3 h-3 stroke-[3]" /> : optionBadge(idx)}
-                      </span>
+                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-all ${
+                        isChecked ? 'border-emerald-400 bg-emerald-400' : 'border-slate-300 bg-transparent'
+                      }`}>
+                        {isChecked && <div className="w-1.5 h-1.5 rounded-full bg-slate-950" />}
+                      </div>
 
                       <div className="flex-1 min-w-0">
-                        <div className="text-[11.5px] font-bold text-slate-900 leading-tight truncate">
+                        <div className={`text-[11.5px] font-bold leading-tight truncate ${isChecked ? 'text-white' : 'text-slate-900'}`}>
                           {opt.label}
                         </div>
                         {opt.sub && (
-                          <div className="text-[10px] text-slate-500 leading-none mt-0.5 truncate">
+                          <div className={`text-[10px] leading-tight mt-0.5 truncate ${isChecked ? 'text-slate-300' : 'text-slate-500'}`}>
                             {opt.sub}
                           </div>
                         )}
@@ -1471,10 +1462,10 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                 <button
                   type="button"
                   onClick={handleGoToQ3}
-                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white font-bold text-xs shadow-md shadow-sky-500/25 flex items-center justify-center gap-1.5 active:scale-98 transition-all cursor-pointer"
+                  className="w-full py-3 rounded-2xl bg-slate-950 hover:bg-slate-900 text-white font-semibold text-xs shadow-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all cursor-pointer"
                 >
-                  <span>Continue to Duration (Question 3 of 3)</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <span>Continue to Duration</span>
+                  <ArrowRight className="w-4 h-4 text-slate-400" />
                 </button>
               </div>
             </motion.div>
@@ -1497,54 +1488,47 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                 <SiriOrb
                   size={42}
                   state={isSpeaking ? "streaming" : "idle"}
-                  className="cursor-pointer"
+                  className="cursor-pointer transition-transform hover:scale-105 active:scale-95"
                   onClick={() => {
                     if (isSpeaking) stopSpeaking();
                     else if (isVoiceEnabled) speakText("How long have you had this?");
                   }}
                 />
-                <span className="text-[9.5px] font-bold text-sky-600 uppercase tracking-wider mt-1">
-                  Question 3 of 3 • Onset & Timeline
-                </span>
-                <h3 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight leading-snug">
+                <h3 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight mt-1 leading-snug">
                   How long has this been occurring?
                 </h3>
-                <p className="text-[10.5px] text-slate-500">
+                <p className="text-[11px] text-slate-500 mt-0.5">
                   Helps triage acute episodes from chronic conditions
                 </p>
               </div>
 
-              {/* 4 Duration Options (A, B, C, D) (Zero Emojis) */}
+              {/* 4 Clean Duration Options */}
               <div className="flex-1 flex flex-col justify-center space-y-1.5 min-h-0 py-1">
-                {DURATION_OPTIONS.map((opt, idx) => {
+                {DURATION_OPTIONS.map((opt) => {
                   const isChecked = selectedQ3 === opt.id;
                   return (
                     <button
                       key={opt.id}
                       type="button"
                       onClick={() => setSelectedQ3(opt.id)}
-                      className={`w-full text-left rounded-xl p-2.5 flex items-center gap-2.5 border transition-all cursor-pointer ${
+                      className={`w-full text-left rounded-2xl p-2.5 flex items-center gap-3 border transition-all cursor-pointer ${
                         isChecked
-                          ? 'bg-sky-50/90 border-sky-500 text-slate-900 shadow-2xs ring-1.5 ring-sky-200'
-                          : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700 shadow-2xs'
+                          ? 'bg-slate-950 border-slate-950 text-white shadow-sm ring-1 ring-slate-950'
+                          : 'bg-white hover:bg-slate-50 border-slate-200/80 text-slate-800 shadow-2xs'
                       }`}
                     >
-                      <span
-                        className={`w-5 h-5 rounded-full text-[10px] font-bold inline-flex items-center justify-center shrink-0 border transition-all ${
-                          isChecked
-                            ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white border-transparent shadow-xs'
-                            : 'bg-slate-100 text-slate-600 border-slate-200'
-                        }`}
-                      >
-                        {isChecked ? <Check className="w-3 h-3 stroke-[3]" /> : optionBadge(idx)}
-                      </span>
+                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-all ${
+                        isChecked ? 'border-emerald-400 bg-emerald-400' : 'border-slate-300 bg-transparent'
+                      }`}>
+                        {isChecked && <div className="w-1.5 h-1.5 rounded-full bg-slate-950" />}
+                      </div>
 
                       <div className="flex-1 min-w-0">
-                        <div className="text-[11.5px] font-bold text-slate-900 leading-tight truncate">
+                        <div className={`text-[11.5px] font-bold leading-tight truncate ${isChecked ? 'text-white' : 'text-slate-900'}`}>
                           {opt.label}
                         </div>
                         {opt.sub && (
-                          <div className="text-[10px] text-slate-500 leading-none mt-0.5 truncate">
+                          <div className={`text-[10px] leading-tight mt-0.5 truncate ${isChecked ? 'text-slate-300' : 'text-slate-500'}`}>
                             {opt.sub}
                           </div>
                         )}
@@ -1559,11 +1543,11 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                 <button
                   type="button"
                   onClick={handleGoToAnalysis}
-                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white font-bold text-xs shadow-md shadow-sky-500/25 flex items-center justify-center gap-1.5 active:scale-98 transition-all cursor-pointer"
+                  className="w-full py-3 rounded-2xl bg-slate-950 hover:bg-slate-900 text-white font-semibold text-xs shadow-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all cursor-pointer"
                 >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Run Clinical AI Analysis</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <Sparkles className="w-4 h-4 text-emerald-400" />
+                  <span>Run Clinical AI Synthesis</span>
+                  <ArrowRight className="w-4 h-4 text-slate-400" />
                 </button>
               </div>
             </motion.div>
@@ -1581,32 +1565,32 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
               className="h-full flex flex-col justify-between overflow-hidden"
             >
-              {/* Top Analysis Header & Orb */}
+              {/* Top Analysis Header & Siri Orb */}
               <div className="flex flex-col items-center text-center shrink-0 pt-0.5">
                 <SiriOrb
                   size={46}
                   state={isSpeaking ? "streaming" : "thinking"}
-                  className="cursor-pointer"
+                  className="cursor-pointer transition-transform hover:scale-105 active:scale-95"
                   onClick={() => {
                     if (isSpeaking) stopSpeaking();
                     else speakText(activeCategory.diagnosis.spokenSummary);
                   }}
                 />
-                <h3 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight mt-1">
-                  Clinical AI Diagnostic Assessment
+                <h3 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight mt-1 leading-snug">
+                  Clinical AI Diagnostic Synthesis
                 </h3>
-                <p className="text-[10.5px] text-slate-500">
+                <p className="text-[11px] text-slate-500 mt-0.5">
                   Synthesized from chief complaint, severity, and onset profile
                 </p>
               </div>
 
               {/* Triage Diagnostic Card */}
               <div className="flex-1 flex flex-col justify-center min-h-0 py-1">
-                <div className="p-3 rounded-2xl bg-gradient-to-br from-emerald-50/70 via-sky-50/50 to-white border border-emerald-200/80 shadow-xs space-y-2">
+                <div className="p-3.5 rounded-3xl bg-slate-950 text-white border border-slate-800 shadow-md space-y-2.5">
                   <div className="flex items-center justify-between gap-1.5">
-                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
-                      <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                      <span>{activeCategory.diagnosis.confidence}% Match</span>
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                      <span>{activeCategory.diagnosis.confidence}% Confidence</span>
                       <span>•</span>
                       <span className="uppercase">{activeCategory.diagnosis.urgency}</span>
                     </div>
@@ -1615,27 +1599,29 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                       <button
                         type="button"
                         onClick={() => speakText(activeCategory.diagnosis.spokenSummary)}
-                        className="px-2 py-0.5 rounded-md bg-white border border-sky-200 text-sky-700 text-[10.5px] font-bold flex items-center gap-1 hover:bg-sky-50 cursor-pointer shadow-2xs"
+                        className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-white text-[10.5px] font-medium flex items-center gap-1.5 cursor-pointer transition-colors"
                       >
-                        <Volume2 className="w-3 h-3 text-sky-600" />
+                        <Volume2 className="w-3 h-3 text-emerald-400" />
                         <span>Listen</span>
                       </button>
-                      <span className="text-[10.5px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200">
-                        {activeCategory.diagnosis.specialty}
-                      </span>
                     </div>
                   </div>
 
-                  <h4 className="text-xs sm:text-sm font-bold text-slate-900 leading-snug">
-                    {activeCategory.diagnosis.primary}
-                  </h4>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
+                      Specialty: {activeCategory.diagnosis.specialty}
+                    </span>
+                    <h4 className="text-sm sm:text-base font-extrabold text-white leading-snug mt-0.5">
+                      {activeCategory.diagnosis.primary}
+                    </h4>
+                  </div>
 
-                  <p className="text-[11px] text-slate-600 leading-relaxed">
+                  <p className="text-[11px] text-slate-300 leading-relaxed">
                     {activeCategory.diagnosis.explanation}
                   </p>
 
-                  <div className="pt-1.5 border-t border-emerald-200/60 text-[10.5px] text-slate-700 leading-relaxed">
-                    <strong className="text-emerald-900 font-bold">Physician Advice: </strong>
+                  <div className="pt-2 border-t border-white/10 text-[11px] text-slate-200 leading-relaxed">
+                    <strong className="text-emerald-400 font-bold">Physician Advice: </strong>
                     {activeCategory.diagnosis.advice}
                   </div>
                 </div>
@@ -1646,11 +1632,11 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                 <button
                   type="button"
                   onClick={() => handleGoToHospitals(false)}
-                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white font-bold text-xs shadow-md shadow-sky-500/25 flex items-center justify-center gap-1.5 active:scale-98 transition-all cursor-pointer"
+                  className="w-full py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
                 >
-                  <MapPin className="w-3.5 h-3.5" />
+                  <MapPin className="w-4 h-4 text-slate-950" />
                   <span>View Nearby Hospitals & Doctors</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <ArrowRight className="w-4 h-4 text-slate-950" />
                 </button>
               </div>
             </motion.div>
@@ -1883,7 +1869,7 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
               </div>
 
               {/* Proximity Hospital Selector Pills */}
-              <div className="grid grid-cols-3 gap-1 shrink-0 pt-1">
+              <div className="grid grid-cols-3 gap-1.5 shrink-0 pt-1">
                 {nearbyHospitals.map((hosp, idx) => {
                   const isSelected = selectedHospitalIndex === idx;
                   return (
@@ -1896,72 +1882,72 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                           speakText(`Selected ${hosp.name}. Distance is ${hosp.distanceKm} kilometers with ~${hosp.liveWaitMins} minutes estimated wait.`);
                         }
                       }}
-                      className={`p-1.5 rounded-xl border text-left transition-all cursor-pointer ${
+                      className={`p-2 rounded-2xl border text-left transition-all cursor-pointer ${
                         isSelected
-                          ? 'bg-sky-50 border-sky-400 ring-1 ring-sky-300 shadow-2xs'
-                          : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'
+                          ? 'bg-slate-950 border-slate-950 text-white shadow-sm ring-1 ring-slate-950'
+                          : 'bg-white hover:bg-slate-50 border-slate-200/80 text-slate-800 shadow-2xs'
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold text-slate-900 truncate">{hosp.name.split(' ')[0]}</span>
-                        <span className="text-[9px] font-bold text-sky-600">{hosp.distanceKm}km</span>
+                        <span className={`text-[10px] font-bold truncate ${isSelected ? 'text-white' : 'text-slate-900'}`}>{hosp.name.split(' ')[0]}</span>
+                        <span className={`text-[9px] font-bold ${isSelected ? 'text-emerald-400' : 'text-slate-500'}`}>{hosp.distanceKm}km</span>
                       </div>
-                      <div className="text-[8.5px] text-emerald-600 font-semibold truncate mt-0.5">~{hosp.liveWaitMins}m wait</div>
+                      <div className={`text-[8.5px] font-semibold truncate mt-0.5 ${isSelected ? 'text-slate-300' : 'text-emerald-600'}`}>~{hosp.liveWaitMins}m wait</div>
                     </button>
                   );
                 })}
               </div>
 
               {/* Selected Hospital & Assigned Specialist Doctor Card */}
-              <div className="rounded-xl border border-slate-200/90 bg-white p-2.5 shadow-xs space-y-1.5 shrink-0">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-1">
+              <div className="rounded-2xl border border-slate-200/80 bg-white p-3 shadow-xs space-y-2 shrink-0">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
-                      <h4 className="text-[11.5px] font-bold text-slate-900 truncate">{selectedHospital.name}</h4>
+                      <h4 className="text-xs font-bold text-slate-900 truncate">{selectedHospital.name}</h4>
                       <span className="px-1.5 py-0.2 rounded text-[8.5px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 shrink-0">
                         {selectedHospital.is247 ? '24/7 OPD' : 'OPD Open'}
                       </span>
                     </div>
-                    <p className="text-[9.5px] text-slate-500 truncate">{selectedHospital.address} • {selectedHospital.driveTime}</p>
+                    <p className="text-[10px] text-slate-500 truncate">{selectedHospital.address} • {selectedHospital.driveTime}</p>
                   </div>
-                  <span className="text-[10px] font-bold text-amber-600 flex items-center gap-0.5 shrink-0 pl-1">
-                    <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
+                  <span className="text-[10.5px] font-bold text-slate-900 flex items-center gap-1 shrink-0 pl-1">
+                    <Star className="w-3 h-3 fill-amber-400 text-amber-500" />
                     {selectedHospital.rating}
                   </span>
                 </div>
 
                 {/* Doctor Row */}
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-sky-100 to-indigo-100 border border-slate-200 flex items-center justify-center font-bold text-indigo-700 text-xs shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-xs shrink-0">
                     {topDoctor.name.charAt(0)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <h5 className="text-[11px] font-bold text-slate-900 truncate">{formatDocName(topDoctor.name)}</h5>
-                      <span className="text-[9px] font-bold text-emerald-600">Token #{selectedHospital.tokenReady} Ready</span>
+                      <h5 className="text-[11.5px] font-bold text-slate-900 truncate">{formatDocName(topDoctor.name)}</h5>
+                      <span className="text-[9.5px] font-bold text-emerald-600">Token #{selectedHospital.tokenReady} Ready</span>
                     </div>
-                    <p className="text-[9.5px] text-slate-500 truncate">{topDoctor.specialty} • {topDoctor.experienceYears} yrs exp</p>
+                    <p className="text-[10px] text-slate-500 truncate">{topDoctor.specialty} • {topDoctor.experienceYears} yrs exp</p>
                   </div>
                 </div>
 
-                {/* 1-Tap Booking Buttons */}
-                <div className="grid grid-cols-2 gap-1.5 pt-0.5">
+                {/* 1-Tap Modern Booking Buttons */}
+                <div className="grid grid-cols-2 gap-2 pt-0.5">
                   <button
                     type="button"
                     onClick={() => handleProceedBooking(topDoctor, 'IN_PERSON_OPD')}
-                    className="py-2 px-2 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white font-bold shadow-xs flex items-center justify-center gap-1 active:scale-95 transition-all cursor-pointer"
+                    className="py-2.5 px-2 rounded-xl bg-slate-950 hover:bg-slate-900 text-white font-semibold shadow-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer"
                   >
-                    <Building2 className="w-3 h-3 shrink-0" />
-                    <span className="text-[10.5px]">In-Person Visit • ₹{topDoctor?.opConsultationFee || 80}</span>
+                    <Building2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    <span className="text-[11px]">Visit • ₹{topDoctor?.opConsultationFee || 80}</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => handleProceedBooking(topDoctor, 'VIDEO_CONSULTATION')}
-                    className="py-2 px-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-900 font-bold shadow-2xs flex items-center justify-center gap-1 active:scale-95 transition-all cursor-pointer"
+                    className="py-2.5 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-900 font-semibold flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer"
                   >
-                    <Video className="w-3 h-3 text-sky-600 shrink-0" />
-                    <span className="text-[10.5px] text-sky-700">Video Call • ₹399</span>
+                    <Video className="w-3.5 h-3.5 text-slate-600 shrink-0" />
+                    <span className="text-[11px]">Video • ₹399</span>
                   </button>
                 </div>
               </div>

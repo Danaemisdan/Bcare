@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LucideIcon } from 'lucide-react';
+import { LucideIcon, Sparkles } from 'lucide-react';
 import { SiriOrb } from './SiriOrb';
 
 // ============================================================================
@@ -163,7 +163,7 @@ export function LiquidGlassNavbar<T extends string = string>({
           const isActive = item.id === activeId;
           const Icon = item.icon;
 
-          // SPECIAL RENDERING: REAL 21ST.DEV ANIMATED SIRI ORB
+          // SPECIAL RENDERING: 21ST.DEV ANIMATED MULTI-ANGLE SIRI ORB
           if (item.highlight) {
             return (
               <button
@@ -173,11 +173,10 @@ export function LiquidGlassNavbar<T extends string = string>({
                 onClick={() => onChange(item.id)}
                 onPointerDown={(e) => handlePointerDown(e, item.id)}
                 aria-current={isActive ? 'page' : undefined}
-                className="relative z-30 flex-1 flex flex-col items-center justify-center -mt-5 outline-none cursor-pointer group select-none"
+                className="relative z-30 flex-1 flex flex-col items-center justify-center -mt-4 outline-none cursor-pointer group select-none"
               >
-                {/* 21st.dev Animated Multi-Angle Conic Gradient Siri Orb */}
                 <SiriOrb
-                  size={48}
+                  size={46}
                   state={isActive ? 'thinking' : 'idle'}
                   className="transition-transform duration-200 group-hover:scale-105 active:scale-92"
                 />

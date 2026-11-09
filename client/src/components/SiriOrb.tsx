@@ -38,7 +38,7 @@ export const SiriOrb: React.FC<SiriOrbProps> = ({
   const shouldReduceMotion = useReducedMotion();
   const config = STATE_CONFIG[state] || STATE_CONFIG.idle;
 
-  // Lighter, smoother, ethereal Apple Intelligence palette
+  // Luminous Apple Intelligence Siri Orb Palette
   const defaultColors = {
     bg: '#090d1a', // Deep twilight space
     c1: '#ff375f', // Apple Vibrant Rose
