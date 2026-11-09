@@ -181,81 +181,64 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
   const [activeBanner, setActiveBanner] = useState(0);
   const [specialtyCategory, setSpecialtyCategory] = useState<'GENERAL' | 'ADVANCED'>('GENERAL');
   const [consultationChoiceModal, setConsultationChoiceModal] = useState<'IN_PERSON' | 'VIDEO' | null>(null);
-  const [selectedQAItem, setSelectedQAItem] = useState<{
-    id: string;
-    timeAgo: string;
-    question: string;
-    aiInsight: string;
-    aiUrgency: 'Routine' | 'Advisory' | 'Urgent';
-    aiSpecialty: string;
-    doctorName: string;
-    doctorCredentials: string;
-    doctorHospital: string;
-    doctorAvatar: string;
-    doctorAvatars: string[];
-    moreAnswersCount: number;
-    doctorAnswer: string;
-    views: number;
-    specialtyId: string;
-  } | null>(null);
 
-  // Exact 8 squircle specialty cards each for General Care and Advanced Care (Screenshot 2026-11-10 at 3.18.43 AM.png)
+  // B Care Specialty Directory (8 General Care, 8 Advanced Care)
   const practoSpecialties = [
-    // General Care (8 specialties from Practo)
+    // General Care (8 specialties)
     {
       id: 'General Medicine',
       name: 'General Physician',
       category: 'GENERAL' as const,
-      image: '/specialties/card_general_physician.png',
+      image: '/specialties_bcare/bcare_gp.jpg',
       tag: 'Fever, Cold, Viral'
     },
     {
       id: 'Gynecology',
       name: "Women's Health",
       category: 'GENERAL' as const,
-      image: '/specialties/card_womens_health.png',
-      tag: 'Gynecology & Care'
+      image: '/specialties_bcare/bcare_women.jpg',
+      tag: 'Periods & Gyn'
     },
     {
       id: 'Dermatology',
       name: 'Skin Specialist',
       category: 'GENERAL' as const,
-      image: '/specialties/card_skin_specialist.png',
-      tag: 'Acne, Hair & Skin'
+      image: '/specialties_bcare/bcare_skin.jpg',
+      tag: 'Acne & Skin Care'
     },
     {
       id: 'Pediatrics',
       name: 'Child Care',
       category: 'GENERAL' as const,
-      image: '/specialties/card_child_care.png',
+      image: '/specialties_bcare/bcare_child.jpg',
       tag: 'Infants & Kids'
     },
     {
       id: 'Dentistry',
-      name: 'Dentist',
+      name: 'Dental Care',
       category: 'GENERAL' as const,
-      image: '/specialties/card_dentist.png',
-      tag: 'Teeth, Root Canal'
+      image: '/specialties_bcare/bcare_dentist.jpg',
+      tag: 'Teeth & Gums'
     },
     {
       id: 'Ophthalmology',
       name: 'Eye Specialist',
       category: 'GENERAL' as const,
-      image: '/specialties/card_eye_specialist.png',
+      image: '/specialties_bcare/bcare_eye.jpg',
       tag: 'Vision & Retina'
     },
     {
       id: 'ENT',
       name: 'Ear, Nose & Throat',
       category: 'GENERAL' as const,
-      image: '/specialties/card_ent.png',
+      image: '/specialties_bcare/bcare_ent.jpg',
       tag: 'Sinus & Hearing'
     },
     {
       id: 'Mental Wellness',
       name: 'Mental Wellness',
       category: 'GENERAL' as const,
-      image: '/specialties/card_mental_wellness.png',
+      image: '/specialties_bcare/bcare_mental.jpg',
       tag: 'Therapy & Mind'
     },
 
@@ -264,142 +247,57 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
       id: 'Orthopedics',
       name: 'Bones & Joints',
       category: 'ADVANCED' as const,
-      image: '/specialties/card_orthopedics.png',
-      tag: 'Knee, Spine & Pain'
+      image: '/specialties_bcare/bcare_ortho.jpg',
+      tag: 'Knee & Spine'
     },
     {
       id: 'Cardiology',
       name: 'Heart & Chest',
       category: 'ADVANCED' as const,
-      image: '/specialties/card_cardiology.png',
+      image: '/specialties_bcare/bcare_cardio.jpg',
       tag: 'ECG, BP & Chest'
     },
     {
       id: 'Neurology',
       name: 'Brain & Nerves',
       category: 'ADVANCED' as const,
-      image: '/specialties/card_neurology.png',
-      tag: 'Migraine & Stroke'
+      image: '/specialties_bcare/bcare_neuro.jpg',
+      tag: 'Migraine & Nerves'
     },
     {
       id: 'Gastroenterology',
       name: 'Digestive Issues',
       category: 'ADVANCED' as const,
-      image: '/specialties/card_gastroenterology.png',
-      tag: 'GERD, Liver, Bowel'
+      image: '/specialties_bcare/bcare_gastro.jpg',
+      tag: 'GERD & Acidity'
     },
     {
       id: 'Nephrology',
       name: 'Kidney Issues',
       category: 'ADVANCED' as const,
-      image: '/specialties/card_nephrology.png',
-      tag: 'Kidney & Dialysis'
+      image: '/specialties_bcare/bcare_kidney.jpg',
+      tag: 'Kidney & Urology'
     },
     {
       id: 'Pulmonology',
       name: 'Lungs & Breathing',
       category: 'ADVANCED' as const,
-      image: '/specialties/card_pulmonology.png',
-      tag: 'Asthma, Cough'
+      image: '/specialties_bcare/bcare_lungs.jpg',
+      tag: 'Asthma & Cough'
     },
     {
       id: 'Diabetology',
       name: 'Diabetes Care',
       category: 'ADVANCED' as const,
-      image: '/specialties/card_diabetology.png',
-      tag: 'Sugar & Endocrine'
+      image: '/specialties_bcare/bcare_diabetes.jpg',
+      tag: 'Sugar & Thyroid'
     },
     {
       id: 'General Surgery',
       name: 'General Surgery',
       category: 'ADVANCED' as const,
-      image: '/specialties/card_general_surgery.png',
-      tag: 'Laparoscopy & Hernia'
-    }
-  ];
-
-  // AI-Integrated Clinical Q&A Items (Screenshot 2026-11-10 at 3.18.43 AM & 3.18.57 AM)
-  const practoQAItems = [
-    {
-      id: 'qa-1',
-      timeAgo: '15h ago',
-      question: 'ADHD: Executive dysfunction, difficulty initiating/completing tasks, mental hyperactivity, inconsistent focus despite best efforts. What clinical options exist?',
-      aiInsight: 'Executive pattern consistent with Adult ADHD / Attentional dysregulation. Neuro-Psychiatry evaluation recommended.',
-      aiUrgency: 'Advisory' as const,
-      aiSpecialty: 'Mental Wellness',
-      doctorName: 'Dr. Vikram Singh',
-      doctorCredentials: 'MD (Psychiatry), AIIMS',
-      doctorHospital: 'Kovai Medical & Research Centre',
-      doctorAvatar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150',
-      doctorAvatars: [
-        'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150',
-        'https://images.unsplash.com/photo-1594824813619-33560eb11a68?w=150',
-        'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150'
-      ],
-      moreAnswersCount: 4,
-      doctorAnswer: 'Executive dysfunction stems from dopamine pathway variations in the prefrontal cortex. Standard evidence-based protocol includes structured CBT, executive coaching routines, and when indicated, non-stimulant or stimulant medication after comprehensive neuropsychiatric profiling.',
-      views: 21,
-      specialtyId: 'Mental Wellness'
-    },
-    {
-      id: 'qa-2',
-      timeAgo: '1d ago',
-      question: 'Persistent heartburn, sour acid regurgitation and chest burning sensation after meals. Antacids only give temporary 30-min relief. Could this be GERD or ulcer?',
-      aiInsight: 'Gastroesophageal Reflux (GERD) / Peptic hyperacidity indicated. Rule out nocturnal reflux and esophageal irritation.',
-      aiUrgency: 'Advisory' as const,
-      aiSpecialty: 'Gastroenterology',
-      doctorName: 'Dr. Arun Kumar',
-      doctorCredentials: 'DM (Gastroenterology)',
-      doctorHospital: 'City Care Multi-Specialty Hospital',
-      doctorAvatar: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=150',
-      doctorAvatars: [
-        'https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=150',
-        'https://images.unsplash.com/photo-1594824813619-33560eb11a68?w=150'
-      ],
-      moreAnswersCount: 2,
-      doctorAnswer: 'Frequent acid reflux refractory to OTC antacids usually reflects lower esophageal sphincter relaxation or gastritis. An upper GI endoscopy is recommended if symptoms persist over 2 weeks or if you experience difficulty swallowing.',
-      views: 45,
-      specialtyId: 'Gastroenterology'
-    },
-    {
-      id: 'qa-3',
-      timeAgo: '2d ago',
-      question: '14-month-old child running sudden 102°F temperature with lethargy, irritability and poor fluid intake for past 12 hours. When should I visit the hospital?',
-      aiInsight: 'Acute pediatric febrile episode with reduced oral intake. Prompt pediatric assessment recommended within 4-6 hours.',
-      aiUrgency: 'Urgent' as const,
-      aiSpecialty: 'Pediatrics',
-      doctorName: 'Dr. Shalini Sundaram',
-      doctorCredentials: 'DCH, MD (Pediatrics)',
-      doctorHospital: 'Kovai Medical & Research Centre',
-      doctorAvatar: 'https://images.unsplash.com/photo-1594824813619-33560eb11a68?w=150',
-      doctorAvatars: [
-        'https://images.unsplash.com/photo-1594824813619-33560eb11a68?w=150',
-        'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150'
-      ],
-      moreAnswersCount: 3,
-      doctorAnswer: 'High fever (>101°F) coupled with lethargy or refusal of fluids in infants warrants same-day pediatric physical examination. Maintain hydration with sips of ORS, do light tepid sponging, and avoid overdressing.',
-      views: 78,
-      specialtyId: 'Pediatrics'
-    },
-    {
-      id: 'qa-4',
-      timeAgo: '3d ago',
-      question: 'Sharp shooting electric pain radiating from lower lumbar spine through left buttock down to calf muscle, aggravated by sitting or coughing. Is it sciatica?',
-      aiInsight: 'Classic L4-L5/S1 Radiculopathy pattern (Sciatica). Orthopedic / Spine evaluation advised to test for disc protrusion.',
-      aiUrgency: 'Advisory' as const,
-      aiSpecialty: 'Orthopedics',
-      doctorName: 'Dr. Rajesh Verma',
-      doctorCredentials: 'MS (Orthopedics)',
-      doctorHospital: 'City Care Multi-Specialty Hospital',
-      doctorAvatar: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=150',
-      doctorAvatars: [
-        'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=150',
-        'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150'
-      ],
-      moreAnswersCount: 4,
-      doctorAnswer: 'The dermatomal distribution down the posterior leg strongly suggests nerve root compression, typically caused by a herniated lumbar disc. Avoid prolonged sitting and heavy lifting; conservative physiotherapy or an MRI may be needed.',
-      views: 62,
-      specialtyId: 'Orthopedics'
+      image: '/specialties_bcare/bcare_surgery.jpg',
+      tag: 'Laparoscopy & Care'
     }
   ];
   const banners = [
@@ -1174,25 +1072,38 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                   return (
                     <motion.div
                       key={spec.id}
-                      whileTap={{ scale: 0.96 }}
+                      whileTap={{ scale: 0.95 }}
                       onClick={() => {
                         setSelectedSpecialty(spec.id);
                         setDirectoryMode('doctors');
                         const el = document.getElementById('nearby-directory');
                         el?.scrollIntoView({ behavior: 'smooth' });
                       }}
-                      className={`relative rounded-[16px] sm:rounded-[20px] overflow-hidden cursor-pointer transition-all duration-200 aspect-[305/342] shadow-2xs border ${
+                      className={`relative p-2 rounded-[22px] border transition-all duration-200 flex flex-col items-center justify-between text-center cursor-pointer group shadow-2xs hover:shadow-xs active:scale-95 ${
                         isSelected
-                          ? 'ring-2 ring-blue-600 border-blue-500 shadow-sm scale-[1.02]'
-                          : 'border-slate-200/80 hover:border-blue-300 hover:shadow-xs hover:scale-[1.01]'
+                          ? 'bg-blue-50/90 border-blue-500 ring-2 ring-blue-500/30 shadow-xs'
+                          : 'bg-white border-slate-200/80 hover:border-blue-300 hover:bg-blue-50/20'
                       }`}
                     >
-                      <img
-                        src={spec.image}
-                        alt={spec.name}
-                        className="w-full h-full object-cover block select-none pointer-events-none"
-                        loading="lazy"
-                      />
+                      {/* Doctor Portrait Squircle Badge */}
+                      <div className="w-full aspect-square rounded-[16px] overflow-hidden bg-gradient-to-b from-blue-50 to-slate-100 flex items-center justify-center relative shadow-inner">
+                        <img
+                          src={spec.image}
+                          alt={spec.name}
+                          className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300 pointer-events-none"
+                          loading="lazy"
+                        />
+                      </div>
+
+                      {/* Title & Micro-symptom Tag */}
+                      <div className="w-full pt-1.5 px-0.5">
+                        <h4 className="text-[11px] sm:text-[11.5px] font-extrabold text-slate-800 leading-tight group-hover:text-blue-700 transition-colors line-clamp-1">
+                          {spec.name}
+                        </h4>
+                        <p className="text-[9px] text-slate-600 font-medium truncate mt-0.5">
+                          {spec.tag}
+                        </p>
+                      </div>
                     </motion.div>
                   );
                 })}
@@ -1200,131 +1111,94 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
           </div>
 
           {/* ============================================================== */}
-          {/* FREE EXPERT & AI Q&A (Practo Screenshot 2026-11-10 at 3.18.43 AM & 3.18.57 AM) */}
+          {/* 5. CLINICAL AI COPILOT: ASK B CARE AI (Replaces Free Expert Q&A) */}
           {/* ============================================================== */}
-          <div className="pt-2 space-y-2.5">
-            <div className="flex items-center justify-between px-0.5">
-              <div className="flex items-center gap-1.5">
-                <h3 className="text-base font-extrabold text-slate-900 tracking-tight">
-                  Free Expert Q&A
-                </h3>
-                <span className="bg-blue-50 text-blue-700 text-[9.5px] font-bold px-2 py-0.5 rounded-full border border-blue-200/70 flex items-center gap-1">
-                  <Sparkles className="w-2.5 h-2.5 text-blue-600" />
-                  AI Verified
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => onTabChange?.('ai_assist')}
-                className="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-0.5 cursor-pointer"
-              >
-                <span>Explore all</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="relative overflow-hidden rounded-[24px] bg-gradient-to-br from-[#0c1322] via-[#09152b] to-[#041c28] text-white border border-blue-500/30 shadow-[0_16px_36px_-8px_rgba(4,28,40,0.4)] p-4 sm:p-4.5 space-y-3 transition-all"
+          >
+            {/* Ambient Cyan Specular Hairline */}
+            <div className="absolute top-0 left-1/4 right-1/4 h-[1px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-80" />
 
-            {/* Horizontally Scrolling Q&A Community Cards */}
-            <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-none no-scrollbar snap-x">
-              {practoQAItems.map(item => (
-                <div
-                  key={item.id}
-                  onClick={() => setSelectedQAItem(item)}
-                  className="w-[275px] shrink-0 p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs hover:shadow-xs hover:border-blue-300 transition-all cursor-pointer flex flex-col justify-between snap-start active:scale-[0.99]"
+            {/* Top Row: SiriOrb + Header + Assess Button */}
+            <div className="flex items-center justify-between gap-3 relative z-10">
+              <div className="flex items-center gap-3 min-w-0">
+                {/* 21st.dev Animated Multi-Angle Siri Orb */}
+                <div 
+                  onClick={() => onTabChange?.('ai_assist')}
+                  className="cursor-pointer shrink-0 transition-transform active:scale-95 hover:scale-105"
+                  title="Launch B Care AI"
                 >
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-slate-600">
-                          <Users className="w-3 h-3" />
-                        </div>
-                        <span className="text-[10px] font-semibold text-slate-400">
-                          Community Question • {item.timeAgo}
-                        </span>
-                      </div>
-                      <span className="bg-emerald-50 text-emerald-700 text-[9.5px] font-bold px-2 py-0.5 rounded-full border border-emerald-200/60">
-                        Answered
-                      </span>
-                    </div>
-
-                    <h4 className="text-[11.5px] font-bold text-slate-900 leading-snug line-clamp-3">
-                      {item.question}
-                    </h4>
-
-                    {/* AI Clinical Triage Insight */}
-                    <div className="bg-blue-50/70 rounded-xl p-2 border border-blue-100/80 flex items-start gap-1.5">
-                      <Sparkles className="w-3 h-3 text-blue-600 shrink-0 mt-0.5" />
-                      <div className="text-[9.5px] text-blue-900 leading-tight">
-                        <span className="font-extrabold text-blue-800">AI Triage: </span>
-                        {item.aiInsight}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="pt-2.5 mt-2 border-t border-slate-100 space-y-2">
-                    {/* Doctor Answers Row */}
-                    <div className="flex items-center gap-1.5">
-                      <div className="flex -space-x-1.5 overflow-hidden">
-                        {item.doctorAvatars.map((av, i) => (
-                          <img
-                            key={i}
-                            src={av}
-                            alt="Doctor"
-                            className="inline-block h-5 w-5 rounded-full ring-2 ring-white object-cover"
-                          />
-                        ))}
-                        <div className="h-5 w-5 rounded-full bg-blue-600 text-white text-[8.5px] font-bold flex items-center justify-center ring-2 ring-white">
-                          +{item.moreAnswersCount}
-                        </div>
-                      </div>
-                      <span className="text-[10.5px] font-semibold text-slate-700 truncate">
-                        {item.doctorName} +{item.moreAnswersCount} Expert Answers
-                      </span>
-                    </div>
-
-                    {/* Views & Share */}
-                    <div className="flex items-center justify-between text-[10.5px] font-medium text-slate-400 pt-0.5">
-                      <div className="flex items-center gap-1">
-                        <Eye className="w-3 h-3" />
-                        <span>{item.views}</span>
-                      </div>
-                      <div className="flex items-center gap-1 hover:text-slate-600">
-                        <Share2 className="w-3 h-3" />
-                        <span>Share</span>
-                      </div>
-                    </div>
-                  </div>
+                  <SiriOrb size={40} state="idle" />
                 </div>
-              ))}
-            </div>
 
-            {/* Prominent "Got a health query? Ask B Care AI" CTA Banner (Screenshot 2026-11-10 at 3.18.57 AM) */}
-            <div
-              onClick={() => onTabChange?.('ai_assist')}
-              className="p-3.5 rounded-2xl bg-gradient-to-r from-blue-50/90 via-sky-50/80 to-indigo-50/70 border border-blue-200/80 flex items-center justify-between gap-3 shadow-2xs hover:border-blue-300 hover:shadow-xs cursor-pointer transition-all active:scale-[0.99] group"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-2xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-                  <MessageCircle className="w-4 h-4 text-white" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <h4 className="font-extrabold text-slate-900 text-xs sm:text-sm">
-                      Got a health query?
-                    </h4>
-                    <span className="bg-amber-100 text-amber-800 text-[9px] font-extrabold px-1.5 py-0.2 rounded-full uppercase tracking-wider">
-                      Free AI
-                    </span>
+                <div className="min-w-0 flex-1">
+                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[9.5px] font-bold text-emerald-400 font-mono tracking-wider uppercase">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>Clinical AI Copilot</span>
                   </div>
-                  <p className="text-[10.5px] text-slate-600 mt-0.5">
-                    Ask B Care AI and get instant doctor-verified answers
+                  <h3 className="text-sm sm:text-base font-black text-white tracking-tight mt-0.5 leading-snug">
+                    Use our AI to assess
+                  </h3>
+                  <p className="text-[10.5px] text-slate-400 leading-tight truncate">
+                    Describe symptoms for triage & specialist matching
                   </p>
                 </div>
               </div>
-              <div className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:bg-blue-700 transition-colors">
-                <ChevronRight className="w-4 h-4" />
+
+              {/* 1-Tap Assess Button */}
+              <button
+                type="button"
+                onClick={() => onTabChange?.('ai_assist')}
+                className="px-3.5 py-1.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs shrink-0 flex items-center gap-1 shadow-xs transition-all active:scale-95 cursor-pointer"
+              >
+                <span>Assess</span>
+                <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
+              </button>
+            </div>
+
+            {/* Interactive Search & Voice Input Box */}
+            <div 
+              onClick={() => onTabChange?.('ai_assist')}
+              className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer group"
+            >
+              <Search className="w-4 h-4 text-slate-400 group-hover:text-cyan-300 transition-colors shrink-0" />
+              <span className="text-xs text-slate-400 font-medium truncate flex-1">
+                E.g. vomiting, stomach cramps, high fever, migraines...
+              </span>
+              <div 
+                className="w-7 h-7 rounded-xl bg-white/10 group-hover:bg-emerald-500 group-hover:text-slate-950 text-slate-300 flex items-center justify-center transition-all shrink-0"
+                title="Voice intake in 10 Indian languages"
+              >
+                <Mic className="w-3.5 h-3.5" />
               </div>
             </div>
-          </div>
+
+            {/* Quick 1-Tap Symptom Chips */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none no-scrollbar pt-0.5">
+              <span className="text-[10px] font-bold text-slate-400 shrink-0 uppercase tracking-wider font-mono">
+                Try:
+              </span>
+              {[
+                { label: 'Stomach Cramps', icon: '⚡' },
+                { label: 'High Fever', icon: '🔥' },
+                { label: 'Chest Tightness', icon: '❤️' },
+                { label: 'Severe Headache', icon: '🤕' },
+                { label: 'Vomiting / Nausea', icon: '🤢' }
+              ].map((chip) => (
+                <button
+                  key={chip.label}
+                  type="button"
+                  onClick={() => onTabChange?.('ai_assist')}
+                  className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 hover:border-emerald-400/50 text-[10.5px] font-semibold text-slate-200 hover:text-white shrink-0 flex items-center gap-1 transition-all cursor-pointer active:scale-95"
+                >
+                  <span>{chip.icon}</span>
+                  <span>{chip.label}</span>
+                </button>
+              ))}
+            </div>
+          </motion.div>
 
           {/* 6. NEARBY DIRECTORY: HOSPITALS & DOCTORS */}
           <div id="nearby-directory" className="pt-2 space-y-2.5">
@@ -2654,146 +2528,6 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                       <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                     </div>
                   </div>
-                </div>
-              </motion.div>
-            </div>
-          </PhoneModalPortal>
-        )}
-
-        {/* Selected Clinical Health Q&A Modal (Practo Free Expert Q&A + AI Integration) */}
-        {selectedQAItem && (
-          <PhoneModalPortal>
-            <div
-              className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs pointer-events-auto"
-              onClick={() => setSelectedQAItem(null)}
-            >
-              <motion.div
-                initial={{ scale: 0.92, opacity: 0, y: 16 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.92, opacity: 0, y: 12 }}
-                transition={{ type: 'spring', stiffness: 380, damping: 28 }}
-                onClick={(e) => e.stopPropagation()}
-                className="relative w-full max-w-sm rounded-[28px] overflow-hidden shadow-2xl border border-slate-200/90 bg-white text-slate-900 p-5 space-y-4 max-h-[85vh] overflow-y-auto no-scrollbar"
-              >
-                {/* Modal Header */}
-                <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-[11px] font-extrabold uppercase text-slate-700 tracking-wider font-mono">
-                      Doctor & AI Q&A
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10px] font-bold">
-                      Verified Answer
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedQAItem(null)}
-                      className="p-1 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Patient Query Card */}
-                <div className="bg-slate-50 rounded-2xl p-3 border border-slate-200/70 space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-semibold">
-                    <Users className="w-3.5 h-3.5" />
-                    <span>Community Patient Question • {selectedQAItem.timeAgo}</span>
-                  </div>
-                  <p className="text-xs font-bold text-slate-900 leading-snug">
-                    "{selectedQAItem.question}"
-                  </p>
-                </div>
-
-                {/* B Care AI Clinical Triage Assessment */}
-                <div className="rounded-2xl bg-gradient-to-br from-blue-50/90 via-sky-50/70 to-indigo-50/60 border border-blue-200/80 p-3.5 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 text-blue-700 font-extrabold text-[11px]">
-                      <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-                      <span>B Care AI Clinical Assessment</span>
-                    </div>
-                    <span className={`text-[9.5px] font-extrabold px-2 py-0.5 rounded-full uppercase ${
-                      selectedQAItem.aiUrgency === 'Urgent'
-                        ? 'bg-rose-100 text-rose-700 border border-rose-200'
-                        : 'bg-blue-100 text-blue-800 border border-blue-200'
-                    }`}>
-                      {selectedQAItem.aiUrgency}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-blue-950 leading-relaxed font-medium">
-                    {selectedQAItem.aiInsight}
-                  </p>
-                  <div className="flex items-center gap-1 text-[10px] font-bold text-blue-800 pt-0.5">
-                    <span>Matched Specialty:</span>
-                    <span className="bg-white/90 px-1.5 py-0.5 rounded-md border border-blue-200 text-blue-700">
-                      {selectedQAItem.aiSpecialty}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Verified Specialist Doctor Response */}
-                <div className="rounded-2xl bg-white border border-slate-200/80 p-3.5 space-y-2 shadow-2xs">
-                  <div className="flex items-center gap-2.5">
-                    <img
-                      src={selectedQAItem.doctorAvatar}
-                      alt={selectedQAItem.doctorName}
-                      className="w-10 h-10 rounded-full object-cover ring-2 ring-blue-100 shrink-0"
-                    />
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1">
-                        <h4 className="font-bold text-xs text-slate-900 truncate">
-                          {selectedQAItem.doctorName}
-                        </h4>
-                        <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                      </div>
-                      <p className="text-[10px] text-slate-500 truncate">
-                        {selectedQAItem.doctorCredentials} • {selectedQAItem.doctorHospital}
-                      </p>
-                    </div>
-                  </div>
-                  <p className="text-[11px] text-slate-700 leading-relaxed pt-1 border-t border-slate-100">
-                    "{selectedQAItem.doctorAnswer}"
-                  </p>
-                </div>
-
-                {/* Modal Footer Action Buttons */}
-                <div className="pt-1 space-y-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const matched = doctors.find(d => 
-                        d.specialty.toLowerCase() === selectedQAItem.aiSpecialty.toLowerCase() ||
-                        d.name.toLowerCase().includes(selectedQAItem.doctorName.toLowerCase())
-                      ) || doctors[0];
-                      const matchedHosp = hospitals.find(h => h.id === matched.hospitalId) || hospitals[0];
-                      setSelectedQAItem(null);
-                      setActiveBookingTarget({
-                        doctor: matched,
-                        hospital: matchedHosp,
-                        consultationType: 'IN_PERSON_OPD',
-                        slot: slots[0] || null
-                      });
-                    }}
-                    className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer active:scale-98"
-                  >
-                    <Building2 className="w-3.5 h-3.5" />
-                    <span>Book OPD Visit with {selectedQAItem.doctorName.split(',')[0]} (₹100)</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedQAItem(null);
-                      onTabChange?.('ai_assist');
-                    }}
-                    className="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                  >
-                    <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-                    <span>Ask B Care AI Follow-up on this Topic</span>
-                  </button>
                 </div>
               </motion.div>
             </div>
