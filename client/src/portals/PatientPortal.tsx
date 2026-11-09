@@ -774,60 +774,86 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
           <motion.div
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#0c0f17] via-[#090d14] to-[#041210] text-white border border-emerald-500/25 shadow-[0_16px_40px_-10px_rgba(4,29,25,0.35)] p-4 sm:p-5 space-y-3.5 select-none"
+            className="relative overflow-hidden rounded-[26px] bg-gradient-to-b from-[#0f172a] via-[#0b1120] to-[#060911] text-white border border-slate-800/90 shadow-[0_20px_45px_-12px_rgba(2,6,23,0.45)] p-4 sm:p-5 space-y-3.5 select-none"
           >
-            {/* Luminous Specular Hairline & Ambient Glow */}
-            <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-emerald-400 to-transparent pointer-events-none" />
-            <div className="absolute -top-12 -right-12 w-36 h-36 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
+            {/* Luminous Specular Top Hairline */}
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent pointer-events-none" />
+            
+            {/* Ambient Multi-Angle Glow behind Orb */}
+            <div className="absolute -top-10 -left-10 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute top-1/2 -right-10 w-36 h-36 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 min-w-0">
-                {/* 21st.dev Animated Multi-Angle Siri Orb */}
-                <div 
-                  onClick={() => onTabChange?.('ai_assist')}
-                  className="cursor-pointer shrink-0 transition-transform active:scale-95 hover:scale-105"
-                  title="Launch B Care AI"
-                >
-                  <SiriOrb size={46} state="idle" />
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[9.5px] font-bold text-emerald-400 font-mono tracking-wider uppercase">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    <span>Clinical AI Copilot</span>
-                  </div>
-                  <h3 className="text-base font-extrabold text-white tracking-tight mt-1 leading-snug">
-                    Use our AI to assess
-                  </h3>
-                  <p className="text-[11px] text-slate-400 leading-tight truncate">
-                    Describe symptoms for triage & specialist matching
-                  </p>
-                </div>
+            {/* Top Row: Siri Orb + Clinical AI Copilot Info */}
+            <div className="flex items-center gap-3.5 min-w-0">
+              {/* 21st.dev Animated Multi-Angle Siri Orb */}
+              <div 
+                onClick={() => onTabChange?.('ai_assist')}
+                className="cursor-pointer shrink-0 transition-transform active:scale-95 hover:scale-105"
+                title="Launch B Care AI"
+              >
+                <SiriOrb size={44} state="idle" />
               </div>
 
-              {/* 1-Tap Assess Button */}
-              <button
-                type="button"
-                onClick={() => onTabChange?.('ai_assist')}
-                className="px-3.5 py-2 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-extrabold text-xs shrink-0 flex items-center gap-1 shadow-xs transition-all active:scale-95 cursor-pointer"
-              >
-                <span>Assess</span>
-                <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
-              </button>
+              <div className="min-w-0 flex-1">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-[10.5px] font-semibold text-emerald-400 font-sans tracking-wide">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>AI Clinical Triage</span>
+                </div>
+                <h3 className="text-[17px] font-bold text-white tracking-tight mt-1 leading-snug">
+                  Use our AI to assess
+                </h3>
+                <p className="text-xs text-slate-400 leading-normal mt-0.5">
+                  Describe symptoms for instant triage & specialist doctor matching
+                </p>
+              </div>
             </div>
 
-            {/* Interactive Search & Voice Input Box (Tapping launches AI immediately) */}
+            {/* Interactive Prompt Bar with Integrated 1-Tap CTA */}
             <div 
               onClick={() => onTabChange?.('ai_assist')}
-              className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer group"
+              className="relative flex items-center gap-2.5 pl-3.5 pr-1.5 py-1.5 rounded-2xl bg-white/[0.06] hover:bg-white/[0.09] border border-white/10 hover:border-emerald-500/30 transition-all cursor-pointer group shadow-inner"
             >
-              <Search className="w-4 h-4 text-slate-400 group-hover:text-white transition-colors shrink-0" />
-              <span className="text-xs text-slate-400 font-medium truncate flex-1">
-                E.g. vomiting, stomach cramps, high fever, migraines...
+              <Search className="w-4 h-4 text-emerald-400 shrink-0 group-hover:scale-110 transition-transform" />
+              <span className="text-xs text-slate-300 font-medium truncate flex-1">
+                Describe your symptoms...
               </span>
-              <div className="w-7 h-7 rounded-xl bg-white/10 group-hover:bg-emerald-500 group-hover:text-slate-950 text-slate-300 flex items-center justify-center transition-all shrink-0">
-                <Mic className="w-3.5 h-3.5" />
+              <div className="flex items-center gap-1.5 shrink-0">
+                <div className="w-7 h-7 rounded-xl bg-white/10 text-slate-300 group-hover:text-emerald-400 flex items-center justify-center transition-colors">
+                  <Mic className="w-3.5 h-3.5" />
+                </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onTabChange?.('ai_assist');
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-bold text-xs flex items-center gap-1 shadow-md shadow-emerald-500/20 active:scale-95 transition-all cursor-pointer"
+                >
+                  <span>Assess</span>
+                  <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                </button>
               </div>
+            </div>
+
+            {/* Quick Symptom Suggestion Chips */}
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5">
+              <span className="text-[11px] font-medium text-slate-400 shrink-0">Try:</span>
+              {[
+                'Stomach Cramps',
+                'High Fever',
+                'Chest Tightness',
+                'Severe Headache',
+                'Breathing Difficulty'
+              ].map((sym) => (
+                <button
+                  key={sym}
+                  type="button"
+                  onClick={() => onTabChange?.('ai_assist')}
+                  className="px-2.5 py-1 rounded-xl bg-white/[0.05] hover:bg-white/[0.12] border border-white/[0.08] text-[11px] font-medium text-slate-300 hover:text-white transition-all shrink-0 cursor-pointer active:scale-95"
+                >
+                  {sym}
+                </button>
+              ))}
             </div>
           </motion.div>
 
