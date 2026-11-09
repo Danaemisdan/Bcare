@@ -1436,58 +1436,60 @@ export function App() {
 
                   </div>
 
-                  {/* In-App Mobile Header with B care Branding (Solid White, Zero Smear) */}
-                  <div className="h-12 bg-white px-4 flex items-center justify-between border-b border-zinc-100 shrink-0 z-30 select-none">
-                    <div className="flex items-center gap-2">
-                      <BCareLogo size={28} variant="full" />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setWhatsAppModalOpen(true)}
-                        className="relative p-1.5 rounded-lg text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100 transition-colors"
-                        title="WhatsApp Alerts"
-                      >
-                        <MessageCircle className="w-4 h-4 text-zinc-700" />
-                        {unreadWhatsAppCount > 0 && (
-                          <span className="absolute -top-0.5 -right-0.5 bg-emerald-600 text-white text-[8px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-bold">
-                            {unreadWhatsAppCount}
-                          </span>
-                        )}
-                      </button>
-                      {currentUser ? (
+                  {/* In-App Mobile Header with B care Branding (Hidden during AI Assistant mode) */}
+                  {!(currentRole === 'PATIENT' && patientTab === 'ai_assist') && (
+                    <div className="h-12 bg-white px-4 flex items-center justify-between border-b border-zinc-100 shrink-0 z-30 select-none">
+                      <div className="flex items-center gap-2">
+                        <BCareLogo size={28} variant="full" />
+                      </div>
+                      <div className="flex items-center gap-2">
                         <button
-                          type="button"
-                          onClick={handleToggleProfile}
-                          className="flex items-center gap-1.5 p-1 rounded-full hover:bg-slate-100 transition-colors cursor-pointer group"
-                          title={isProfileActive ? 'Close Profile View' : `Logged in as ${currentUser.name} • Tap for Profile & Sign Out`}
+                          onClick={() => setWhatsAppModalOpen(true)}
+                          className="relative p-1.5 rounded-lg text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100 transition-colors"
+                          title="WhatsApp Alerts"
                         >
-                          <div className="relative">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shadow-xs border border-white transition-all ${
-                              isProfileActive
-                                ? 'bg-rose-500 text-white'
-                                : 'bg-gradient-to-tr from-slate-900 via-slate-800 to-slate-950 text-white'
-                            }`}>
-                              {isProfileActive ? (
-                                <X className="w-4 h-4 text-white" />
-                              ) : (
-                                currentUser.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)
+                          <MessageCircle className="w-4 h-4 text-zinc-700" />
+                          {unreadWhatsAppCount > 0 && (
+                            <span className="absolute -top-0.5 -right-0.5 bg-emerald-600 text-white text-[8px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-bold">
+                              {unreadWhatsAppCount}
+                            </span>
+                          )}
+                        </button>
+                        {currentUser ? (
+                          <button
+                            type="button"
+                            onClick={handleToggleProfile}
+                            className="flex items-center gap-1.5 p-1 rounded-full hover:bg-slate-100 transition-colors cursor-pointer group"
+                            title={isProfileActive ? 'Close Profile View' : `Logged in as ${currentUser.name} • Tap for Profile & Sign Out`}
+                          >
+                            <div className="relative">
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shadow-xs border border-white transition-all ${
+                                isProfileActive
+                                  ? 'bg-rose-500 text-white'
+                                  : 'bg-gradient-to-tr from-slate-900 via-slate-800 to-slate-950 text-white'
+                              }`}>
+                                {isProfileActive ? (
+                                  <X className="w-4 h-4 text-white" />
+                                ) : (
+                                  currentUser.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)
+                                )}
+                              </div>
+                              {!isProfileActive && (
+                                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
                               )}
                             </div>
-                            {!isProfileActive && (
-                              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
-                            )}
-                          </div>
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => setIsAuthOpen(true)}
-                          className="px-2.5 py-1 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-all shadow-xs"
-                        >
-                          Sign In
-                        </button>
-                      )}
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => setIsAuthOpen(true)}
+                            className="px-2.5 py-1 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-all shadow-xs"
+                          >
+                            Sign In
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Screen Content Container (Strict Overflow Protection) */}
                   <div className={`flex-1 ${
@@ -1624,58 +1626,60 @@ export function App() {
                     </div>
                   </div>
 
-                  {/* In-App Mobile Header with B care Logo */}
-                  <div className="h-12 bg-white px-4 flex items-center justify-between border-b border-zinc-100 shrink-0 z-30 select-none">
-                    <div className="flex items-center gap-2">
-                      <BCareLogo size={28} variant="full" />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setWhatsAppModalOpen(true)}
-                        className="relative p-1.5 rounded-lg text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100 transition-colors"
-                        title="WhatsApp Alerts"
-                      >
-                        <MessageCircle className="w-4 h-4 text-zinc-700" />
-                        {unreadWhatsAppCount > 0 && (
-                          <span className="absolute -top-0.5 -right-0.5 bg-emerald-600 text-white text-[8px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-bold">
-                            {unreadWhatsAppCount}
-                          </span>
-                        )}
-                      </button>
-                      {currentUser ? (
+                  {/* In-App Mobile Header with B care Logo (Hidden during AI Assistant mode) */}
+                  {!(currentRole === 'PATIENT' && patientTab === 'ai_assist') && (
+                    <div className="h-12 bg-white px-4 flex items-center justify-between border-b border-zinc-100 shrink-0 z-30 select-none">
+                      <div className="flex items-center gap-2">
+                        <BCareLogo size={28} variant="full" />
+                      </div>
+                      <div className="flex items-center gap-2">
                         <button
-                          type="button"
-                          onClick={handleToggleProfile}
-                          className="flex items-center gap-1.5 p-1 rounded-full hover:bg-slate-100 transition-colors cursor-pointer group"
-                          title={isProfileActive ? 'Close Profile View' : `Logged in as ${currentUser.name} • Tap for Profile & Sign Out`}
+                          onClick={() => setWhatsAppModalOpen(true)}
+                          className="relative p-1.5 rounded-lg text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100 transition-colors"
+                          title="WhatsApp Alerts"
                         >
-                          <div className="relative">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shadow-xs border border-white transition-all ${
-                              isProfileActive
-                                ? 'bg-rose-500 text-white'
-                                : 'bg-gradient-to-tr from-slate-900 via-slate-800 to-slate-950 text-white'
-                            }`}>
-                              {isProfileActive ? (
-                                <X className="w-4 h-4 text-white" />
-                              ) : (
-                                currentUser.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)
+                          <MessageCircle className="w-4 h-4 text-zinc-700" />
+                          {unreadWhatsAppCount > 0 && (
+                            <span className="absolute -top-0.5 -right-0.5 bg-emerald-600 text-white text-[8px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-bold">
+                              {unreadWhatsAppCount}
+                            </span>
+                          )}
+                        </button>
+                        {currentUser ? (
+                          <button
+                            type="button"
+                            onClick={handleToggleProfile}
+                            className="flex items-center gap-1.5 p-1 rounded-full hover:bg-slate-100 transition-colors cursor-pointer group"
+                            title={isProfileActive ? 'Close Profile View' : `Logged in as ${currentUser.name} • Tap for Profile & Sign Out`}
+                          >
+                            <div className="relative">
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shadow-xs border border-white transition-all ${
+                                isProfileActive
+                                  ? 'bg-rose-500 text-white'
+                                  : 'bg-gradient-to-tr from-slate-900 via-slate-800 to-slate-950 text-white'
+                              }`}>
+                                {isProfileActive ? (
+                                  <X className="w-4 h-4 text-white" />
+                                ) : (
+                                  currentUser.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)
+                                )}
+                              </div>
+                              {!isProfileActive && (
+                                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
                               )}
                             </div>
-                            {!isProfileActive && (
-                              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
-                            )}
-                          </div>
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => setIsAuthOpen(true)}
-                          className="px-2.5 py-1 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-all shadow-xs"
-                        >
-                          Sign In
-                        </button>
-                      )}
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => setIsAuthOpen(true)}
+                            className="px-2.5 py-1 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-all shadow-xs"
+                          >
+                            Sign In
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Screen Content Container */}
                   <div className={`flex-1 ${

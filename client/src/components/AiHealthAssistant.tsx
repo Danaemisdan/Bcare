@@ -35,6 +35,7 @@ import {
   FlaskConical,
   Bandage,
   Stethoscope,
+  MoreHorizontal,
   LucideIcon
 } from 'lucide-react';
 import { DoctorProfile, Hospital, OpSlot, PatientProfile } from '../types';
@@ -64,8 +65,6 @@ export type ClinicalCategoryId =
   | 'diagnostics_lab'
   | 'general_other';
 
-export type FilterGroup = 'all' | 'core' | 'sensory' | 'organs' | 'family' | 'diagnostics';
-
 interface SmartChipOption {
   id: string;
   label: string;
@@ -76,7 +75,6 @@ interface SmartCategoryConfig {
   id: ClinicalCategoryId;
   title: string;
   badge: string;
-  group: FilterGroup;
   icon: LucideIcon;
   iconBg: string;
   iconColor: string;
@@ -103,7 +101,6 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     id: 'vomiting_gi',
     title: 'Stomach & GI',
     badge: 'Gastroenterology',
-    group: 'core',
     icon: Waves,
     iconBg: 'bg-emerald-50',
     iconColor: 'text-emerald-600',
@@ -133,7 +130,6 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     id: 'pain_ortho',
     title: 'Spine & Joints',
     badge: 'Orthopedics',
-    group: 'core',
     icon: Bone,
     iconBg: 'bg-amber-50',
     iconColor: 'text-amber-600',
@@ -163,7 +159,6 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     id: 'fever_infection',
     title: 'Fever & Infection',
     badge: 'Internal Medicine',
-    group: 'core',
     icon: Thermometer,
     iconBg: 'bg-rose-50',
     iconColor: 'text-rose-600',
@@ -190,40 +185,9 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     }
   },
   {
-    id: 'cough_breathing',
-    title: 'Lungs & Breathing',
-    badge: 'Pulmonology',
-    group: 'core',
-    icon: Wind,
-    iconBg: 'bg-cyan-50',
-    iconColor: 'text-cyan-600',
-    keywords: ['cough', 'coughing', 'cold', 'breath', 'breathless', 'breathing', 'wheeze', 'wheezing', 'asthma', 'phlegm', 'sputum', 'bronchitis', 'congestion'],
-    spokenIntro: "Respiratory symptoms detected. Is your breathing labored or accompanied by wheezing?",
-    q2: {
-      prompt: "Is your breathing restricted or labored?",
-      sub: "Assesses airway resistance and bronchial hyperreactivity",
-      options: [
-        { id: 'breathless_rest', label: "Shortness of breath even while resting or speaking", sub: "Priority respiratory clinical review" },
-        { id: 'wheezing_whistle', label: "Chest wheezing or whistling breath on exhale", sub: "Bronchial airway constriction or reactive disease" },
-        { id: 'heavy_productive', label: "Deep persistent cough with thick sputum", sub: "Lower respiratory bronchial inflammation" },
-        { id: 'dry_tickle', label: "Dry tickling cough without breathing restriction", sub: "Upper airway irritation or post-nasal drip" }
-      ]
-    },
-    diagnosis: {
-      primary: 'Acute Bronchial Hyperreactivity & Cough Syndrome',
-      confidence: 93,
-      specialty: 'General Medicine',
-      urgency: 'MODERATE',
-      explanation: 'Airway hyperresponsiveness and mucosal congestion consistent with respiratory infection or reactive bronchospasm.',
-      advice: 'Perform steam inhalation twice daily and drink warm fluids. Avoid cold drafts, tobacco smoke, and dust. Seek urgent OPD evaluation if breathlessness worsens.',
-      spokenSummary: "Assessment suggests bronchial hyperreactivity and airway congestion. Steam inhalation is recommended, and verified physicians are ready nearby."
-    }
-  },
-  {
     id: 'chest_cardiac',
-    title: 'Chest & Heart',
+    title: 'Heart & Chest',
     badge: 'Cardiology',
-    group: 'organs',
     icon: HeartPulse,
     iconBg: 'bg-red-50',
     iconColor: 'text-red-600',
@@ -253,7 +217,6 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     id: 'headache_neuro',
     title: 'Brain & Headache',
     badge: 'Neurology',
-    group: 'core',
     icon: Brain,
     iconBg: 'bg-purple-50',
     iconColor: 'text-purple-600',
@@ -280,10 +243,96 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     }
   },
   {
+    id: 'dental_oral',
+    title: 'Dental & Oral',
+    badge: 'Dentistry',
+    icon: Smile,
+    iconBg: 'bg-teal-50',
+    iconColor: 'text-teal-600',
+    keywords: ['tooth', 'teeth', 'dental', 'gum', 'dentist', 'toothache', 'molar', 'mouth', 'cavity', 'jaw', 'ulcer'],
+    spokenIntro: "Dental discomfort noted. Is there constant throbbing pain or sensitivity to cold and heat?",
+    q2: {
+      prompt: "What is the nature of your tooth or gum discomfort?",
+      sub: "Evaluates acute pulpitis, dental abscess, and gum infection",
+      options: [
+        { id: 'throbbing_toothache', label: "Continuous severe throbbing toothache with cheek swelling", sub: "Acute dental pulpitis or periapical abscess risk" },
+        { id: 'cold_hot_sensitivity', label: "Sharp shooting pain when drinking cold, hot, or sweet", sub: "Dentin exposure, enamel decay, or deep cavity" },
+        { id: 'bleeding_gums', label: "Swollen, tender, bleeding gums or painful mouth ulcers", sub: "Gingivitis or aphthous mucosal ulceration" },
+        { id: 'chipped_molar', label: "Chipped or broken tooth edge causing cheek cuts", sub: "Mechanical dental fracture requiring restoration" }
+      ]
+    },
+    diagnosis: {
+      primary: 'Acute Dental Pulpitis & Periapical Inflammatory Protocol',
+      confidence: 95,
+      specialty: 'General Medicine',
+      urgency: 'PRIORITY',
+      explanation: 'Deep dentin or pulp canal inflammation resulting in localized periapical pressure and hypersensitivity.',
+      advice: 'Rinse with warm salt water. Avoid very hot, cold, or sugary drinks. Do not apply aspirin directly to the gum. An immediate dental OPD token ensures pulp relief.',
+      spokenSummary: "Identified acute dental pulpitis. Avoid cold liquids. City Care Hospital dental department has tokens open for walk-in treatment."
+    }
+  },
+  {
+    id: 'skin_allergy',
+    title: 'Skin & Allergy',
+    badge: 'Dermatology',
+    icon: ShieldAlert,
+    iconBg: 'bg-orange-50',
+    iconColor: 'text-orange-600',
+    keywords: ['rash', 'itching', 'itch', 'hives', 'allergy', 'allergic', 'skin', 'welts', 'red spots', 'eczema', 'bite', 'dermatitis'],
+    spokenIntro: "Dermatological reaction detected. Are you having raised hives or any facial swelling?",
+    q2: {
+      prompt: "What does the skin reaction look like?",
+      sub: "Screens for acute urticaria versus systemic angioedema",
+      options: [
+        { id: 'raised_hives', label: "Raised itchy red welts or hives (Urticaria)", sub: "Acute cutaneous histamine flare" },
+        { id: 'facial_swelling', label: "Swelling of lips, eyelids, or facial tissue", sub: "Urgent allergy review / potential angioedema" },
+        { id: 'dry_patches', label: "Dry itchy red patches or contact dermatitis", sub: "Irritant or eczema flare" },
+        { id: 'mild_itch', label: "Mild surface itching without spreading rash", sub: "Superficial irritant response" }
+      ]
+    },
+    diagnosis: {
+      primary: 'Acute Urticaria & Allergic Dermatitis',
+      confidence: 93,
+      specialty: 'Dermatology',
+      urgency: 'ROUTINE',
+      explanation: 'Cutaneous mast-cell histamine degranulation causing pruritic erythematous wheals.',
+      advice: 'Avoid hot showers and scratching. Apply cool compresses or soothing calamine lotion. If lip or facial swelling occurs, seek immediate hospital attention.',
+      spokenSummary: "Identified acute urticaria and allergic dermatitis. Calamine lotion provides cooling relief. Nearby dermatology specialists are ready for consultation."
+    }
+  },
+  {
+    id: 'cough_breathing',
+    title: 'Lungs & Breathing',
+    badge: 'Pulmonology',
+    icon: Wind,
+    iconBg: 'bg-cyan-50',
+    iconColor: 'text-cyan-600',
+    keywords: ['cough', 'coughing', 'cold', 'breath', 'breathless', 'breathing', 'wheeze', 'wheezing', 'asthma', 'phlegm', 'sputum', 'bronchitis', 'congestion'],
+    spokenIntro: "Respiratory symptoms detected. Is your breathing labored or accompanied by wheezing?",
+    q2: {
+      prompt: "Is your breathing restricted or labored?",
+      sub: "Assesses airway resistance and bronchial hyperreactivity",
+      options: [
+        { id: 'breathless_rest', label: "Shortness of breath even while resting or speaking", sub: "Priority respiratory clinical review" },
+        { id: 'wheezing_whistle', label: "Chest wheezing or whistling breath on exhale", sub: "Bronchial airway constriction or reactive disease" },
+        { id: 'heavy_productive', label: "Deep persistent cough with thick sputum", sub: "Lower respiratory bronchial inflammation" },
+        { id: 'dry_tickle', label: "Dry tickling cough without breathing restriction", sub: "Upper airway irritation or post-nasal drip" }
+      ]
+    },
+    diagnosis: {
+      primary: 'Acute Bronchial Hyperreactivity & Cough Syndrome',
+      confidence: 93,
+      specialty: 'General Medicine',
+      urgency: 'MODERATE',
+      explanation: 'Airway hyperresponsiveness and mucosal congestion consistent with respiratory infection or reactive bronchospasm.',
+      advice: 'Perform steam inhalation twice daily and drink warm fluids. Avoid cold drafts, tobacco smoke, and dust. Seek urgent OPD evaluation if breathlessness worsens.',
+      spokenSummary: "Assessment suggests bronchial hyperreactivity and airway congestion. Steam inhalation is recommended, and verified physicians are ready nearby."
+    }
+  },
+  {
     id: 'eye_vision',
     title: 'Eye & Vision',
     badge: 'Ophthalmology',
-    group: 'sensory',
     icon: Eye,
     iconBg: 'bg-indigo-50',
     iconColor: 'text-indigo-600',
@@ -313,7 +362,6 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     id: 'ent_throat',
     title: 'Ear, Nose & ENT',
     badge: 'ENT Specialist',
-    group: 'sensory',
     icon: Ear,
     iconBg: 'bg-sky-50',
     iconColor: 'text-sky-600',
@@ -340,40 +388,9 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     }
   },
   {
-    id: 'dental_oral',
-    title: 'Dental & Oral',
-    badge: 'Dentistry',
-    group: 'sensory',
-    icon: Smile,
-    iconBg: 'bg-teal-50',
-    iconColor: 'text-teal-600',
-    keywords: ['tooth', 'teeth', 'dental', 'gum', 'dentist', 'toothache', 'molar', 'mouth', 'cavity', 'jaw', 'ulcer'],
-    spokenIntro: "Dental discomfort noted. Is there constant throbbing pain or sensitivity to cold and heat?",
-    q2: {
-      prompt: "What is the nature of your tooth or gum discomfort?",
-      sub: "Evaluates acute pulpitis, dental abscess, and gum infection",
-      options: [
-        { id: 'throbbing_toothache', label: "Continuous severe throbbing toothache with cheek swelling", sub: "Acute dental pulpitis or periapical abscess risk" },
-        { id: 'cold_hot_sensitivity', label: "Sharp shooting pain when drinking cold, hot, or sweet", sub: "Dentin exposure, enamel decay, or deep cavity" },
-        { id: 'bleeding_gums', label: "Swollen, tender, bleeding gums or painful mouth ulcers", sub: "Gingivitis or aphthous mucosal ulceration" },
-        { id: 'chipped_molar', label: "Chipped or broken tooth edge causing cheek cuts", sub: "Mechanical dental fracture requiring restoration" }
-      ]
-    },
-    diagnosis: {
-      primary: 'Acute Dental Pulpitis & Periapical Inflammatory Protocol',
-      confidence: 95,
-      specialty: 'General Medicine',
-      urgency: 'PRIORITY',
-      explanation: 'Deep dentin or pulp canal inflammation resulting in localized periapical pressure and hypersensitivity.',
-      advice: 'Rinse with warm salt water. Avoid very hot, cold, or sugary drinks. Do not apply aspirin directly to the gum. An immediate dental OPD token ensures pulp relief.',
-      spokenSummary: "Identified acute dental pulpitis. Avoid cold liquids. City Care Hospital dental department has tokens open for walk-in treatment."
-    }
-  },
-  {
     id: 'urinary_kidney',
     title: 'Kidney & Urinary',
     badge: 'Urology',
-    group: 'organs',
     icon: Droplets,
     iconBg: 'bg-blue-50',
     iconColor: 'text-blue-600',
@@ -400,40 +417,9 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     }
   },
   {
-    id: 'skin_allergy',
-    title: 'Skin & Allergy',
-    badge: 'Dermatology',
-    group: 'core',
-    icon: ShieldAlert,
-    iconBg: 'bg-orange-50',
-    iconColor: 'text-orange-600',
-    keywords: ['rash', 'itching', 'itch', 'hives', 'allergy', 'allergic', 'skin', 'welts', 'red spots', 'eczema', 'bite', 'dermatitis'],
-    spokenIntro: "Dermatological reaction detected. Are you having raised hives or any facial swelling?",
-    q2: {
-      prompt: "What does the skin reaction look like?",
-      sub: "Screens for acute urticaria versus systemic angioedema",
-      options: [
-        { id: 'raised_hives', label: "Raised itchy red welts or hives (Urticaria)", sub: "Acute cutaneous histamine flare" },
-        { id: 'facial_swelling', label: "Swelling of lips, eyelids, or facial tissue", sub: "Urgent allergy review / potential angioedema" },
-        { id: 'dry_patches', label: "Dry itchy red patches or contact dermatitis", sub: "Irritant or eczema flare" },
-        { id: 'mild_itch', label: "Mild surface itching without spreading rash", sub: "Superficial irritant response" }
-      ]
-    },
-    diagnosis: {
-      primary: 'Acute Urticaria & Allergic Dermatitis',
-      confidence: 93,
-      specialty: 'Dermatology',
-      urgency: 'ROUTINE',
-      explanation: 'Cutaneous mast-cell histamine degranulation causing pruritic erythematous wheals.',
-      advice: 'Avoid hot showers and scratching. Apply cool compresses or soothing calamine lotion. If lip or facial swelling occurs, seek immediate hospital attention.',
-      spokenSummary: "Identified acute urticaria and allergic dermatitis. Calamine lotion provides cooling relief. Nearby dermatology specialists are ready for consultation."
-    }
-  },
-  {
     id: 'womens_health',
     title: "Women's Health",
     badge: 'Gynecology',
-    group: 'family',
     icon: HeartHandshake,
     iconBg: 'bg-fuchsia-50',
     iconColor: 'text-fuchsia-600',
@@ -463,7 +449,6 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     id: 'pediatrics_child',
     title: 'Child & Pediatrics',
     badge: 'Pediatrics',
-    group: 'family',
     icon: Baby,
     iconBg: 'bg-pink-50',
     iconColor: 'text-pink-600',
@@ -493,7 +478,6 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     id: 'diabetes_endocrine',
     title: 'Diabetes & Thyroid',
     badge: 'Endocrinology',
-    group: 'organs',
     icon: Syringe,
     iconBg: 'bg-violet-50',
     iconColor: 'text-violet-600',
@@ -523,7 +507,6 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     id: 'mental_sleep',
     title: 'Mental & Sleep',
     badge: 'Psychiatry',
-    group: 'family',
     icon: Moon,
     iconBg: 'bg-slate-100',
     iconColor: 'text-slate-700',
@@ -553,7 +536,6 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     id: 'trauma_firstaid',
     title: 'Injury & First Aid',
     badge: 'Emergency / Trauma',
-    group: 'diagnostics',
     icon: Bandage,
     iconBg: 'bg-amber-50',
     iconColor: 'text-amber-700',
@@ -583,7 +565,6 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     id: 'diagnostics_lab',
     title: 'Lab Tests & Scans',
     badge: 'Diagnostics',
-    group: 'diagnostics',
     icon: FlaskConical,
     iconBg: 'bg-emerald-50',
     iconColor: 'text-emerald-700',
@@ -613,7 +594,6 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     id: 'general_other',
     title: 'General Wellness',
     badge: 'Primary Care',
-    group: 'core',
     icon: Stethoscope,
     iconBg: 'bg-blue-50',
     iconColor: 'text-blue-600',
@@ -676,41 +656,45 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
   // Step Navigation State
   const [currentStep, setCurrentStep] = useState<AiFlowStep>('QUESTION_1');
 
-  // Filter Group State for Question 1
-  const [activeFilterGroup, setActiveFilterGroup] = useState<FilterGroup>('all');
-
   // Unified Questionnaire Answers
   const [selectedCategoryId, setSelectedCategoryId] = useState<ClinicalCategoryId>('vomiting_gi');
   const [inputText, setInputText] = useState<string>('Severe vomiting and stomach cramps');
   const [selectedQ2, setSelectedQ2] = useState<string>('cannot_retain');
   const [selectedQ3, setSelectedQ3] = useState<string>('today');
 
+  // "More Specialties" Modal Picker State
+  const [showMoreModal, setShowMoreModal] = useState<boolean>(false);
+
   // Voice Engine State
   const [isVoiceEnabled, setIsVoiceEnabled] = useState<boolean>(true);
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
   const [isListening, setIsListening] = useState<boolean>(false);
 
-  // Filtered categories based on selected tab and search text
-  const filteredCategories = useMemo(() => {
-    let list = SMART_CLINICAL_CATEGORIES;
-    if (activeFilterGroup !== 'all') {
-      list = list.filter(c => c.group === activeFilterGroup);
-    }
-    if (inputText.trim().length > 1) {
-      const q = inputText.toLowerCase();
-      const matched = list.filter(c => 
-        c.title.toLowerCase().includes(q) || 
-        c.badge.toLowerCase().includes(q) || 
-        c.keywords.some(k => k.includes(q))
-      );
-      if (matched.length > 0) return matched;
-    }
-    return list;
-  }, [activeFilterGroup, inputText]);
-
   // Active Category Config
   const activeCategory = useMemo(() => {
     return SMART_CLINICAL_CATEGORIES.find(c => c.id === selectedCategoryId) || SMART_CLINICAL_CATEGORIES[0];
+  }, [selectedCategoryId]);
+
+  // Primary 7 Core Categories displayed in the clean, compact 2x4 grid
+  const primaryCategories = useMemo(() => {
+    const coreIds: ClinicalCategoryId[] = [
+      'vomiting_gi',
+      'pain_ortho',
+      'fever_infection',
+      'chest_cardiac',
+      'headache_neuro',
+      'dental_oral',
+      'skin_allergy'
+    ];
+    return coreIds.map(id => SMART_CLINICAL_CATEGORIES.find(c => c.id === id)!);
+  }, []);
+
+  // Determine what to show in the 8th slot:
+  // If the currently selected category is NOT in the core 7, show that selected specialty!
+  // Otherwise, show "More Specialties" trigger card.
+  const isSelectedInCore = useMemo(() => {
+    const coreIds = ['vomiting_gi', 'pain_ortho', 'fever_infection', 'chest_cardiac', 'headache_neuro', 'dental_oral', 'skin_allergy'];
+    return coreIds.includes(selectedCategoryId);
   }, [selectedCategoryId]);
 
   // Sync Q2 default option when category changes
@@ -812,6 +796,7 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
     stopSpeaking();
     setSelectedCategoryId(cat.id);
     setInputText(cat.title);
+    setShowMoreModal(false);
   };
 
   // Unified Step-by-Step Back Navigation
@@ -902,12 +887,12 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
   }, []);
 
   return (
-    <div className="h-full flex flex-col justify-between overflow-hidden select-none animate-in fade-in duration-150">
+    <div className="h-full flex flex-col justify-between overflow-hidden select-none animate-in fade-in duration-150 relative">
       
       {/* ========================================================================= */}
       {/* 1. TOP NAV: MINIMAL BACK BUTTON + STEP INDICATOR + VOICE TOGGLE (SHRINK-0) */}
       {/* ========================================================================= */}
-      <div className="flex items-center justify-between gap-2 shrink-0 pt-0.5 pb-1 border-b border-slate-100/80">
+      <div className="flex items-center justify-between gap-2 shrink-0 pt-1 pb-1.5 border-b border-slate-100/80">
         {/* Minimal Circular Back Button */}
         <button
           type="button"
@@ -919,7 +904,7 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
         </button>
 
         {/* Minimal Step Indicator */}
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100/90 text-slate-700 text-[11px] font-bold">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 text-slate-700 text-[11px] font-bold">
           {currentStep === 'QUESTION_1' && <span>Question 1 of 3 • Symptom</span>}
           {currentStep === 'QUESTION_2' && <span>Question 2 of 3 • Severity</span>}
           {currentStep === 'QUESTION_3' && <span>Question 3 of 3 • Duration</span>}
@@ -977,11 +962,11 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
       {/* ========================================================================= */}
       {/* 2. MAIN SLIDE VIEW (EXACTLY 1 QUESTION / UX PER FRAME, ZERO SCROLLING)     */}
       {/* ========================================================================= */}
-      <div className="flex-1 flex flex-col justify-between overflow-hidden min-h-0 py-1">
+      <div className="flex-1 flex flex-col justify-between overflow-hidden min-h-0 py-2">
         <AnimatePresence mode="wait">
           
           {/* ===================================================================== */}
-          {/* SLIDE 1: QUESTION 1 — ALL 18 MEDICAL SPECIALTIES + TABS + ZERO EMOJIS */}
+          {/* SLIDE 1: QUESTION 1 — COMPACT, NON-OVERWHELMING 8-CARD CLINICAL SUITE */}
           {/* ===================================================================== */}
           {currentStep === 'QUESTION_1' && (
             <motion.div
@@ -992,10 +977,10 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
               className="h-full flex flex-col justify-between overflow-hidden"
             >
-              {/* Question Header & Siri Orb (Compact) */}
-              <div className="flex flex-col items-center text-center shrink-0">
+              {/* Question Header & Siri Orb */}
+              <div className="flex flex-col items-center text-center shrink-0 pt-1">
                 <SiriOrb
-                  size={38}
+                  size={46}
                   state={isSpeaking ? "streaming" : isListening ? "listening" : "idle"}
                   className="cursor-pointer transition-transform hover:scale-105"
                   onClick={() => {
@@ -1003,16 +988,16 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                     else if (isVoiceEnabled) speakText("What is your main symptom or health concern?");
                   }}
                 />
-                <h3 className="text-[15px] font-bold text-slate-900 tracking-tight mt-1 leading-none">
+                <h3 className="text-base font-bold text-slate-900 tracking-tight mt-1.5 leading-snug">
                   What is your main symptom?
                 </h3>
-                <p className="text-[10px] text-slate-500 mt-0.5">
-                  Type, speak, or select from all clinical specialties
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  Type, speak, or select a medical specialty below
                 </p>
               </div>
 
               {/* Free-Text Search & Voice Mic Bar */}
-              <div className="shrink-0 my-1">
+              <div className="shrink-0 my-2">
                 <div className={`relative flex items-center bg-white rounded-xl border shadow-2xs transition-all ${
                   isListening
                     ? 'border-rose-400 ring-2 ring-rose-100'
@@ -1023,8 +1008,8 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                     type="text"
                     value={inputText}
                     onChange={(e) => handleQueryChange(e.target.value)}
-                    placeholder="Search symptoms (e.g. toothache, eye, rash, urine)..."
-                    className="w-full py-1.5 px-2 bg-transparent text-xs font-semibold text-slate-900 placeholder:text-slate-400 outline-none"
+                    placeholder="Describe symptoms (e.g. toothache, back pain, fever)..."
+                    className="w-full py-2 px-2 bg-transparent text-xs font-semibold text-slate-900 placeholder:text-slate-400 outline-none"
                   />
                   {inputText && (
                     <button
@@ -1038,7 +1023,7 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                   <button
                     type="button"
                     onClick={toggleListening}
-                    className={`p-1 mr-1 rounded-lg transition-all cursor-pointer shrink-0 ${
+                    className={`p-1.5 mr-1 rounded-lg transition-all cursor-pointer shrink-0 ${
                       isListening
                         ? 'bg-rose-500 text-white shadow-xs animate-pulse ring-1 ring-rose-300'
                         : 'bg-sky-50 text-sky-600 hover:bg-sky-100'
@@ -1048,37 +1033,28 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                     {isListening ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
                   </button>
                 </div>
-              </div>
 
-              {/* Specialty Segment Filter Bar (Quick Category Switching) */}
-              <div className="flex items-center gap-1 overflow-x-auto scrollbar-none py-0.5 shrink-0">
-                {[
-                  { id: 'all', label: 'All (18)' },
-                  { id: 'core', label: 'Core Care' },
-                  { id: 'sensory', label: 'Dental & ENT' },
-                  { id: 'organs', label: 'Internal Organs' },
-                  { id: 'family', label: 'Family & Women' },
-                  { id: 'diagnostics', label: 'Labs & Injury' }
-                ].map(tab => (
+                {/* AI Detected Specialty Pill (Instant Feedback) */}
+                <div className="mt-1 flex items-center justify-between px-1">
+                  <div className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-sky-700">
+                    <Sparkles className="w-3 h-3 text-sky-500" />
+                    <span>AI Matched: <strong className="font-bold text-slate-800">{activeCategory.title}</strong> ({activeCategory.badge})</span>
+                  </div>
                   <button
-                    key={tab.id}
                     type="button"
-                    onClick={() => setActiveFilterGroup(tab.id as FilterGroup)}
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap transition-all cursor-pointer ${
-                      activeFilterGroup === tab.id
-                        ? 'bg-slate-900 text-white shadow-xs'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                    }`}
+                    onClick={() => setShowMoreModal(true)}
+                    className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 cursor-pointer"
                   >
-                    {tab.label}
+                    All Specialties +
                   </button>
-                ))}
+                </div>
               </div>
 
-              {/* Comprehensive Categories Scroll Container (18 Medical Things Right Here!) */}
-              <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin pr-0.5 py-1">
+              {/* Compact, Stable 2x4 Grid (Never Collapses, Zero Empty Space!) */}
+              <div className="flex-1 flex flex-col justify-center min-h-0 py-0.5">
                 <div className="grid grid-cols-2 gap-1.5">
-                  {filteredCategories.map((cat) => {
+                  {/* First 7 Core Categories */}
+                  {primaryCategories.map((cat) => {
                     const isSelected = selectedCategoryId === cat.id;
                     const IconComponent = cat.icon;
                     return (
@@ -1086,28 +1062,60 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                         key={cat.id}
                         type="button"
                         onClick={() => handleSelectCategory(cat)}
-                        className={`p-1.5 rounded-xl text-left border transition-all cursor-pointer flex items-center gap-1.5 ${
+                        className={`p-2 rounded-xl text-left border transition-all cursor-pointer flex items-center gap-2 ${
                           isSelected
                             ? 'bg-sky-50/90 border-sky-500 text-sky-950 shadow-2xs ring-1.5 ring-sky-200'
                             : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700 shadow-2xs'
                         }`}
                       >
-                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 ${cat.iconBg} ${cat.iconColor}`}>
-                          <IconComponent className="w-3.5 h-3.5" />
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${cat.iconBg} ${cat.iconColor}`}>
+                          <IconComponent className="w-4 h-4" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <div className="text-[11px] font-bold truncate leading-tight">{cat.title}</div>
-                          <div className="text-[9px] text-slate-400 truncate leading-none mt-0.5">{cat.badge}</div>
+                          <div className="text-[11.5px] font-bold truncate leading-tight">{cat.title}</div>
+                          <div className="text-[9.5px] text-slate-400 truncate leading-none mt-0.5">{cat.badge}</div>
                         </div>
-                        {isSelected && <Check className="w-3 h-3 text-sky-600 shrink-0 stroke-[2.5]" />}
+                        {isSelected && <Check className="w-3.5 h-3.5 text-sky-600 shrink-0 stroke-[2.5]" />}
                       </button>
                     );
                   })}
+
+                  {/* 8th Slot: Either Active Specialty from More List, or "More Specialties..." */}
+                  {!isSelectedInCore ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowMoreModal(true)}
+                      className="p-2 rounded-xl text-left border border-sky-500 bg-sky-50/90 text-sky-950 shadow-2xs ring-1.5 ring-sky-200 transition-all cursor-pointer flex items-center gap-2"
+                    >
+                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${activeCategory.iconBg} ${activeCategory.iconColor}`}>
+                        <activeCategory.icon className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[11.5px] font-bold truncate leading-tight">{activeCategory.title}</div>
+                        <div className="text-[9.5px] text-slate-400 truncate leading-none mt-0.5">{activeCategory.badge}</div>
+                      </div>
+                      <Check className="w-3.5 h-3.5 text-sky-600 shrink-0 stroke-[2.5]" />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setShowMoreModal(true)}
+                      className="p-2 rounded-xl text-left border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-700 shadow-2xs transition-all cursor-pointer flex items-center gap-2 group"
+                    >
+                      <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                        <MoreHorizontal className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[11.5px] font-bold truncate leading-tight">More Specialties</div>
+                        <div className="text-[9.5px] text-indigo-600 truncate leading-none mt-0.5">+ 11 clinical fields</div>
+                      </div>
+                    </button>
+                  )}
                 </div>
               </div>
 
               {/* Bottom CTA Button */}
-              <div className="pt-1.5 shrink-0">
+              <div className="pt-2 shrink-0">
                 <button
                   type="button"
                   onClick={handleGoToQ2}
@@ -1117,6 +1125,77 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
+
+              {/* ============================================================= */}
+              {/* "MORE SPECIALTIES" MODAL PICKER OVERLAY                       */}
+              {/* ============================================================= */}
+              <AnimatePresence>
+                {showMoreModal && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex flex-col justify-end p-2"
+                  >
+                    <motion.div
+                      initial={{ y: 80, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{ y: 80, opacity: 0 }}
+                      className="bg-white rounded-3xl p-3.5 shadow-xl border border-slate-200 max-h-[85%] flex flex-col justify-between"
+                    >
+                      <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                        <div>
+                          <h4 className="text-xs font-bold text-slate-900">All Clinical Specialties</h4>
+                          <p className="text-[10px] text-slate-500">Select any medical department for intake</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setShowMoreModal(false)}
+                          className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 cursor-pointer"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      <div className="overflow-y-auto max-h-[300px] py-2 grid grid-cols-2 gap-1.5 scrollbar-thin">
+                        {SMART_CLINICAL_CATEGORIES.map((cat) => {
+                          const isSelected = selectedCategoryId === cat.id;
+                          const IconComp = cat.icon;
+                          return (
+                            <button
+                              key={cat.id}
+                              type="button"
+                              onClick={() => handleSelectCategory(cat)}
+                              className={`p-2 rounded-xl text-left border transition-all cursor-pointer flex items-center gap-2 ${
+                                isSelected
+                                  ? 'bg-sky-50 border-sky-500 text-sky-950 ring-1 ring-sky-200'
+                                  : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'
+                              }`}
+                            >
+                              <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 ${cat.iconBg} ${cat.iconColor}`}>
+                                <IconComp className="w-3.5 h-3.5" />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <div className="text-[11px] font-bold truncate leading-tight">{cat.title}</div>
+                                <div className="text-[9px] text-slate-400 truncate leading-none mt-0.5">{cat.badge}</div>
+                              </div>
+                              {isSelected && <Check className="w-3 h-3 text-sky-600 shrink-0 stroke-[2.5]" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setShowMoreModal(false)}
+                        className="w-full mt-2 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+                      >
+                        Close
+                      </button>
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           )}
 
