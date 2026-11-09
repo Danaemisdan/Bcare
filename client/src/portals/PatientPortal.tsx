@@ -180,6 +180,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
   // Luxury Banner Carousel State (Apollo 24/7 Inspired with High-End Polish)
   const [activeBanner, setActiveBanner] = useState(0);
   const [specialtyCategory, setSpecialtyCategory] = useState<'GENERAL' | 'ADVANCED'>('GENERAL');
+  const [consultationChoiceModal, setConsultationChoiceModal] = useState<'IN_PERSON' | 'VIDEO' | null>(null);
   const [selectedQAItem, setSelectedQAItem] = useState<{
     id: string;
     timeAgo: string;
@@ -200,61 +201,61 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
 
   // Exact 8 squircle specialty cards each for General Care and Advanced Care (Screenshot 2026-11-10 at 3.18.43 AM.png)
   const practoSpecialties = [
-    // General Care (8 specialties)
+    // General Care (8 specialties from Practo)
     {
       id: 'General Medicine',
       name: 'General Physician',
       category: 'GENERAL' as const,
-      image: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=320&auto=format&fit=crop&q=80',
+      image: '/specialties/card_general_physician.png',
       tag: 'Fever, Cold, Viral'
     },
     {
       id: 'Gynecology',
       name: "Women's Health",
       category: 'GENERAL' as const,
-      image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=320&auto=format&fit=crop&q=80',
+      image: '/specialties/card_womens_health.png',
       tag: 'Gynecology & Care'
     },
     {
       id: 'Dermatology',
       name: 'Skin Specialist',
       category: 'GENERAL' as const,
-      image: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=320&auto=format&fit=crop&q=80',
+      image: '/specialties/card_skin_specialist.png',
       tag: 'Acne, Hair & Skin'
     },
     {
       id: 'Pediatrics',
       name: 'Child Care',
       category: 'GENERAL' as const,
-      image: 'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=320&auto=format&fit=crop&q=80',
+      image: '/specialties/card_child_care.png',
       tag: 'Infants & Kids'
     },
     {
       id: 'Dentistry',
       name: 'Dentist',
       category: 'GENERAL' as const,
-      image: 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=320&auto=format&fit=crop&q=80',
+      image: '/specialties/card_dentist.png',
       tag: 'Teeth, Root Canal'
     },
     {
       id: 'Ophthalmology',
       name: 'Eye Specialist',
       category: 'GENERAL' as const,
-      image: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=320&auto=format&fit=crop&q=80',
+      image: '/specialties/card_eye_specialist.png',
       tag: 'Vision & Retina'
     },
     {
       id: 'ENT',
       name: 'Ear, Nose & Throat',
       category: 'GENERAL' as const,
-      image: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=320&auto=format&fit=crop&q=80',
+      image: '/specialties/card_ent.png',
       tag: 'Sinus & Hearing'
     },
     {
       id: 'Mental Wellness',
       name: 'Mental Wellness',
       category: 'GENERAL' as const,
-      image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=320&auto=format&fit=crop&q=80',
+      image: '/specialties/card_mental_wellness.png',
       tag: 'Therapy & Mind'
     },
 
@@ -263,56 +264,56 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
       id: 'Orthopedics',
       name: 'Bones & Joints',
       category: 'ADVANCED' as const,
-      image: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=320&auto=format&fit=crop&q=80',
+      image: '/specialties/card_orthopedics.png',
       tag: 'Knee, Spine & Pain'
     },
     {
       id: 'Cardiology',
       name: 'Heart & Chest',
       category: 'ADVANCED' as const,
-      image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=320&auto=format&fit=crop&q=80',
+      image: '/specialties/card_cardiology.png',
       tag: 'ECG, BP & Chest'
     },
     {
       id: 'Neurology',
       name: 'Brain & Nerves',
       category: 'ADVANCED' as const,
-      image: 'https://images.unsplash.com/photo-1559757175-5700dde675bc?w=320&auto=format&fit=crop&q=80',
+      image: '/specialties/card_neurology.png',
       tag: 'Migraine & Stroke'
     },
     {
       id: 'Gastroenterology',
       name: 'Digestive Issues',
       category: 'ADVANCED' as const,
-      image: 'https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?w=320&auto=format&fit=crop&q=80',
+      image: '/specialties/card_gastroenterology.png',
       tag: 'GERD, Liver, Bowel'
     },
     {
       id: 'Nephrology',
       name: 'Kidney Issues',
       category: 'ADVANCED' as const,
-      image: 'https://images.unsplash.com/photo-1530497610245-94d3c16cda28?w=320&auto=format&fit=crop&q=80',
+      image: '/specialties/card_nephrology.png',
       tag: 'Kidney & Dialysis'
     },
     {
       id: 'Pulmonology',
       name: 'Lungs & Breathing',
       category: 'ADVANCED' as const,
-      image: 'https://images.unsplash.com/photo-1584432810601-6c7f27d2362b?w=320&auto=format&fit=crop&q=80',
+      image: '/specialties/card_pulmonology.png',
       tag: 'Asthma, Cough'
     },
     {
       id: 'Diabetology',
       name: 'Diabetes Care',
       category: 'ADVANCED' as const,
-      image: 'https://images.unsplash.com/photo-1628771065518-0d82f1938462?w=320&auto=format&fit=crop&q=80',
+      image: '/specialties/card_diabetology.png',
       tag: 'Sugar & Endocrine'
     },
     {
       id: 'General Surgery',
       name: 'General Surgery',
       category: 'ADVANCED' as const,
-      image: 'https://images.unsplash.com/photo-1551601651-2a8555f1a136?w=320&auto=format&fit=crop&q=80',
+      image: '/specialties/card_general_surgery.png',
       tag: 'Laparoscopy & Hernia'
     }
   ];
@@ -672,42 +673,34 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
       {isMobile ? (
         activeTab === 'op_booking' && (
           <div className="space-y-3">
-            {/* Header Row: Welcoming Greeting & Location */}
-            <div className="flex items-center justify-between pt-1 pb-1 px-1">
-              <div>
-                <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight leading-none flex items-center gap-1.5">
+            {/* Header: Compact Sleek 1-Row Context Bar */}
+            <div className="flex items-center justify-between pt-0.5 pb-0.5 px-0.5">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="text-[13.5px] font-extrabold text-slate-900 tracking-tight shrink-0 flex items-center gap-1">
                   <span>Hello, {patientProfile.name.split(' ')[0]}</span>
-                  <ShieldCheck className="w-4 h-4 text-blue-600 fill-blue-100" />
-                </h1>
-                <div className="flex items-center gap-2 text-slate-500 text-xs mt-1.5 flex-wrap">
-                  <div className="flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-blue-600" />
-                    <div className="relative inline-flex items-center">
-                      <select
-                        value={selectedArea}
-                        onChange={(e) => setSelectedArea(e.target.value)}
-                        className="appearance-none bg-transparent pr-4 font-semibold text-slate-700 hover:text-slate-900 text-xs cursor-pointer focus:outline-none"
-                      >
-                        {areas.map(a => (
-                          <option key={a} value={a}>{a === 'All' ? 'Coimbatore South' : a}</option>
-                        ))}
-                      </select>
-                      <ChevronDown className="w-3 h-3 text-slate-400 absolute right-0 pointer-events-none" />
-                    </div>
+                  <ShieldCheck className="w-3.5 h-3.5 text-blue-600 fill-blue-100 shrink-0" />
+                </span>
+                <span className="text-slate-300 text-xs">•</span>
+                <div className="flex items-center gap-1 text-slate-500 text-xs shrink-0">
+                  <MapPin className="w-3 h-3 text-blue-600 shrink-0" />
+                  <div className="relative inline-flex items-center">
+                    <select
+                      value={selectedArea}
+                      onChange={(e) => setSelectedArea(e.target.value)}
+                      className="appearance-none bg-transparent pr-3 font-semibold text-slate-700 hover:text-slate-900 text-xs cursor-pointer focus:outline-none"
+                    >
+                      {areas.map(a => (
+                        <option key={a} value={a}>{a === 'All' ? 'Coimbatore South' : a}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="w-2.5 h-2.5 text-slate-400 absolute right-0 pointer-events-none" />
                   </div>
-
-                  <span className="text-slate-300">•</span>
-
-                  <span className="inline-flex items-center gap-1 text-[11px] text-blue-700 font-medium bg-blue-50/90 border border-blue-200/70 px-2 py-0.5 rounded-full">
-                    <span>🗣️</span>
-                    <span>{patientProfile.languages?.join(', ') || 'English, Tamil'}</span>
-                  </span>
                 </div>
               </div>
 
               {/* Status Indicator: Peaceful Blue */}
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200/80 text-xs font-bold shadow-2xs">
-                <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+              <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/70 text-[11px] font-bold shadow-2xs shrink-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
                 <span>24/7 OPD</span>
               </div>
             </div>
@@ -1068,11 +1061,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
             {/* In-Person Consultation Card */}
             <motion.div
               whileTap={{ scale: 0.98 }}
-              onClick={() => {
-                setDirectoryMode('hospitals');
-                const el = document.getElementById('nearby-directory');
-                el?.scrollIntoView({ behavior: 'smooth' });
-              }}
+              onClick={() => setConsultationChoiceModal('IN_PERSON')}
               className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-50/90 via-sky-50/70 to-blue-100/50 border border-blue-200/70 p-3.5 flex flex-col justify-between min-h-[140px] shadow-xs cursor-pointer group hover:border-blue-300 transition-all"
             >
               <div className="z-10 max-w-[65%]">
@@ -1095,9 +1084,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
             {/* Video Consultation Card */}
             <motion.div
               whileTap={{ scale: 0.98 }}
-              onClick={() => {
-                onTabChange?.('telehealth');
-              }}
+              onClick={() => setConsultationChoiceModal('VIDEO')}
               className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-50/90 via-sky-50/70 to-blue-50/60 border border-indigo-200/70 p-3.5 flex flex-col justify-between min-h-[140px] shadow-xs cursor-pointer group hover:border-indigo-300 transition-all"
             >
               <div className="z-10 max-w-[65%]">
@@ -1118,62 +1105,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
             </motion.div>
           </div>
 
-          {/* 3. QUICK SERVICES: 4 ACCESSIBLE HEALTHCARE TILES */}
-          <div className="grid grid-cols-4 gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setDirectoryMode('hospitals');
-                const el = document.getElementById('nearby-directory');
-                el?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className="p-2.5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs hover:shadow-xs hover:border-blue-300 transition-all flex flex-col items-center text-center cursor-pointer active:scale-95"
-            >
-              <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-1.5 shadow-inner">
-                <Building2 className="w-4 h-4" />
-              </div>
-              <span className="text-[10.5px] font-bold text-slate-800 leading-tight">Book Visit</span>
-              <span className="text-[9px] text-slate-400">OPD Passes</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => onTabChange?.('telehealth')}
-              className="p-2.5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs hover:shadow-xs hover:border-blue-300 transition-all flex flex-col items-center text-center cursor-pointer active:scale-95"
-            >
-              <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-1.5 shadow-inner">
-                <Video className="w-4 h-4" />
-              </div>
-              <span className="text-[10.5px] font-bold text-slate-800 leading-tight">Video Call</span>
-              <span className="text-[9px] text-slate-400">24/7 OPD</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => onTabChange?.('ai_assist')}
-              className="p-2.5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs hover:shadow-xs hover:border-blue-300 transition-all flex flex-col items-center text-center cursor-pointer active:scale-95"
-            >
-              <div className="w-9 h-9 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center mb-1.5 shadow-inner">
-                <Sparkles className="w-4 h-4" />
-              </div>
-              <span className="text-[10.5px] font-bold text-slate-800 leading-tight">AI Health</span>
-              <span className="text-[9px] text-slate-400">Clinical Triage</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => onTabChange?.('history')}
-              className="p-2.5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs hover:shadow-xs hover:border-blue-300 transition-all flex flex-col items-center text-center cursor-pointer active:scale-95"
-            >
-              <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-1.5 shadow-inner">
-                <Clock className="w-4 h-4" />
-              </div>
-              <span className="text-[10.5px] font-bold text-slate-800 leading-tight">Records & Rx</span>
-              <span className="text-[9px] text-slate-400">History</span>
-            </button>
-          </div>
-
-          {/* 4. SAFE & PRIVATE CARE PROMO BANNER */}
+          {/* 3. SAFE & PRIVATE CARE PROMO BANNER */}
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white p-3.5 shadow-sm">
             <div className="relative z-10 flex items-center justify-between gap-3">
               <div className="space-y-0.5 min-w-0">
@@ -1201,7 +1133,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
             </div>
           </div>
 
-          {/* 5. "FIND DOCTORS BY SPECIALITY" SECTION (Matching Practo Screenshot 2026-11-10 at 3.18.43 AM) */}
+          {/* 4. "FIND DOCTORS BY SPECIALITY" SECTION (Matching Practo Screenshot 2026-11-10 at 3.18.43 AM) */}
           <div className="space-y-2.5 pt-1">
             <h3 className="text-base font-extrabold text-slate-900 tracking-tight px-0.5">
               Find doctors by speciality
@@ -1233,7 +1165,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
               </button>
             </div>
 
-            {/* 4x2 Specialty Grid: 8 Squircle Cards with Doctor Photos (Screenshot 2026-11-10 at 3.18.43 AM) */}
+            {/* 4x2 Specialty Grid: 8 Squircle Cards matching Practo Screenshot 2026-11-10 at 3.18.43 AM */}
             <div className="grid grid-cols-4 gap-2 sm:gap-2.5 select-none pt-0.5">
               {practoSpecialties
                 .filter(s => s.category === specialtyCategory)
@@ -1242,30 +1174,25 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                   return (
                     <motion.div
                       key={spec.id}
-                      whileTap={{ scale: 0.95 }}
+                      whileTap={{ scale: 0.96 }}
                       onClick={() => {
                         setSelectedSpecialty(spec.id);
                         setDirectoryMode('doctors');
                         const el = document.getElementById('nearby-directory');
                         el?.scrollIntoView({ behavior: 'smooth' });
                       }}
-                      className={`relative p-1.5 sm:p-2 rounded-[20px] border transition-all flex flex-col items-center justify-between text-center cursor-pointer group aspect-[4/5] min-h-[112px] ${
+                      className={`relative rounded-[16px] sm:rounded-[20px] overflow-hidden cursor-pointer transition-all duration-200 aspect-[305/342] shadow-2xs border ${
                         isSelected
-                          ? 'bg-blue-50/90 border-blue-400 shadow-xs ring-2 ring-blue-500/40'
-                          : 'bg-[#f8fafc] border-slate-200/70 hover:border-blue-300 hover:bg-white shadow-2xs'
+                          ? 'ring-2 ring-blue-600 border-blue-500 shadow-sm scale-[1.02]'
+                          : 'border-slate-200/80 hover:border-blue-300 hover:shadow-xs hover:scale-[1.01]'
                       }`}
                     >
-                      <div className="w-full flex-1 rounded-xl overflow-hidden bg-slate-100 flex items-center justify-center">
-                        <img
-                          src={spec.image}
-                          alt={spec.name}
-                          className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
-                          loading="lazy"
-                        />
-                      </div>
-                      <span className="text-[10px] sm:text-[11px] font-bold text-slate-800 leading-[1.2] pt-1.5 px-0.5 line-clamp-2 w-full text-center">
-                        {spec.name}
-                      </span>
+                      <img
+                        src={spec.image}
+                        alt={spec.name}
+                        className="w-full h-full object-cover block select-none pointer-events-none"
+                        loading="lazy"
+                      />
                     </motion.div>
                   );
                 })}
@@ -2618,6 +2545,121 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
 
       {/* Interactive Live OPD Queue Pass Modal (Tapped from Top-Right Smart Element) */}
       <AnimatePresence>
+        {/* Interactive Consultation Choice Modal: AI-Assisted vs Direct Browse */}
+        {consultationChoiceModal && (
+          <PhoneModalPortal>
+            <div
+              className="absolute inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/60 backdrop-blur-xs pointer-events-auto"
+              onClick={() => setConsultationChoiceModal(null)}
+            >
+              <motion.div
+                initial={{ opacity: 0, y: 40, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 40, scale: 0.96 }}
+                transition={{ type: 'spring', stiffness: 380, damping: 28 }}
+                onClick={(e) => e.stopPropagation()}
+                className="relative w-full max-w-sm rounded-t-[32px] sm:rounded-[28px] overflow-hidden shadow-2xl border border-slate-200/90 bg-white text-slate-900 p-5 space-y-4 max-h-[88vh] overflow-y-auto no-scrollbar"
+              >
+                {/* Header */}
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1">
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/70 text-[10.5px] font-extrabold uppercase font-mono">
+                      {consultationChoiceModal === 'IN_PERSON' ? 'Clinic & Hospital Visit' : 'Instant Video Consult'}
+                    </div>
+                    <h3 className="text-lg font-black text-slate-900 tracking-tight leading-snug">
+                      {consultationChoiceModal === 'IN_PERSON' ? 'In-Person Consultation' : 'Video Consultation'}
+                    </h3>
+                    <p className="text-xs text-slate-500 leading-relaxed">
+                      {consultationChoiceModal === 'IN_PERSON'
+                        ? 'Do you know specifically who or what you need, or would you like AI guidance?'
+                        : 'Connect with a certified doctor in ~10 minutes from home.'}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setConsultationChoiceModal(null)}
+                    className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors cursor-pointer shrink-0 ml-2"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Option 1: Direct Non-Assisted Booking */}
+                <div
+                  onClick={() => {
+                    const mode = consultationChoiceModal;
+                    setConsultationChoiceModal(null);
+                    if (mode === 'IN_PERSON') {
+                      setDirectoryMode('hospitals');
+                      const el = document.getElementById('nearby-directory');
+                      el?.scrollIntoView({ behavior: 'smooth' });
+                    } else {
+                      onTabChange?.('telehealth');
+                    }
+                  }}
+                  className="p-4 rounded-2xl border border-slate-200/90 hover:border-blue-400 bg-slate-50/70 hover:bg-blue-50/40 transition-all cursor-pointer group flex items-start gap-3.5 active:scale-[0.99]"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-center justify-center text-slate-700 group-hover:text-blue-600 group-hover:border-blue-200 transition-colors shrink-0">
+                    {consultationChoiceModal === 'IN_PERSON' ? (
+                      <Building2 className="w-5 h-5 text-blue-600" />
+                    ) : (
+                      <Video className="w-5 h-5 text-indigo-600" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-[13.5px] font-bold text-slate-900 group-hover:text-blue-700 transition-colors">
+                        {consultationChoiceModal === 'IN_PERSON'
+                          ? 'I know who / what I need'
+                          : 'Select Doctor or Specialty'}
+                      </h4>
+                      <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all" />
+                    </div>
+                    <p className="text-[11px] text-slate-500 mt-1 leading-snug">
+                      {consultationChoiceModal === 'IN_PERSON'
+                        ? 'Browse nearby hospitals, clinics, or choose a specialist directly from our directory'
+                        : 'Browse our list of available specialists ready for an immediate video call'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Option 2: AI-Assisted Clinical Triage */}
+                <div
+                  onClick={() => {
+                    setConsultationChoiceModal(null);
+                    onTabChange?.('ai_assist');
+                  }}
+                  className="relative overflow-hidden p-4 rounded-2xl border-2 border-blue-400/80 bg-gradient-to-br from-blue-50/90 via-indigo-50/60 to-sky-50/80 shadow-xs hover:border-blue-500 transition-all cursor-pointer group flex items-start gap-3.5 active:scale-[0.99]"
+                >
+                  <div className="relative shrink-0 pt-0.5">
+                    <SiriOrb size={38} state="listening" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <h4 className="text-[13.5px] font-extrabold text-blue-950">
+                          Not sure? Ask B Care AI
+                        </h4>
+                        <span className="px-1.5 py-0.5 rounded-full bg-blue-600 text-white text-[9px] font-extrabold tracking-wide uppercase">
+                          Fast
+                        </span>
+                      </div>
+                      <Sparkles className="w-4 h-4 text-blue-600 animate-pulse" />
+                    </div>
+                    <p className="text-[11px] text-blue-900/80 mt-1 leading-snug">
+                      Describe your symptoms, pain or discomfort in everyday words or voice. Our AI will triage and match you to the right specialist.
+                    </p>
+                    <div className="mt-2.5 flex items-center gap-1.5 text-xs font-bold text-blue-700">
+                      <span>Start Clinical AI Triage</span>
+                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </PhoneModalPortal>
+        )}
+
         {/* Selected Clinical Health Q&A Modal (Practo Free Expert Q&A + AI Integration) */}
         {selectedQAItem && (
           <PhoneModalPortal>
