@@ -182,63 +182,63 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
   const [specialtyCategory, setSpecialtyCategory] = useState<'GENERAL' | 'ADVANCED'>('GENERAL');
   const [consultationChoiceModal, setConsultationChoiceModal] = useState<'IN_PERSON' | 'VIDEO' | null>(null);
 
-  // B Care Specialty Directory (8 General Care, 8 Advanced Care)
+  // Polished Squircle Specialty Cards (8 General Care, 8 Advanced Care)
   const practoSpecialties = [
     // General Care (8 specialties)
     {
       id: 'General Medicine',
       name: 'General Physician',
       category: 'GENERAL' as const,
-      image: '/specialties_bcare/bcare_gp.jpg',
+      image: '/specialties_v2/card_gen_physician.png',
       tag: 'Fever, Cold, Viral'
     },
     {
       id: 'Gynecology',
       name: "Women's Health",
       category: 'GENERAL' as const,
-      image: '/specialties_bcare/bcare_women.jpg',
+      image: '/specialties_v2/card_women_health.png',
       tag: 'Periods & Gyn'
     },
     {
       id: 'Dermatology',
       name: 'Skin Specialist',
       category: 'GENERAL' as const,
-      image: '/specialties_bcare/bcare_skin.jpg',
+      image: '/specialties_v2/card_skin_spec.png',
       tag: 'Acne & Skin Care'
     },
     {
       id: 'Pediatrics',
       name: 'Child Care',
       category: 'GENERAL' as const,
-      image: '/specialties_bcare/bcare_child.jpg',
+      image: '/specialties_v2/card_child_health.png',
       tag: 'Infants & Kids'
     },
     {
       id: 'Dentistry',
-      name: 'Dental Care',
+      name: 'Dentist',
       category: 'GENERAL' as const,
-      image: '/specialties_bcare/bcare_dentist.jpg',
+      image: '/specialties_v2/card_dentist_care.png',
       tag: 'Teeth & Gums'
     },
     {
       id: 'Ophthalmology',
       name: 'Eye Specialist',
       category: 'GENERAL' as const,
-      image: '/specialties_bcare/bcare_eye.jpg',
+      image: '/specialties_v2/card_eye_spec.png',
       tag: 'Vision & Retina'
     },
     {
       id: 'ENT',
       name: 'Ear, Nose & Throat',
       category: 'GENERAL' as const,
-      image: '/specialties_bcare/bcare_ent.jpg',
+      image: '/specialties_v2/card_ent_care.png',
       tag: 'Sinus & Hearing'
     },
     {
       id: 'Mental Wellness',
       name: 'Mental Wellness',
       category: 'GENERAL' as const,
-      image: '/specialties_bcare/bcare_mental.jpg',
+      image: '/specialties_v2/card_mental_well.png',
       tag: 'Therapy & Mind'
     },
 
@@ -247,56 +247,56 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
       id: 'Orthopedics',
       name: 'Bones & Joints',
       category: 'ADVANCED' as const,
-      image: '/specialties_bcare/bcare_ortho.jpg',
+      image: '/specialties_v2/card_adv_ortho.png',
       tag: 'Knee & Spine'
     },
     {
       id: 'Cardiology',
       name: 'Heart & Chest',
       category: 'ADVANCED' as const,
-      image: '/specialties_bcare/bcare_cardio.jpg',
+      image: '/specialties_v2/card_adv_cardio.png',
       tag: 'ECG, BP & Chest'
     },
     {
       id: 'Neurology',
       name: 'Brain & Nerves',
       category: 'ADVANCED' as const,
-      image: '/specialties_bcare/bcare_neuro.jpg',
+      image: '/specialties_v2/card_adv_neuro.png',
       tag: 'Migraine & Nerves'
     },
     {
       id: 'Gastroenterology',
       name: 'Digestive Issues',
       category: 'ADVANCED' as const,
-      image: '/specialties_bcare/bcare_gastro.jpg',
+      image: '/specialties_v2/card_adv_gastro.png',
       tag: 'GERD & Acidity'
     },
     {
       id: 'Nephrology',
       name: 'Kidney Issues',
       category: 'ADVANCED' as const,
-      image: '/specialties_bcare/bcare_kidney.jpg',
+      image: '/specialties_v2/card_adv_kidney.png',
       tag: 'Kidney & Urology'
     },
     {
       id: 'Pulmonology',
       name: 'Lungs & Breathing',
       category: 'ADVANCED' as const,
-      image: '/specialties_bcare/bcare_lungs.jpg',
+      image: '/specialties_v2/card_adv_lungs.png',
       tag: 'Asthma & Cough'
     },
     {
       id: 'Diabetology',
       name: 'Diabetes Care',
       category: 'ADVANCED' as const,
-      image: '/specialties_bcare/bcare_diabetes.jpg',
+      image: '/specialties_v2/card_adv_diabetes.png',
       tag: 'Sugar & Thyroid'
     },
     {
       id: 'General Surgery',
       name: 'General Surgery',
       category: 'ADVANCED' as const,
-      image: '/specialties_bcare/bcare_surgery.jpg',
+      image: '/specialties_v2/card_adv_surgery.png',
       tag: 'Laparoscopy & Care'
     }
   ];
@@ -1079,31 +1079,18 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                         const el = document.getElementById('nearby-directory');
                         el?.scrollIntoView({ behavior: 'smooth' });
                       }}
-                      className={`relative p-2 rounded-[22px] border transition-all duration-200 flex flex-col items-center justify-between text-center cursor-pointer group shadow-2xs hover:shadow-xs active:scale-95 ${
+                      className={`relative rounded-[20px] overflow-hidden cursor-pointer transition-all duration-200 aspect-[320/360] shadow-2xs border ${
                         isSelected
-                          ? 'bg-blue-50/90 border-blue-500 ring-2 ring-blue-500/30 shadow-xs'
-                          : 'bg-white border-slate-200/80 hover:border-blue-300 hover:bg-blue-50/20'
+                          ? 'ring-2 ring-blue-600 border-blue-500 shadow-sm scale-[1.02]'
+                          : 'border-slate-200/80 hover:border-blue-300 hover:shadow-xs hover:scale-[1.01]'
                       }`}
                     >
-                      {/* Doctor Portrait Squircle Badge */}
-                      <div className="w-full aspect-square rounded-[16px] overflow-hidden bg-gradient-to-b from-blue-50 to-slate-100 flex items-center justify-center relative shadow-inner">
-                        <img
-                          src={spec.image}
-                          alt={spec.name}
-                          className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300 pointer-events-none"
-                          loading="lazy"
-                        />
-                      </div>
-
-                      {/* Title & Micro-symptom Tag */}
-                      <div className="w-full pt-1.5 px-0.5">
-                        <h4 className="text-[11px] sm:text-[11.5px] font-extrabold text-slate-800 leading-tight group-hover:text-blue-700 transition-colors line-clamp-1">
-                          {spec.name}
-                        </h4>
-                        <p className="text-[9px] text-slate-600 font-medium truncate mt-0.5">
-                          {spec.tag}
-                        </p>
-                      </div>
+                      <img
+                        src={spec.image}
+                        alt={spec.name}
+                        className="w-full h-full object-cover block select-none pointer-events-none"
+                        loading="lazy"
+                      />
                     </motion.div>
                   );
                 })}
@@ -1111,38 +1098,38 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
           </div>
 
           {/* ============================================================== */}
-          {/* 5. CLINICAL AI COPILOT: ASK B CARE AI (Replaces Free Expert Q&A) */}
+          {/* 5. CLINICAL AI COPILOT: ASK B CARE AI */}
           {/* ============================================================== */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative overflow-hidden rounded-[24px] bg-gradient-to-br from-[#0c1322] via-[#09152b] to-[#041c28] text-white border border-blue-500/30 shadow-[0_16px_36px_-8px_rgba(4,28,40,0.4)] p-4 sm:p-4.5 space-y-3 transition-all"
+            className="relative overflow-hidden rounded-[26px] bg-gradient-to-br from-[#0c1322] via-[#09152b] to-[#041c28] text-white border border-blue-500/30 shadow-[0_16px_36px_-8px_rgba(4,28,40,0.4)] p-4 sm:p-5 space-y-3 transition-all"
           >
             {/* Ambient Cyan Specular Hairline */}
             <div className="absolute top-0 left-1/4 right-1/4 h-[1px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-80" />
 
             {/* Top Row: SiriOrb + Header + Assess Button */}
-            <div className="flex items-center justify-between gap-3 relative z-10">
-              <div className="flex items-center gap-3 min-w-0">
+            <div className="flex items-center justify-between gap-2.5 relative z-10">
+              <div className="flex items-center gap-2.5 min-w-0">
                 {/* 21st.dev Animated Multi-Angle Siri Orb */}
                 <div 
                   onClick={() => onTabChange?.('ai_assist')}
-                  className="cursor-pointer shrink-0 transition-transform active:scale-95 hover:scale-105"
+                  className="cursor-pointer shrink-0 transition-transform active:scale-95"
                   title="Launch B Care AI"
                 >
-                  <SiriOrb size={40} state="idle" />
+                  <SiriOrb size={38} state="idle" />
                 </div>
 
-                <div className="min-w-0 flex-1">
-                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[9.5px] font-bold text-emerald-400 font-mono tracking-wider uppercase">
+                <div className="min-w-0">
+                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[9px] font-bold text-emerald-400 font-mono tracking-wider uppercase">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                     <span>Clinical AI Copilot</span>
                   </div>
-                  <h3 className="text-sm sm:text-base font-black text-white tracking-tight mt-0.5 leading-snug">
+                  <h3 className="text-sm sm:text-base font-extrabold text-white tracking-tight mt-0.5 leading-snug">
                     Use our AI to assess
                   </h3>
-                  <p className="text-[10.5px] text-slate-400 leading-tight truncate">
-                    Describe symptoms for triage & specialist matching
+                  <p className="text-[11px] text-slate-300 font-normal leading-tight">
+                    Describe symptoms for doctor triage
                   </p>
                 </div>
               </div>
@@ -1151,7 +1138,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
               <button
                 type="button"
                 onClick={() => onTabChange?.('ai_assist')}
-                className="px-3.5 py-1.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs shrink-0 flex items-center gap-1 shadow-xs transition-all active:scale-95 cursor-pointer"
+                className="px-3.5 py-2 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs shrink-0 flex items-center gap-1 shadow-xs transition-all active:scale-95 cursor-pointer"
               >
                 <span>Assess</span>
                 <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -1161,37 +1148,34 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
             {/* Interactive Search & Voice Input Box */}
             <div 
               onClick={() => onTabChange?.('ai_assist')}
-              className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer group"
+              className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 transition-all cursor-pointer group"
             >
               <Search className="w-4 h-4 text-slate-400 group-hover:text-cyan-300 transition-colors shrink-0" />
-              <span className="text-xs text-slate-400 font-medium truncate flex-1">
-                E.g. vomiting, stomach cramps, high fever, migraines...
+              <span className="text-xs text-slate-300 font-medium flex-1">
+                Describe symptoms (e.g. fever, headache)...
               </span>
               <div 
-                className="w-7 h-7 rounded-xl bg-white/10 group-hover:bg-emerald-500 group-hover:text-slate-950 text-slate-300 flex items-center justify-center transition-all shrink-0"
+                className="w-7 h-7 rounded-xl bg-white/10 group-hover:bg-emerald-500 group-hover:text-slate-950 text-slate-200 flex items-center justify-center transition-all shrink-0"
                 title="Voice intake in 10 Indian languages"
               >
                 <Mic className="w-3.5 h-3.5" />
               </div>
             </div>
 
-            {/* Quick 1-Tap Symptom Chips */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none no-scrollbar pt-0.5">
-              <span className="text-[10px] font-bold text-slate-400 shrink-0 uppercase tracking-wider font-mono">
-                Try:
-              </span>
+            {/* Quick 1-Tap Symptom Chips (Smooth scroll, zero text cut-off) */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-0.5 pt-0.5 scrollbar-none no-scrollbar pr-4">
               {[
-                { label: 'Stomach Cramps', icon: '⚡' },
+                { label: 'Stomach Pain', icon: '⚡' },
                 { label: 'High Fever', icon: '🔥' },
-                { label: 'Chest Tightness', icon: '❤️' },
-                { label: 'Severe Headache', icon: '🤕' },
-                { label: 'Vomiting / Nausea', icon: '🤢' }
+                { label: 'Chest Pain', icon: '❤️' },
+                { label: 'Headache', icon: '🤕' },
+                { label: 'Vomiting', icon: '🤢' }
               ].map((chip) => (
                 <button
                   key={chip.label}
                   type="button"
                   onClick={() => onTabChange?.('ai_assist')}
-                  className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 hover:border-emerald-400/50 text-[10.5px] font-semibold text-slate-200 hover:text-white shrink-0 flex items-center gap-1 transition-all cursor-pointer active:scale-95"
+                  className="px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-[11px] font-semibold text-slate-100 hover:text-white shrink-0 flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 whitespace-nowrap"
                 >
                   <span>{chip.icon}</span>
                   <span>{chip.label}</span>
