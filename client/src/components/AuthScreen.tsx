@@ -46,14 +46,31 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   const [showPassword, setShowPassword] = useState(false);
 
   // Patient-only signup form state
+  const [signUpStep, setSignUpStep] = useState<'MOBILE' | 'OTP' | 'DETAILS'>('MOBILE');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [age, setAge] = useState<number | string>(34);
-  const [gender, setGender] = useState<'MALE' | 'FEMALE' | 'OTHER'>('MALE');
-  const [bloodGroup, setBloodGroup] = useState('B+');
-  const [abhaId, setAbhaId] = useState('');
+  const [otpInput, setOtpInput] = useState('');
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(['English', 'Tamil']);
+
+  const availableLanguages = [
+    { id: 'English', label: 'English', flag: '🇬🇧', native: 'English' },
+    { id: 'Tamil', label: 'Tamil', flag: '🇮🇳', native: 'தமிழ்' },
+    { id: 'Hindi', label: 'Hindi', flag: '🇮🇳', native: 'हिंदी' },
+    { id: 'Telugu', label: 'Telugu', flag: '🇮🇳', native: 'తెలుగు' },
+    { id: 'Kannada', label: 'Kannada', flag: '🇮🇳', native: 'ಕನ್ನಡ' },
+    { id: 'Malayalam', label: 'Malayalam', flag: '🇮🇳', native: 'മലയാളം' },
+    { id: 'Bengali', label: 'Bengali', flag: '🇮🇳', native: 'বাংলা' },
+    { id: 'Marathi', label: 'Marathi', flag: '🇮🇳', native: 'मराठी' },
+    { id: 'Gujarati', label: 'Gujarati', flag: '🇮🇳', native: 'ગુજરાતી' }
+  ];
+
+  const toggleLanguage = (langId: string) => {
+    setSelectedLanguages(prev => 
+      prev.includes(langId) 
+        ? (prev.length > 1 ? prev.filter(l => l !== langId) : prev)
+        : [...prev, langId]
+    );
+  };
 
   // UI state
   const [isLoading, setIsLoading] = useState(false);
@@ -129,15 +146,41 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
     }
   };
 
-  // Patient-Exclusive Registration Submit
+  // Step 1: Send OTP to Mobile
+  const handleSendOtp = (e: React.FormEvent) => {
+    e.preventDefault();
+    const clean = phone.replace(/\D/g, '');
+    if (clean.length < 10) {
+      setErrorMessage('Please enter a valid 10-digit mobile number');
+      return;
+    }
+    setErrorMessage(null);
+    setOtpInput('1234'); // Simulated OTP auto-fill for testing ease
+    setSignUpStep('OTP');
+    setSuccessToast(`OTP code sent to +91 ${clean.slice(0, 5)} ${clean.slice(5)}`);
+    setTimeout(() => setSuccessToast(null), 3000);
+  };
+
+  // Step 2: Verify OTP
+  const handleVerifyOtp = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!otpInput || otpInput.trim().length < 4) {
+      setErrorMessage('Please enter the 4-digit verification code');
+      return;
+    }
+    setErrorMessage(null);
+    setSignUpStep('DETAILS');
+  };
+
+  // Step 3: Complete Sign Up with Name & Comfortable Languages
   const handlePatientSignUpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      setErrorMessage('Please provide your full legal name');
+      setErrorMessage("Please enter your name");
       return;
     }
-    if (!phone.trim()) {
-      setErrorMessage('Please provide a valid 10-digit mobile number');
+    if (selectedLanguages.length === 0) {
+      setErrorMessage("Please select at least one language you're comfortable speaking");
       return;
     }
 
@@ -146,15 +189,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
     try {
       const payload: any = {
-        name,
-        phone,
-        email,
-        password,
-        role: 'PATIENT', // Strictly patient-only
-        age: Number(age) || 30,
-        gender,
-        bloodGroup,
-        abhaId
+        name: name.trim(),
+        phone: phone.trim(),
+        role: 'PATIENT',
+        languages: selectedLanguages
       };
 
       const res = await fetch('/api/auth/signup', {
@@ -166,7 +204,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to create patient account');
 
-      setSuccessToast('Patient account created! Directing to your health portal...');
+      setSuccessToast(`Welcome, ${name.trim()}! Entering B Care...`);
       setTimeout(() => {
         onSuccess(data);
       }, 400);
@@ -514,185 +552,207 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
             </div>
           ) : (
             /* ========================================================================= */
-            /* VIEW: PATIENT-EXCLUSIVE SIGN UP */
+            /* VIEW: STREAMLINED PATIENT SIGN UP (MOBILE -> OTP -> NAME & LANGUAGES)    */
             /* ========================================================================= */
-            <form onSubmit={handlePatientSignUpSubmit} className="space-y-3">
+            <div className="space-y-4">
+              {/* Back navigation & Step Badge */}
               <div className="flex items-center justify-between pb-2 mb-1 border-b border-zinc-100">
                 <button
                   type="button"
-                  onClick={() => { setView('SIGNIN'); setErrorMessage(null); }}
-                  className="text-xs text-zinc-500 hover:text-zinc-900 font-semibold flex items-center gap-1 cursor-pointer"
+                  onClick={() => {
+                    if (signUpStep === 'DETAILS') setSignUpStep('OTP');
+                    else if (signUpStep === 'OTP') setSignUpStep('MOBILE');
+                    else { setView('SIGNIN'); setErrorMessage(null); }
+                  }}
+                  className="text-xs text-zinc-500 hover:text-zinc-900 font-semibold flex items-center gap-1 cursor-pointer transition-colors"
                 >
                   <ChevronLeft className="w-4 h-4" />
-                  Back to Sign In
+                  {signUpStep === 'MOBILE' ? 'Back to Sign In' : 'Back'}
                 </button>
-                <span className="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full font-semibold">
-                  Patients Only
+                <span className="text-[10px] text-blue-700 bg-blue-50 border border-blue-200/80 px-2.5 py-0.5 rounded-full font-bold">
+                  {signUpStep === 'MOBILE' && 'Step 1 of 3: Mobile'}
+                  {signUpStep === 'OTP' && 'Step 2 of 3: OTP'}
+                  {signUpStep === 'DETAILS' && 'Step 3 of 3: Profile'}
                 </span>
               </div>
 
-              <div>
-                <label className="block text-[11px] font-semibold text-zinc-700 mb-1">
-                  Full Legal Name
-                </label>
-                <div className="relative group">
-                  <input
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Ramesh Kumar"
-                    className="w-full text-xs p-2.5 pl-9 rounded-2xl border border-zinc-200/90 bg-zinc-50/80 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all font-sans text-zinc-900 placeholder:text-zinc-400"
-                  />
-                  <UserIcon className="w-4 h-4 text-zinc-400 absolute left-3 top-3 pointer-events-none group-focus-within:text-emerald-600 transition-colors" />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-[11px] font-semibold text-zinc-700 mb-1">
-                    Mobile Number
-                  </label>
-                  <div className="relative group">
-                    <input
-                      type="tel"
-                      required
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="98765 43210"
-                      className="w-full text-xs p-2.5 pl-8 rounded-2xl border border-zinc-200/90 bg-zinc-50/80 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all tabular-nums font-sans text-zinc-900 placeholder:text-zinc-400"
-                    />
-                    <Phone className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-3.5 pointer-events-none group-focus-within:text-emerald-600 transition-colors" />
+              {/* STEP 1: MOBILE NUMBER INPUT */}
+              {signUpStep === 'MOBILE' && (
+                <form onSubmit={handleSendOtp} className="space-y-3.5">
+                  <div className="text-left space-y-1">
+                    <h3 className="text-base font-bold text-zinc-900">Enter your mobile number</h3>
+                    <p className="text-xs text-zinc-500">We will send a 4-digit verification code to verify your phone.</p>
                   </div>
-                </div>
 
-                <div>
-                  <label className="block text-[11px] font-semibold text-zinc-700 mb-1">
-                    Email Address
-                  </label>
-                  <div className="relative group">
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="name@example.com"
-                      className="w-full text-xs p-2.5 pl-8 rounded-2xl border border-zinc-200/90 bg-zinc-50/80 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all font-sans text-zinc-900 placeholder:text-zinc-400"
-                    />
-                    <Mail className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-3.5 pointer-events-none group-focus-within:text-emerald-600 transition-colors" />
+                  <div>
+                    <label className="block text-[11px] font-semibold text-zinc-700 mb-1">
+                      10-Digit Mobile Number
+                    </label>
+                    <div className="relative flex items-center rounded-2xl border border-zinc-200/90 bg-zinc-50/80 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-600 transition-all overflow-hidden">
+                      <span className="pl-3.5 pr-2 py-3 text-xs font-bold text-zinc-500 border-r border-zinc-200/80 bg-zinc-100/50 select-none">
+                        +91
+                      </span>
+                      <input
+                        type="tel"
+                        required
+                        maxLength={10}
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                        placeholder="98765 43210"
+                        className="w-full text-xs p-3 focus:outline-none bg-transparent font-medium tabular-nums text-zinc-900 placeholder:text-zinc-400 tracking-wider"
+                      />
+                      <Phone className="w-4 h-4 text-zinc-400 mr-3 pointer-events-none shrink-0" />
+                    </div>
                   </div>
-                </div>
-              </div>
 
-              <div className="grid grid-cols-3 gap-2">
-                <div>
-                  <label className="block text-[11px] font-semibold text-zinc-700 mb-1">
-                    Age
-                  </label>
-                  <input
-                    type="number"
-                    value={age}
-                    onChange={(e) => setAge(e.target.value)}
-                    placeholder="32"
-                    className="w-full text-xs p-2.5 rounded-2xl border border-zinc-200/90 bg-zinc-50/80 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all tabular-nums text-zinc-900"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-semibold text-zinc-700 mb-1">
-                    Gender
-                  </label>
-                  <select
-                    value={gender}
-                    onChange={(e) => setGender(e.target.value as any)}
-                    className="w-full text-xs p-2.5 rounded-2xl border border-zinc-200/90 bg-zinc-50/80 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all text-zinc-900"
-                  >
-                    <option value="MALE">Male</option>
-                    <option value="FEMALE">Female</option>
-                    <option value="OTHER">Other</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-[11px] font-semibold text-zinc-700 mb-1">
-                    Blood Group
-                  </label>
-                  <select
-                    value={bloodGroup}
-                    onChange={(e) => setBloodGroup(e.target.value)}
-                    className="w-full text-xs p-2.5 rounded-2xl border border-zinc-200/90 bg-zinc-50/80 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all font-semibold text-zinc-900"
-                  >
-                    <option value="A+">A+</option>
-                    <option value="A-">A-</option>
-                    <option value="B+">B+</option>
-                    <option value="B-">B-</option>
-                    <option value="O+">O+</option>
-                    <option value="O-">O-</option>
-                    <option value="AB+">AB+</option>
-                    <option value="AB-">AB-</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-semibold text-zinc-700 mb-1 flex items-center justify-between">
-                  <span>ABDM ABHA Health ID</span>
-                  <span className="text-[10px] text-emerald-700 font-medium">Govt. Verified</span>
-                </label>
-                <input
-                  type="text"
-                  value={abhaId}
-                  onChange={(e) => setAbhaId(e.target.value)}
-                  placeholder="91-9845-0112-2384"
-                  className="w-full text-xs p-2.5 rounded-2xl border border-zinc-200/90 bg-zinc-50/80 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all tabular-nums text-zinc-900 placeholder:text-zinc-400"
-                />
-                <span className="text-[10px] text-zinc-400 mt-1 block">
-                  Link with Ayushman Bharat Digital Mission (ABDM) for unified hospital records.
-                </span>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-semibold text-zinc-700 mb-1">
-                  Create Secure Password
-                </label>
-                <div className="relative group">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="At least 6 characters"
-                    className="w-full text-xs p-2.5 pl-9 pr-10 rounded-2xl border border-zinc-200/90 bg-zinc-50/80 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all font-sans text-zinc-900 placeholder:text-zinc-400"
-                  />
-                  <Lock className="w-4 h-4 text-zinc-400 absolute left-3 top-3 pointer-events-none group-focus-within:text-emerald-600 transition-colors" />
                   <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3 text-zinc-400 hover:text-zinc-700 cursor-pointer"
-                    title={showPassword ? 'Hide password' : 'Show password'}
+                    type="submit"
+                    className="relative group overflow-hidden w-full mt-2 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md shadow-blue-500/25 active:scale-[0.99] transition-all cursor-pointer"
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    <span>Send Verification Code</span>
+                    <ArrowRight className="w-4 h-4" />
                   </button>
-                </div>
-              </div>
+                </form>
+              )}
 
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="relative group overflow-hidden w-full mt-3 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-600 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/25 hover:shadow-emerald-600/35 active:scale-[0.99] transition-all cursor-pointer disabled:opacity-60"
-              >
-                <span className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/15 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-[300%] transition-transform duration-1000 ease-out pointer-events-none" />
-
-                {isLoading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>Registering patient account...</span>
+              {/* STEP 2: OTP VERIFICATION */}
+              {signUpStep === 'OTP' && (
+                <form onSubmit={handleVerifyOtp} className="space-y-3.5">
+                  <div className="text-left space-y-1">
+                    <h3 className="text-base font-bold text-zinc-900">Enter verification code</h3>
+                    <p className="text-xs text-zinc-500">
+                      Code sent to <strong className="text-zinc-800 font-mono">+91 {phone}</strong>.{' '}
+                      <button 
+                        type="button" 
+                        onClick={() => setSignUpStep('MOBILE')} 
+                        className="text-blue-600 hover:underline font-semibold"
+                      >
+                        Edit
+                      </button>
+                    </p>
                   </div>
-                ) : (
-                  <>
-                    <span>Create Patient Account</span>
-                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                  </>
-                )}
-              </button>
-            </form>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-zinc-700 mb-1">
+                      4-Digit OTP Code
+                    </label>
+                    <input
+                      type="text"
+                      maxLength={4}
+                      value={otpInput}
+                      onChange={(e) => setOtpInput(e.target.value.replace(/\D/g, ''))}
+                      placeholder="• • • •"
+                      className="w-full text-base p-3 rounded-2xl border border-zinc-200/90 bg-zinc-50/80 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all font-mono tracking-widest text-center font-bold text-zinc-900"
+                    />
+                    <div className="flex items-center justify-between text-[11px] text-zinc-500 mt-1.5 px-1">
+                      <span>Auto-filled for testing: <strong>1234</strong></span>
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          setOtpInput('1234');
+                          setSuccessToast('OTP re-sent: 1234');
+                        }}
+                        className="text-blue-600 hover:underline font-medium"
+                      >
+                        Resend Code
+                      </button>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="relative group overflow-hidden w-full mt-2 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md shadow-blue-500/25 active:scale-[0.99] transition-all cursor-pointer"
+                  >
+                    <span>Verify & Continue</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </form>
+              )}
+
+              {/* STEP 3: NAME & COMFORTABLE LANGUAGES */}
+              {signUpStep === 'DETAILS' && (
+                <form onSubmit={handlePatientSignUpSubmit} className="space-y-3.5">
+                  <div className="text-left space-y-1">
+                    <h3 className="text-base font-bold text-zinc-900">What's your name?</h3>
+                    <p className="text-xs text-zinc-500">Enter your name and the languages you feel comfortable speaking.</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-zinc-700 mb-1">
+                      Full Name
+                    </label>
+                    <div className="relative group">
+                      <input
+                        type="text"
+                        required
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="e.g. Ramesh Kumar or Danny"
+                        className="w-full text-xs p-3 pl-9 rounded-2xl border border-zinc-200/90 bg-zinc-50/80 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all font-sans text-zinc-900 placeholder:text-zinc-400 font-medium"
+                      />
+                      <UserIcon className="w-4 h-4 text-zinc-400 absolute left-3 top-3.5 pointer-events-none group-focus-within:text-blue-600 transition-colors" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5 px-0.5">
+                      <label className="block text-[11px] font-semibold text-zinc-700">
+                        Comfortable Consultation Languages
+                      </label>
+                      <span className="text-[10px] text-blue-600 font-medium">Video call matching</span>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-1.5 max-h-44 overflow-y-auto pr-0.5">
+                      {availableLanguages.map(lang => {
+                        const isSelected = selectedLanguages.includes(lang.id);
+                        return (
+                          <button
+                            key={lang.id}
+                            type="button"
+                            onClick={() => toggleLanguage(lang.id)}
+                            className={`p-2 rounded-xl text-left border transition-all cursor-pointer flex flex-col justify-between ${
+                              isSelected
+                                ? 'bg-blue-50/90 border-blue-400 text-blue-900 shadow-2xs'
+                                : 'bg-white border-zinc-200/80 text-zinc-600 hover:border-zinc-300 hover:bg-zinc-50'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between w-full">
+                              <span className="text-xs">{lang.flag}</span>
+                              {isSelected && (
+                                <CheckCircle2 className="w-3 h-3 text-blue-600 shrink-0" />
+                              )}
+                            </div>
+                            <span className="text-[11px] font-bold mt-1 leading-none">{lang.label}</span>
+                            <span className="text-[9.5px] text-zinc-400 font-normal mt-0.5">{lang.native}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p className="text-[10.5px] text-zinc-500 mt-1.5">
+                      Selected: <strong className="text-zinc-800 font-semibold">{selectedLanguages.join(', ')}</strong>. Doctors will communicate with you in your chosen languages.
+                    </p>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="relative group overflow-hidden w-full mt-2 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-600/25 active:scale-[0.99] transition-all cursor-pointer disabled:opacity-60"
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span>Creating account...</span>
+                      </div>
+                    ) : (
+                      <>
+                        <span>Complete Sign Up & Enter B Care</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
+            </div>
           )}
 
         </div>

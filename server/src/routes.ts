@@ -179,6 +179,7 @@ router.post('/auth/signup', (req: Request, res: Response) => {
       dob: '1994-05-12',
       gender: gender || 'MALE',
       bloodGroup: bloodGroup || undefined,
+      languages: (req.body as any).languages || ['English', 'Tamil'],
       profileCompletionPct: bloodGroup ? 75 : 60
     };
     store.patientProfiles.set(userId, patientProfile);

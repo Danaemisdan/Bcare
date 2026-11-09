@@ -77,6 +77,7 @@ export class AppDataStore {
       allergies: ['Penicillin'],
       chronicConditions: ['Type 2 Diabetes', 'Hypertension'],
       emergencyContact: '+91 98450 11223 (Wife - Sunita)',
+      languages: ['English', 'Tamil'],
       profileCompletionPct: 60 // Progressive profiling demo
     }]
   ]);

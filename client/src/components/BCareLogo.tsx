@@ -34,7 +34,7 @@ export const BCareLogo: React.FC<BCareLogoProps> = ({
     return (
       <div 
         className={`inline-flex items-center justify-center select-none shrink-0 ${
-          showGlow ? 'drop-shadow-[0_4px_14px_rgba(18,44,243,0.35)]' : ''
+          showGlow ? 'drop-shadow-[0_4px_14px_rgba(45,98,226,0.22)]' : ''
         } ${className}`}
         style={{ width: dim, height: dim }}
       >
@@ -51,7 +51,7 @@ export const BCareLogo: React.FC<BCareLogoProps> = ({
     return (
       <div 
         className={`inline-flex flex-col items-center select-none shrink-0 ${
-          showGlow ? 'drop-shadow-[0_6px_18px_rgba(18,44,243,0.3)]' : ''
+          showGlow ? 'drop-shadow-[0_6px_18px_rgba(45,98,226,0.2)]' : ''
         } ${className}`}
         style={{ width: dim * 2, height: 'auto' }}
       >
@@ -68,7 +68,7 @@ export const BCareLogo: React.FC<BCareLogoProps> = ({
   return (
     <div 
       className={`inline-flex items-center select-none shrink-0 ${
-        showGlow ? 'drop-shadow-[0_3px_10px_rgba(18,44,243,0.22)]' : ''
+        showGlow ? 'drop-shadow-[0_3px_10px_rgba(45,98,226,0.18)]' : ''
       } ${className}`}
       style={{ height: dim }}
     >

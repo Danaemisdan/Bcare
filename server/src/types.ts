@@ -22,6 +22,7 @@ export interface PatientProfile {
   allergies?: string[];
   chronicConditions?: string[];
   emergencyContact?: string;
+  languages?: string[];
   profileCompletionPct: number; // e.g., 60% after initial onboarding, 100% when blood group/allergies added
 }
 

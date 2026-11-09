@@ -9,6 +9,7 @@ interface TeleconsultRoomModalProps {
   patientName: string;
   doctorName: string;
   specialty: string;
+  patientLanguages?: string[];
 }
 
 export const TeleconsultRoomModal: React.FC<TeleconsultRoomModalProps> = ({
@@ -16,7 +17,8 @@ export const TeleconsultRoomModal: React.FC<TeleconsultRoomModalProps> = ({
   onClose,
   patientName,
   doctorName,
-  specialty
+  specialty,
+  patientLanguages = ['English', 'Tamil']
 }) => {
   const [micActive, setMicActive] = useState(true);
   const [videoActive, setVideoActive] = useState(true);
@@ -89,6 +91,12 @@ export const TeleconsultRoomModal: React.FC<TeleconsultRoomModalProps> = ({
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-xs text-zinc-100">Encrypted Teleconsultation</span>
                 <span className="text-[10px] tabular-nums font-medium text-zinc-400 bg-zinc-800 px-1.5 py-0.5 rounded">1080p HD</span>
+                {patientLanguages && patientLanguages.length > 0 && (
+                  <span className="text-[10px] text-blue-300 bg-blue-950/80 border border-blue-500/40 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
+                    <span>🗣️</span>
+                    <span>{patientLanguages.join(', ')}</span>
+                  </span>
+                )}
               </div>
               <p className="text-[11px] text-zinc-500">
                 {doctorName} ({specialty}) ↔ {patientName}
