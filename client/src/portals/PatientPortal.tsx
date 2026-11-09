@@ -62,13 +62,15 @@ import {
   MapPin,
   Calendar,
   Ticket,
-  Home
+  Home,
+  Mic
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { RollingCounter } from '../components/RollingCounter';
 import { CountUp } from '../components/CountUp';
 import { SlapBlock } from '../components/SlapBlock';
 import { LiquidGlassButton } from '../components/LiquidGlass';
+import { SiriOrb } from '../components/SiriOrb';
 
 interface PatientPortalProps {
   patientProfile: PatientProfile;
@@ -766,26 +768,77 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
             </div>
           )}
 
-          {/* Minimal Clean Search Bar */}
-          <div className="relative group">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-800 transition-colors pointer-events-none" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search hospitals, doctors, specialties..."
-              className="w-full text-xs pl-10 pr-9 py-2.5 rounded-2xl bg-slate-100/80 border border-transparent focus:bg-white focus:border-slate-300 focus:outline-none transition-all placeholder:text-slate-400 font-sans tracking-tight"
-            />
-            {searchQuery && (
-              <motion.button
-                whileTap={{ scale: 0.9 }}
+          {/* ============================================================== */}
+          {/* 21ST.DEV STYLE: "USE OUR AI TO ASSESS" HERO ASSESSMENT CARD    */}
+          {/* ============================================================== */}
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#0c0f17] via-[#090d14] to-[#041210] text-white border border-emerald-500/25 shadow-[0_16px_40px_-10px_rgba(4,29,25,0.35)] p-4 sm:p-5 space-y-3.5 select-none"
+          >
+            {/* Luminous Specular Hairline & Ambient Glow */}
+            <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-emerald-400 to-transparent pointer-events-none" />
+            <div className="absolute -top-12 -right-12 w-36 h-36 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                {/* 21st.dev Animated Multi-Angle Siri Orb */}
+                <div 
+                  onClick={() => onTabChange?.('ai_assist')}
+                  className="cursor-pointer shrink-0 transition-transform active:scale-95 hover:scale-105"
+                  title="Launch B Care AI"
+                >
+                  <SiriOrb size={46} state="idle" />
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[9.5px] font-bold text-emerald-400 font-mono tracking-wider uppercase">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>Clinical AI Copilot</span>
+                  </div>
+                  <h3 className="text-base font-extrabold text-white tracking-tight mt-1 leading-snug">
+                    Use our AI to assess
+                  </h3>
+                  <p className="text-[11px] text-slate-400 leading-tight truncate">
+                    Describe symptoms for triage & specialist matching
+                  </p>
+                </div>
+              </div>
+
+              {/* 1-Tap Assess Button */}
+              <button
                 type="button"
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                onClick={() => onTabChange?.('ai_assist')}
+                className="px-3.5 py-2 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-extrabold text-xs shrink-0 flex items-center gap-1 shadow-xs transition-all active:scale-95 cursor-pointer"
               >
-                <X className="w-3.5 h-3.5" />
-              </motion.button>
-            )}
+                <span>Assess</span>
+                <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
+              </button>
+            </div>
+
+            {/* Interactive Search & Voice Input Box (Tapping launches AI immediately) */}
+            <div 
+              onClick={() => onTabChange?.('ai_assist')}
+              className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer group"
+            >
+              <Search className="w-4 h-4 text-slate-400 group-hover:text-white transition-colors shrink-0" />
+              <span className="text-xs text-slate-400 font-medium truncate flex-1">
+                E.g. vomiting, stomach cramps, high fever, migraines...
+              </span>
+              <div className="w-7 h-7 rounded-xl bg-white/10 group-hover:bg-emerald-500 group-hover:text-slate-950 text-slate-300 flex items-center justify-center transition-all shrink-0">
+                <Mic className="w-3.5 h-3.5" />
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Section Header: Direct Booking */}
+          <div className="pt-1 flex items-center justify-between px-1">
+            <span className="text-xs font-extrabold text-slate-900 tracking-tight">
+              Nearby Hospitals & Doctors
+            </span>
+            <span className="text-[11px] font-semibold text-slate-400">
+              Book Visit or Call
+            </span>
           </div>
 
           {/* Understated Full-Width iOS Segmented Switcher */}
@@ -924,7 +977,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                             className="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-800 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                           >
                             <Video className="w-3.5 h-3.5 text-slate-600" />
-                            <span>Video • ₹{doc.teleConsultationFee || 250}</span>
+                            <span>Video Call • ₹{doc.teleConsultationFee || 250}</span>
                           </motion.button>
                         </div>
                       </div>
@@ -1038,7 +1091,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                             className="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-800 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                           >
                             <Video className="w-3.5 h-3.5 text-slate-600" />
-                            <span>Video • ₹{primaryDoc?.teleConsultationFee || 250}</span>
+                            <span>Video Call • ₹{primaryDoc?.teleConsultationFee || 250}</span>
                           </motion.button>
                         </div>
                       </div>

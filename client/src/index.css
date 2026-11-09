@@ -10,11 +10,11 @@
 
   body {
     @apply bg-[#f8fafc] text-slate-900 font-sans;
-    font-family: 'Inter', 'Geist', -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11", "tnum";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    letter-spacing: -0.015em;
+    letter-spacing: -0.018em;
     background-image: 
       radial-gradient(ellipse 80% 30% at 50% -5%, rgba(15, 118, 110, 0.04), transparent),
       radial-gradient(ellipse 60% 20% at 90% 10%, rgba(14, 165, 233, 0.02), transparent);
