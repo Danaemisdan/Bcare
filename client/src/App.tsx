@@ -1489,15 +1489,15 @@ export function App() {
                     </div>
                   </div>
 
-                  {/* Scrollable Screen Content (Strict Overflow Protection) */}
-                  <div className={`flex-1 overflow-y-auto overflow-x-hidden ${
-                    isPatientBookingActive 
-                      ? 'p-0' 
+                  {/* Screen Content Container (Strict Overflow Protection) */}
+                  <div className={`flex-1 ${
+                    currentRole === 'PATIENT' && patientTab === 'ai_assist'
+                      ? 'overflow-hidden flex flex-col px-3 pt-1 pb-2 h-full'
+                      : isPatientBookingActive 
+                      ? 'overflow-y-auto overflow-x-hidden p-0' 
                       : isAuthOpen || !currentUser 
-                      ? 'px-1 pt-1 pb-4' 
-                      : (currentRole === 'PATIENT' && patientTab === 'ai_assist')
-                      ? 'px-3.5 pt-2 pb-6'
-                      : 'px-3.5 pt-3 pb-24'
+                      ? 'overflow-y-auto overflow-x-hidden px-1 pt-1 pb-4' 
+                      : 'overflow-y-auto overflow-x-hidden px-3.5 pt-3 pb-24'
                   } scrollbar-none w-full relative`}>
                     {renderPortal()}
                   </div>
@@ -1677,15 +1677,15 @@ export function App() {
                     </div>
                   </div>
 
-                  {/* Scrollable Screen Content */}
-                  <div className={`flex-1 overflow-y-auto overflow-x-hidden ${
-                    isPatientBookingActive 
-                      ? 'p-0' 
+                  {/* Screen Content Container */}
+                  <div className={`flex-1 ${
+                    currentRole === 'PATIENT' && patientTab === 'ai_assist'
+                      ? 'overflow-hidden flex flex-col px-3 pt-1 pb-2 h-full'
+                      : isPatientBookingActive 
+                      ? 'overflow-y-auto overflow-x-hidden p-0' 
                       : isAuthOpen || !currentUser 
-                      ? 'px-1 pt-1 pb-4' 
-                      : (currentRole === 'PATIENT' && patientTab === 'ai_assist')
-                      ? 'px-3.5 pt-2 pb-6'
-                      : 'px-3.5 pt-3 pb-24'
+                      ? 'overflow-y-auto overflow-x-hidden px-1 pt-1 pb-4' 
+                      : 'overflow-y-auto overflow-x-hidden px-3.5 pt-3 pb-24'
                   } scrollbar-none w-full relative`}>
                     {renderPortal()}
                   </div>
