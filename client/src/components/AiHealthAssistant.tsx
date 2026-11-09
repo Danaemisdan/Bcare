@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Sparkles, 
@@ -45,11 +45,110 @@ import {
   LocateFixed,
   Car,
   ShieldCheck,
+  Globe,
+  ChevronDown,
+  Languages,
+  Radio,
   LucideIcon
 } from 'lucide-react';
 import { DoctorProfile, Hospital, OpSlot, PatientProfile } from '../types';
 import { ConsultationType } from './BookingConsultationScreen';
 import { SiriOrb } from './SiriOrb';
+
+// ============================================================================
+// ALL 10 INDIAN REGIONAL LANGUAGES (PREMIUM STT & TTS ENGINE)
+// ============================================================================
+export interface IndianLanguage {
+  code: string;        // BCP-47 Speech Code (e.g. 'en-IN', 'ta-IN', 'hi-IN')
+  name: string;        // Native Script
+  englishName: string; // Common Display Name
+  flag: string;
+  placeholder: string;
+  spokenIntro: string;
+}
+
+export const SUPPORTED_INDIAN_LANGUAGES: IndianLanguage[] = [
+  { 
+    code: 'en-IN', 
+    name: 'English (India)', 
+    englishName: 'English (IN)', 
+    flag: '🇮🇳', 
+    placeholder: 'Type or speak what\'s wrong (e.g. severe stomach pain, fever, migraine)...',
+    spokenIntro: 'Please describe your symptoms. Our clinical AI will assess and match the right specialist.' 
+  },
+  { 
+    code: 'ta-IN', 
+    name: 'தமிழ்', 
+    englishName: 'Tamil', 
+    flag: '🇮🇳', 
+    placeholder: 'உங்கள் அறிகுறிகளை தமிழில் தட்டச்சு செய்யவும் அல்லது பேசவும்...',
+    spokenIntro: 'உங்கள் அறிகுறிகளைக் கூறுங்கள். எங்கள் மருத்துவ AI உடனே கணித்து சரியான மருத்துவரை பரிந்துரைக்கும்.' 
+  },
+  { 
+    code: 'hi-IN', 
+    name: 'हिन्दी', 
+    englishName: 'Hindi', 
+    flag: '🇮🇳', 
+    placeholder: 'अपने लक्षण हिंदी में लिखें या बोलें, जैसे पेट दर्द, बुखार, सिरदर्द...',
+    spokenIntro: 'कृपया अपने लक्षण बताएं। हमारा क्लिनिकल एआई तुरंत विशेषज्ञ डॉक्टर से मिलान करेगा।' 
+  },
+  { 
+    code: 'te-IN', 
+    name: 'తెలుగు', 
+    englishName: 'Telugu', 
+    flag: '🇮🇳', 
+    placeholder: 'మీ లక్షణాలను తెలుగులో టైప్ చేయండి లేదా మాట్లాడండి...',
+    spokenIntro: 'దయచేసి మీ లక్షణాలను వివరించండి. మా క్లినికల్ ఏఐ సరైన వైద్యుడిని సూచిస్తుంది.' 
+  },
+  { 
+    code: 'kn-IN', 
+    name: 'ಕನ್ನಡ', 
+    englishName: 'Kannada', 
+    flag: '🇮🇳', 
+    placeholder: 'ನಿಮ್ಮ ರೋಗಲಕ್ಷಣಗಳನ್ನು ಕನ್ನಡದಲ್ಲಿ ಟೈಪ್ ಮಾಡಿ ಅಥವಾ ಮಾತನಾಡಿ...',
+    spokenIntro: 'ದಯವಿಟ್ಟು ನಿಮ್ಮ ರೋಗಲಕ್ಷಣಗಳನ್ನು ವಿವರಿಸಿ. ನಮ್ಮ ಎಐ ಸರಿಯಾದ ವೈದ್ಯರನ್ನು ಶಿಫಾರಸು ಮಾಡುತ್ತದೆ.' 
+  },
+  { 
+    code: 'ml-IN', 
+    name: 'മലയാളം', 
+    englishName: 'Malayalam', 
+    flag: '🇮🇳', 
+    placeholder: 'നിങ്ങളുടെ ലക്ഷണങ്ങൾ മലയാളത്തിൽ ടൈപ്പ് ചെയ്യുക അല്ലെങ്കിൽ പറയുക...',
+    spokenIntro: 'ദയവായി ലക്ഷണങ്ങൾ വ്യക്തമാക്കുക. ഞങ്ങളുടെ ക്ലിനിക്കൽ എഐ ശരിയായ ഡോക്ടറെ നിർദ്ദേശിക്കും.' 
+  },
+  { 
+    code: 'mr-IN', 
+    name: 'मराठी', 
+    englishName: 'Marathi', 
+    flag: '🇮🇳', 
+    placeholder: 'आपली लक्षणे मराठीत टाइप करा किंवा बोला...',
+    spokenIntro: 'कृपया आपली लक्षणे सांगा. आमचे क्लिनिकल एआय योग्य तज्ज्ञ डॉक्टर सुचवेल.' 
+  },
+  { 
+    code: 'bn-IN', 
+    name: 'বাংলা', 
+    englishName: 'Bengali', 
+    flag: '🇮🇳', 
+    placeholder: 'আপনার লক্ষণগুলি বাংলায় টাইপ করুন বা বলুন...',
+    spokenIntro: 'দয়া করে আপনার লক্ষণগুলি বলুন। আমাদের ক্লিনিক্যাল এআই সঠিক বিশেষজ্ঞ খুঁজে দেবে।' 
+  },
+  { 
+    code: 'gu-IN', 
+    name: 'ગુજરાતી', 
+    englishName: 'Gujarati', 
+    flag: '🇮🇳', 
+    placeholder: 'તમારા લક્ષણો ગુજરાતીમાં લખો અથવા બોલો...',
+    spokenIntro: 'કૃપા કરીને તમારા લક્ષણો જણાવો. અમારું ક્લિનિકલ એઆઈ યોગ્ય ડૉક્ટર પસંદ કરશે.' 
+  },
+  { 
+    code: 'pa-IN', 
+    name: 'ਪੰਜਾਬੀ', 
+    englishName: 'Punjabi', 
+    flag: '🇮🇳', 
+    placeholder: 'ਆਪਣੇ ਲੱਛਣ ਪੰਜਾਬੀ ਵਿੱਚ ਟਾਈਪ ਕਰੋ ਜਾਂ ਬੋਲੋ...',
+    spokenIntro: 'ਕਿਰਪਾ ਕਰਕੇ ਆਪਣੇ ਲੱਛਣ ਦੱਸੋ। ਸਾਡਾ ਕਲੀਨਿਕਲ ਏਆਈ ਸਹੀ ਡਾਕਟਰ ਨਾਲ ਮਿਲਾਏਗਾ।' 
+  }
+];
 
 // ============================================================================
 // CLINICAL AI KNOWLEDGE BASE (18 COMPREHENSIVE MEDICAL SPECIALTIES)
@@ -113,7 +212,14 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     icon: Waves,
     iconBg: 'bg-emerald-50',
     iconColor: 'text-emerald-600',
-    keywords: ['vomit', 'vomiting', 'nausea', 'puke', 'food poison', 'loose motion', 'diarrhea', 'stomach bug', 'dehydration', 'acid reflux', 'indigestion', 'stomach cramp', 'belly pain', 'gastric'],
+    keywords: [
+      'vomit', 'vomiting', 'nausea', 'puke', 'food poison', 'loose motion', 'diarrhea', 'stomach bug', 'dehydration', 'acid reflux', 'indigestion', 'stomach cramp', 'belly pain', 'gastric', 'cramp', 'cramps', 'tummy', 'acidity', 'loose stool', 'dysentery', 'food poisoning', 'gas', 'bloating',
+      'pet', 'pait', 'pet dard', 'ulti', 'dast', 'matli', 'kabz', 'marod', 'पेट', 'उल्टी', 'दस्त', 'मतली',
+      'vayiru', 'vairu', 'vayiru vali', 'vaanthi', 'vanthi', 'bhedi', 'pedhi', 'seriyamai', 'வயிறு', 'வாந்தி', 'பேதி',
+      'kadupu', 'kadupu noppi', 'vanthulu', 'virachanalu', 'కడుపు', 'వాంతులు',
+      'hotte', 'hotte novu', 'vaanti', 'ಹೊಟ್ಟೆ', 'ವಾಂತಿ',
+      'vayaru', 'vayaruvedhana', 'chardhi', 'ഛർദ്ദി', 'വയറു'
+    ],
     spokenIntro: "I have noted gastrointestinal distress. How severe is your fluid retention and vomiting right now?",
     q2: {
       prompt: "Can you keep fluids down right now?",
@@ -142,7 +248,13 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     icon: Bone,
     iconBg: 'bg-amber-50',
     iconColor: 'text-amber-600',
-    keywords: ['pain', 'back', 'lower back', 'neck', 'spine', 'joint', 'knee', 'shoulder', 'sciatica', 'sprain', 'twist', 'muscle', 'ache', 'slip disc', 'cervical', 'lumbar'],
+    keywords: [
+      'pain', 'back', 'lower back', 'neck', 'spine', 'joint', 'knee', 'shoulder', 'sciatica', 'sprain', 'twist', 'muscle', 'ache', 'slip disc', 'cervical', 'lumbar', 'bone', 'fracture', 'ligament', 'ankle', 'wrist',
+      'kamar dard', 'kamar', 'ghutna', 'ghutne', 'dard', 'कमर दर्द', 'घुटने', 'जोड़ों',
+      'mudhugu', 'mudhugu vali', 'kaal vali', 'mottu vali', 'iduppu vali', 'elumbu', 'முதுகு வலி', 'மூட்டு வலி',
+      'vennu', 'vennu noppi', 'kaalu noppi', 'mokkalilu', 'వెన్ను నొప్పి', 'మోకాలు నొప్పి',
+      'kalu novu', 'mokaalu novu', 'bennu novu', 'ಕೀಲು ನೋವು', 'ಬೆನ್ನು ನೋವು'
+    ],
     spokenIntro: "Musculoskeletal pain noted. How intense is the pain and does it limit your movement?",
     q2: {
       prompt: "How intense is the pain & mobility restriction?",
@@ -171,7 +283,13 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     icon: Thermometer,
     iconBg: 'bg-rose-50',
     iconColor: 'text-rose-600',
-    keywords: ['fever', 'temperature', 'chills', 'shivering', 'flu', 'viral', 'body ache', 'dengue', 'malaria', 'cold', 'sore throat', 'cough', 'pyrexia'],
+    keywords: [
+      'fever', 'temperature', 'chills', 'shivering', 'flu', 'viral', 'body ache', 'dengue', 'malaria', 'cold', 'sore throat', 'pyrexia', 'typhoid',
+      'bukhar', 'tez bukhar', 'tap', 'taap', 'बुखार', 'ताप',
+      'kaachal', 'kaaychal', 'kulir', 'udambu vali', 'காய்ச்சல்', 'குளிர்',
+      'jwaram', 'jalubu', 'chali', 'జ్వరం', 'చలి',
+      'jwara', 'pani', 'viral pani', 'ജ്വര', 'പനി'
+    ],
     spokenIntro: "Fever detected. How high is your temperature feeling right now?",
     q2: {
       prompt: "What is your temperature level and associated signs?",
@@ -200,7 +318,12 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     icon: HeartPulse,
     iconBg: 'bg-red-50',
     iconColor: 'text-red-600',
-    keywords: ['chest', 'chest pain', 'heart', 'heartburn', 'palpitation', 'racing heart', 'angina', 'acid', 'gerd'],
+    keywords: [
+      'chest', 'chest pain', 'heart', 'heartburn', 'palpitation', 'racing heart', 'angina', 'acid', 'gerd', 'tightness', 'bp',
+      'chhati', 'seena', 'seene me dard', 'dil', 'dhadkan', 'छाती', 'दिल', 'धड़कन',
+      'marbu', 'marbu vali', 'nenju', 'nenju vali', 'நெஞ்சு வலி', 'இதயம்',
+      'gunde', 'gunde noppi', 'ede novu', 'గుండె', 'ಎದೆ ನೋವು'
+    ],
     spokenIntro: "Chest sensation detected. Let's distinguish gastric acid reflux from cardiac warning signs.",
     q2: {
       prompt: "What is the character of your chest discomfort?",
@@ -229,7 +352,12 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     icon: Brain,
     iconBg: 'bg-purple-50',
     iconColor: 'text-purple-600',
-    keywords: ['headache', 'migraine', 'head', 'throbbing', 'aura', 'dizziness', 'vertigo', 'spinning', 'temple', 'balance'],
+    keywords: [
+      'headache', 'migraine', 'head', 'throbbing', 'aura', 'dizziness', 'vertigo', 'spinning', 'temple', 'balance', 'faint',
+      'sar dard', 'sir dard', 'chakkar', 'सिर दर्द', 'चक्कर',
+      'thala vali', 'thalavali', 'mayakkam', 'thala suthudhu', 'தலைவலி', 'மயக்கம்',
+      'tala noppi', 'thala noppi', 'thale novu', 'thala vedhana', 'తల నొప్పి'
+    ],
     spokenIntro: "Cranial discomfort detected. What does the headache feel like?",
     q2: {
       prompt: "What is the pattern of your head discomfort or balance?",
@@ -258,7 +386,12 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     icon: Smile,
     iconBg: 'bg-teal-50',
     iconColor: 'text-teal-600',
-    keywords: ['tooth', 'teeth', 'dental', 'gum', 'dentist', 'toothache', 'molar', 'mouth', 'cavity', 'jaw', 'ulcer'],
+    keywords: [
+      'tooth', 'teeth', 'dental', 'gum', 'dentist', 'toothache', 'molar', 'mouth', 'cavity', 'jaw', 'ulcer',
+      'daant', 'daant dard', 'दांत दर्द', 'मसूड़े',
+      'pallu', 'palla vali', 'pallu vali', 'பல் வலி',
+      'panti noppi', 'hallu novu', 'పంటి నొప్పి'
+    ],
     spokenIntro: "Dental discomfort noted. Is there constant throbbing pain or sensitivity to cold and heat?",
     q2: {
       prompt: "What is the nature of your tooth or gum discomfort?",
@@ -287,7 +420,12 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     icon: ShieldAlert,
     iconBg: 'bg-orange-50',
     iconColor: 'text-orange-600',
-    keywords: ['rash', 'itching', 'itch', 'hives', 'allergy', 'allergic', 'skin', 'welts', 'red spots', 'eczema', 'bite', 'dermatitis'],
+    keywords: [
+      'rash', 'itching', 'itch', 'hives', 'allergy', 'allergic', 'skin', 'welts', 'red spots', 'eczema', 'bite', 'dermatitis',
+      'khujli', 'daane', 'खुजली', 'दाने',
+      'arippu', 'thadipu', 'அரிப்பு',
+      'durada', 'dhaddulu', 'దురద'
+    ],
     spokenIntro: "Dermatological reaction detected. Are you having raised hives or any facial swelling?",
     q2: {
       prompt: "What does the skin reaction look like?",
@@ -316,7 +454,12 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     icon: Wind,
     iconBg: 'bg-cyan-50',
     iconColor: 'text-cyan-600',
-    keywords: ['cough', 'coughing', 'cold', 'breath', 'breathless', 'breathing', 'wheeze', 'wheezing', 'asthma', 'phlegm', 'sputum', 'bronchitis', 'congestion'],
+    keywords: [
+      'cough', 'coughing', 'cold', 'breath', 'breathless', 'breathing', 'wheeze', 'wheezing', 'asthma', 'phlegm', 'sputum', 'bronchitis', 'congestion',
+      'khansi', 'jukham', 'saans', 'balgam', 'खांसी', 'जुकाम',
+      'irumal', 'sali', 'moochu', 'இருமல்', 'சளி',
+      'daggu', 'jalubu', 'aayasam', 'kemmu', 'chuma', 'దగ్గు'
+    ],
     spokenIntro: "Respiratory symptoms detected. Is your breathing labored or accompanied by wheezing?",
     q2: {
       prompt: "Is your breathing restricted or labored?",
@@ -831,11 +974,37 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
   const [isVoiceEnabled, setIsVoiceEnabled] = useState<boolean>(true);
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
   const [isListening, setIsListening] = useState<boolean>(false);
+  const [streamedInterim, setStreamedInterim] = useState<string>('');
+  const [selectedLanguage, setSelectedLanguage] = useState<IndianLanguage>(SUPPORTED_INDIAN_LANGUAGES[0]);
+  const [showLanguageModal, setShowLanguageModal] = useState<boolean>(false);
+  const recognitionRef = useRef<any>(null);
 
   // Active Category Config
   const activeCategory = useMemo(() => {
     return SMART_CLINICAL_CATEGORIES.find(c => c.id === selectedCategoryId) || SMART_CLINICAL_CATEGORIES[0];
   }, [selectedCategoryId]);
+
+  // Primary Doctor Match
+  const matchedDoctor = useMemo(() => {
+    return doctors.find(d => 
+      d.specialty.toLowerCase().includes(activeCategory.diagnosis.specialty.toLowerCase()) ||
+      activeCategory.diagnosis.specialty.toLowerCase().includes(d.specialty.toLowerCase())
+    ) || doctors[0];
+  }, [doctors, activeCategory]);
+
+  // Extract detected clinical signals
+  const detectedSignals = useMemo(() => {
+    if (!inputText.trim()) return ['General Assessment'];
+    const lower = inputText.toLowerCase();
+    const signals: string[] = [];
+    for (const kw of activeCategory.keywords) {
+      if (lower.includes(kw.toLowerCase()) && !signals.includes(kw)) {
+        signals.push(kw.charAt(0).toUpperCase() + kw.slice(1));
+        if (signals.length >= 3) break;
+      }
+    }
+    return signals.length > 0 ? signals : [activeCategory.title];
+  }, [inputText, activeCategory]);
 
   // Primary 7 Core Categories displayed in the clean, compact 2x4 grid
   const primaryCategories = useMemo(() => {
@@ -874,22 +1043,56 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
     }
   };
 
-  // Speak text naturally using Web Speech API
-  const speakText = (text: string) => {
+  // Find premium Indian or natural voice
+  const getIndianVoice = (langCode: string): SpeechSynthesisVoice | null => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return null;
+    const voices = window.speechSynthesis.getVoices();
+    if (!voices || voices.length === 0) return null;
+
+    const code = langCode.toLowerCase().replace('_', '-');
+    const prefix = code.split('-')[0];
+
+    // 1. Natural / Google / Neural / Indian named voices matching code or prefix
+    const naturalMatch = voices.find(v => {
+      const vLang = v.lang.toLowerCase().replace('_', '-');
+      const vName = v.name.toLowerCase();
+      return (vLang === code || vLang.startsWith(prefix)) && 
+        (vName.includes('natural') || vName.includes('google') || vName.includes('neural') || vName.includes('premium') || vName.includes('enhanced') || vName.includes('rishi') || vName.includes('veena') || vName.includes('lekha') || vName.includes('valluvar') || vName.includes('chitra') || vName.includes('neerja'));
+    });
+    if (naturalMatch) return naturalMatch;
+
+    // 2. Exact language match
+    const exactMatch = voices.find(v => v.lang.toLowerCase().replace('_', '-') === code);
+    if (exactMatch) return exactMatch;
+
+    // 3. Prefix match
+    const prefixMatch = voices.find(v => v.lang.toLowerCase().replace('_', '-').startsWith(prefix));
+    if (prefixMatch) return prefixMatch;
+
+    // 4. Fallback for Indian English
+    if (code === 'en-in') {
+      const inEn = voices.find(v => v.name.toLowerCase().includes('india') || v.name.toLowerCase().includes('veena') || v.name.toLowerCase().includes('rishi'));
+      if (inEn) return inEn;
+    }
+
+    // 5. Default natural voice
+    return voices.find(v => (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Samantha')) && v.lang.startsWith('en')) || voices[0] || null;
+  };
+
+  // Speak text naturally using Web Speech API with premium Indian voice cadence
+  const speakText = (text: string, customLang?: string) => {
     if (!isVoiceEnabled || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
     try {
       window.speechSynthesis.cancel();
+      const targetLang = customLang || selectedLanguage.code;
       const utterance = new SpeechSynthesisUtterance(text);
-      const voices = window.speechSynthesis.getVoices();
-      
-      const naturalVoice = voices.find(v => 
-        (v.name.includes('Samantha') || v.name.includes('Natural') || v.name.includes('Google') || v.lang.startsWith('en')) &&
-        !v.name.includes('Bad')
-      ) || voices[0];
-      
-      if (naturalVoice) utterance.voice = naturalVoice;
-      utterance.pitch = 1.05;
-      utterance.rate = 1.0;
+      utterance.lang = targetLang;
+
+      const voice = getIndianVoice(targetLang);
+      if (voice) utterance.voice = voice;
+
+      utterance.pitch = 1.0;
+      utterance.rate = 0.96; // Smooth human clinical pacing
 
       utterance.onstart = () => setIsSpeaking(true);
       utterance.onend = () => setIsSpeaking(false);
@@ -902,7 +1105,20 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
     }
   };
 
-  // Voice Input (Microphone Speech-to-Text)
+  // Stop listening safely
+  const stopListening = () => {
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (e) {
+        // ignore
+      }
+    }
+    setIsListening(false);
+    setStreamedInterim('');
+  };
+
+  // Live Streamed Voice Input (Continuous & Interim Speech-to-Text)
   const toggleListening = () => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -911,26 +1127,65 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
     }
 
     if (isListening) {
-      setIsListening(false);
+      stopListening();
       return;
     }
 
     try {
       stopSpeaking();
       const recognition = new SpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      recognition.lang = 'en-US';
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = selectedLanguage.code;
+      recognition.maxAlternatives = 1;
 
-      recognition.onstart = () => setIsListening(true);
+      recognitionRef.current = recognition;
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        setStreamedInterim('');
+      };
+
       recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        if (transcript) {
-          handleQueryChange(transcript);
+        let interim = '';
+        let newlyFinal = '';
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          const res = event.results[i];
+          const text = res[0].transcript;
+          if (res.isFinal) {
+            newlyFinal += text + ' ';
+          } else {
+            interim += text;
+          }
+        }
+
+        if (newlyFinal) {
+          setInputText(prev => {
+            const next = (prev ? prev.trim() + ' ' : '') + newlyFinal.trim();
+            handleQueryChange(next);
+            return next;
+          });
+        }
+
+        setStreamedInterim(interim);
+        if (interim) {
+          handleQueryChange(inputText + ' ' + interim);
         }
       };
-      recognition.onerror = () => setIsListening(false);
-      recognition.onend = () => setIsListening(false);
+
+      recognition.onerror = (event: any) => {
+        console.warn('Live STT error:', event.error);
+        if (event.error !== 'no-speech') {
+          setIsListening(false);
+          setStreamedInterim('');
+        }
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+        setStreamedInterim('');
+      };
 
       recognition.start();
     } catch (e) {
@@ -958,7 +1213,7 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
     }
 
     const matched = SMART_CLINICAL_CATEGORIES.find(cat => 
-      cat.keywords.some(kw => lower.includes(kw))
+      cat.keywords.some(kw => lower.includes(kw.toLowerCase()))
     );
     if (matched) {
       setSelectedCategoryId(matched.id);
@@ -1124,19 +1379,33 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
           {currentStep === 'HOSPITALS' && 'Direct Care & Booking'}
         </span>
 
-        <button
-          type="button"
-          onClick={() => {
-            if (isSpeaking) stopSpeaking();
-            else setIsVoiceEnabled(!isVoiceEnabled);
-          }}
-          className={`p-1.5 rounded-full transition-colors cursor-pointer ${
-            isSpeaking ? 'bg-emerald-500 text-white' : isVoiceEnabled ? 'text-slate-900 hover:bg-slate-100' : 'text-slate-400 hover:bg-slate-100'
-          }`}
-          title={isVoiceEnabled ? "Voice Enabled" : "Voice Muted"}
-        >
-          {isVoiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-        </button>
+        <div className="flex items-center gap-1.5">
+          {/* Indian Regional Language Picker */}
+          <button
+            type="button"
+            onClick={() => setShowLanguageModal(true)}
+            className="px-2 py-0.5 rounded-full bg-slate-100 hover:bg-slate-200/80 text-[10.5px] font-bold text-slate-800 flex items-center gap-1 transition-colors cursor-pointer"
+            title="Choose Indian Language for STT & TTS"
+          >
+            <span>{selectedLanguage.flag}</span>
+            <span>{selectedLanguage.englishName}</span>
+            <ChevronDown className="w-3 h-3 text-slate-400" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (isSpeaking) stopSpeaking();
+              else setIsVoiceEnabled(!isVoiceEnabled);
+            }}
+            className={`p-1.5 rounded-full transition-colors cursor-pointer ${
+              isSpeaking ? 'bg-emerald-500 text-white' : isVoiceEnabled ? 'text-slate-900 hover:bg-slate-100' : 'text-slate-400 hover:bg-slate-100'
+            }`}
+            title={isVoiceEnabled ? "Voice Enabled" : "Voice Muted"}
+          >
+            {isVoiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+          </button>
+        </div>
       </div>
 
       {/* ========================================================================= */}
@@ -1146,7 +1415,7 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
         <AnimatePresence mode="wait">
           
           {/* ===================================================================== */}
-          {/* SLIDE 1: QUESTION 1 — COMPACT, NON-OVERWHELMING 8-CARD CLINICAL SUITE */}
+          {/* SLIDE 1: QUESTION 1 — CONVERSATIONAL AI INTAKE WITH LIVE STREAMING STT */}
           {/* ===================================================================== */}
           {currentStep === 'QUESTION_1' && (
             <motion.div
@@ -1165,228 +1434,184 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                   className="cursor-pointer transition-transform hover:scale-105 active:scale-95"
                   onClick={() => {
                     if (isSpeaking) stopSpeaking();
-                    else if (isVoiceEnabled) speakText("What is your main symptom or health concern?");
+                    else if (isVoiceEnabled) speakText(selectedLanguage.spokenIntro);
                   }}
                 />
                 <h3 className="text-base font-extrabold text-slate-900 tracking-tight mt-1.5 leading-snug">
                   What are you experiencing?
                 </h3>
-                <p className="text-[11px] text-slate-500 mt-0.5">
-                  Select a clinical specialty or search by symptom
+                <p className="text-[11.5px] text-slate-500 mt-0.5 max-w-xs">
+                  Type or speak what's wrong in your own words — our clinical AI understands everyday symptoms
                 </p>
               </div>
 
-              {/* Free-Text Search & Voice Mic Bar */}
-              <div className="shrink-0 my-1.5">
-                <div className={`relative flex items-center bg-slate-100/90 rounded-2xl border transition-all ${
+              {/* Conversational Typing & Live Streaming Box */}
+              <div className="flex-1 flex flex-col justify-center min-h-0 py-1 space-y-2">
+                <div className={`relative flex flex-col rounded-2xl border transition-all ${
                   isListening
-                    ? 'border-rose-400 ring-2 ring-rose-100 bg-white'
-                    : 'border-transparent focus-within:border-slate-300 focus-within:bg-white'
+                    ? 'border-emerald-500 ring-2 ring-emerald-100 bg-white shadow-sm'
+                    : 'border-slate-200/90 bg-white focus-within:border-slate-400 focus-within:ring-2 focus-within:ring-slate-100 shadow-2xs'
                 }`}>
-                  <Search className="w-3.5 h-3.5 text-slate-400 ml-3 shrink-0" />
-                  <input
-                    type="text"
-                    value={inputText}
-                    onChange={(e) => handleQueryChange(e.target.value)}
-                    placeholder="Describe symptoms (e.g. fever, toothache, back pain)..."
-                    className="w-full py-2.5 px-2 bg-transparent text-xs font-semibold text-slate-900 placeholder:text-slate-400 outline-none"
-                  />
-                  {inputText && (
-                    <button
-                      type="button"
-                      onClick={() => setInputText('')}
-                      className="p-1 text-slate-400 hover:text-slate-600 rounded-full cursor-pointer shrink-0"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={toggleListening}
-                    className={`p-1.5 mr-1.5 rounded-xl transition-all cursor-pointer shrink-0 ${
-                      isListening
-                        ? 'bg-rose-500 text-white shadow-xs animate-pulse ring-1 ring-rose-300'
-                        : 'bg-white text-slate-700 hover:bg-slate-200/80 shadow-2xs'
-                    }`}
-                    title={isListening ? "Listening... Speak now" : "Speak to AI"}
-                  >
-                    {isListening ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
-                  </button>
-                </div>
+                  {/* Text Input / Streaming Display */}
+                  <div className="relative p-3">
+                    <textarea
+                      rows={3}
+                      value={inputText}
+                      onChange={(e) => handleQueryChange(e.target.value)}
+                      placeholder={selectedLanguage.placeholder}
+                      className="w-full bg-transparent text-xs font-semibold text-slate-900 placeholder:text-slate-400 outline-none resize-none leading-relaxed font-sans"
+                    />
 
-                {/* AI Detected Specialty Pill & Quick Nearby Button */}
-                <div className="mt-1 flex items-center justify-between px-1">
-                  <div className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-slate-600 min-w-0 truncate">
-                    <Sparkles className="w-3 h-3 text-emerald-600 shrink-0" />
-                    <span className="truncate">Matched: <strong className="font-bold text-slate-900">{activeCategory.title}</strong></span>
+                    {/* Live Streamed Interim Transcribe Overlay */}
+                    {isListening && streamedInterim && (
+                      <div className="text-xs font-bold text-emerald-600 italic mt-0.5 flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping shrink-0" />
+                        <span className="truncate">{streamedInterim}</span>
+                        <span className="inline-block w-1 h-3.5 bg-emerald-500 animate-pulse shrink-0" />
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => handleGoToHospitals(true)}
-                      className="text-[10px] font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-0.5 cursor-pointer bg-emerald-50 hover:bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-200 transition-all shadow-2xs"
-                    >
-                      <MapPin className="w-2.5 h-2.5 text-emerald-600" />
-                      <span>Nearby</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowMoreModal(true)}
-                      className="text-[10px] font-bold text-slate-600 hover:text-slate-900 cursor-pointer"
-                    >
-                      All Fields +
-                    </button>
-                  </div>
-                </div>
-              </div>
 
-              {/* Compact, Stable 2x4 Grid */}
-              <div className="flex-1 flex flex-col justify-center min-h-0 py-0.5">
-                <div className="grid grid-cols-2 gap-1.5">
-                  {primaryCategories.map((cat) => {
-                    const isSelected = selectedCategoryId === cat.id;
-                    const IconComponent = cat.icon;
-                    return (
+                  {/* Micro-Actions Toolbar */}
+                  <div className="px-3 py-2 border-t border-slate-100 bg-slate-50/70 rounded-b-2xl flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
                       <button
-                        key={cat.id}
                         type="button"
-                        onClick={() => handleSelectCategory(cat)}
-                        className={`p-2 rounded-xl text-left border transition-all cursor-pointer flex items-center gap-2 ${
-                          isSelected
-                            ? 'bg-slate-950 text-white border-slate-950 shadow-sm ring-1 ring-slate-950'
-                            : 'bg-white hover:bg-slate-50 border-slate-200/80 text-slate-800 shadow-2xs'
+                        onClick={() => setShowLanguageModal(true)}
+                        className="px-2 py-1 rounded-lg bg-white border border-slate-200/80 hover:border-slate-300 text-[10.5px] font-bold text-slate-700 flex items-center gap-1 shadow-2xs cursor-pointer transition-colors"
+                      >
+                        <Globe className="w-3 h-3 text-emerald-600" />
+                        <span>{selectedLanguage.flag} {selectedLanguage.englishName}</span>
+                      </button>
+
+                      {inputText && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setInputText('');
+                            setStreamedInterim('');
+                          }}
+                          className="text-[10.5px] font-semibold text-slate-400 hover:text-slate-700 cursor-pointer"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Live Voice Mic Button & Oscillating Waveform */}
+                    <div className="flex items-center gap-2">
+                      {isListening && (
+                        <div className="flex items-center gap-0.5 px-2 py-1 rounded-full bg-emerald-50 border border-emerald-200">
+                          <span className="w-1 h-2.5 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                          <span className="w-1 h-3.5 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                          <span className="w-1 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                          <span className="w-1 h-4 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '100ms' }} />
+                          <span className="w-1 h-2.5 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '200ms' }} />
+                          <span className="text-[10px] font-bold text-emerald-700 ml-1">Live Transcribing</span>
+                        </div>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={toggleListening}
+                        className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
+                          isListening
+                            ? 'bg-rose-500 hover:bg-rose-600 text-white shadow-sm ring-2 ring-rose-200 animate-pulse'
+                            : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-2xs'
                         }`}
                       >
-                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                          isSelected ? 'bg-white/10 text-white' : 'bg-slate-100 text-slate-700'
-                        }`}>
-                          <IconComponent className="w-4 h-4" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className={`text-[11.5px] font-bold truncate leading-tight ${isSelected ? 'text-white' : 'text-slate-900'}`}>{cat.title}</div>
-                          <div className={`text-[9.5px] truncate leading-none mt-0.5 ${isSelected ? 'text-slate-300' : 'text-slate-400'}`}>{cat.badge}</div>
-                        </div>
-                        {isSelected && <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0 stroke-[2.5]" />}
+                        {isListening ? (
+                          <>
+                            <MicOff className="w-3.5 h-3.5" />
+                            <span>Stop</span>
+                          </>
+                        ) : (
+                          <>
+                            <Mic className="w-3.5 h-3.5" />
+                            <span>Voice Mic</span>
+                          </>
+                        )}
                       </button>
-                    );
-                  })}
+                    </div>
+                  </div>
+                </div>
 
-                  {/* 8th Slot: Either Active Specialty from More List, or "More Specialties..." */}
-                  {!isSelectedInCore ? (
+                {/* Real-Time Clinical AI Detection Card */}
+                <div className="p-3 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-950 text-white border border-slate-800 shadow-sm space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[9.5px] font-bold text-emerald-400 font-mono tracking-wider uppercase">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      <span>Live Clinical AI</span>
+                    </div>
+                    <span className="text-[10.5px] font-bold text-emerald-400 font-mono">
+                      {activeCategory.diagnosis.confidence}% Precision Match
+                    </span>
+                  </div>
+
+                  <div className="flex items-start gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center shrink-0 mt-0.5">
+                      <activeCategory.icon className="w-4 h-4 text-emerald-400" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-white tracking-tight">{activeCategory.title}</span>
+                        <span className="text-[10px] font-semibold text-slate-400 px-1.5 py-0.2 rounded-md bg-white/5 border border-white/10">
+                          {activeCategory.badge}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-300 line-clamp-1 mt-0.5">
+                        {activeCategory.diagnosis.primary}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1 text-[10px] text-slate-400">
+                        <span>Matched: <strong className="text-slate-200">{matchedDoctor.name}</strong></span>
+                        <span>•</span>
+                        <span className="text-emerald-400 font-semibold">Available Today</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick-Tap Symptom Inspiration Chips */}
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5">
+                  <span className="text-[10.5px] font-semibold text-slate-400 shrink-0">Try:</span>
+                  {[
+                    { label: 'Severe Vomiting & Cramps', catId: 'vomiting_gi', text: 'Severe vomiting and stomach cramps since morning' },
+                    { label: 'Spine & Back Pain', catId: 'pain_ortho', text: 'Sharp lower back pain radiating down my leg' },
+                    { label: 'High Fever & Chills', catId: 'fever_infection', text: 'High fever (>102F) with shivering and body aches' },
+                    { label: 'Migraine & Dizziness', catId: 'headache_neuro', text: 'Pulsating migraine headache on one side with light sensitivity' },
+                    { label: 'Chest Pressure & Acidity', catId: 'chest_cardiac', text: 'Heavy pressure in chest with acid reflux burn' },
+                    { label: 'Cough & Wheezing', catId: 'cough_breathing', text: 'Persistent dry cough with shortness of breath' }
+                  ].map((chip) => (
                     <button
+                      key={chip.label}
                       type="button"
-                      onClick={() => setShowMoreModal(true)}
-                      className="p-2 rounded-xl text-left border border-slate-950 bg-slate-950 text-white shadow-sm ring-1 ring-slate-950 transition-all cursor-pointer flex items-center gap-2"
+                      onClick={() => {
+                        const targetCat = SMART_CLINICAL_CATEGORIES.find(c => c.id === chip.catId)!;
+                        handleSelectCategory(targetCat);
+                        setInputText(chip.text);
+                        if (isVoiceEnabled) {
+                          speakText(targetCat.spokenIntro);
+                        }
+                      }}
+                      className="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 text-[11px] font-semibold transition-all shrink-0 cursor-pointer active:scale-95"
                     >
-                      <div className="w-7 h-7 rounded-lg bg-white/10 text-white flex items-center justify-center shrink-0">
-                        <activeCategory.icon className="w-4 h-4" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="text-[11.5px] font-bold text-white truncate leading-tight">{activeCategory.title}</div>
-                        <div className="text-[9.5px] text-slate-300 truncate leading-none mt-0.5">{activeCategory.badge}</div>
-                      </div>
-                      <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0 stroke-[2.5]" />
+                      {chip.label}
                     </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => setShowMoreModal(true)}
-                      className="p-2 rounded-xl text-left border border-slate-200/80 bg-white hover:bg-slate-50 text-slate-800 shadow-2xs transition-all cursor-pointer flex items-center gap-2 group"
-                    >
-                      <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                        <MoreHorizontal className="w-4 h-4" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="text-[11.5px] font-bold text-slate-900 truncate leading-tight">More Specialties</div>
-                        <div className="text-[9.5px] text-slate-400 truncate leading-none mt-0.5">+11 clinical fields</div>
-                      </div>
-                    </button>
-                  )}
+                  ))}
                 </div>
               </div>
 
               {/* Bottom CTA Button */}
-              <div className="pt-2 shrink-0">
+              <div className="pt-1.5 shrink-0">
                 <button
                   type="button"
                   onClick={handleGoToQ2}
                   className="w-full py-3 rounded-2xl bg-slate-950 hover:bg-slate-900 text-white font-semibold text-xs shadow-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all cursor-pointer"
                 >
-                  <span>Continue to Severity</span>
+                  <span>Continue to Severity (Question 2 of 3)</span>
                   <ArrowRight className="w-4 h-4 text-slate-400" />
                 </button>
               </div>
-
-              {/* "MORE SPECIALTIES" MODAL PICKER OVERLAY */}
-              <AnimatePresence>
-                {showMoreModal && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="absolute inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex flex-col justify-end p-2"
-                  >
-                    <motion.div
-                      initial={{ y: 80, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      exit={{ y: 80, opacity: 0 }}
-                      className="bg-white rounded-3xl p-3.5 shadow-xl border border-slate-200 max-h-[85%] flex flex-col justify-between"
-                    >
-                      <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                        <div>
-                          <h4 className="text-xs font-bold text-slate-900">All Clinical Specialties</h4>
-                          <p className="text-[10px] text-slate-500">Select any medical department for intake</p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setShowMoreModal(false)}
-                          className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 cursor-pointer"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-
-                      <div className="overflow-y-auto max-h-[300px] py-2 grid grid-cols-2 gap-1.5 scrollbar-thin">
-                        {SMART_CLINICAL_CATEGORIES.map((cat) => {
-                          const isSelected = selectedCategoryId === cat.id;
-                          const IconComp = cat.icon;
-                          return (
-                            <button
-                              key={cat.id}
-                              type="button"
-                              onClick={() => handleSelectCategory(cat)}
-                              className={`p-2 rounded-xl text-left border transition-all cursor-pointer flex items-center gap-2 ${
-                                isSelected
-                                  ? 'bg-slate-950 text-white border-slate-950 shadow-sm'
-                                  : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'
-                              }`}
-                            >
-                              <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 ${
-                                isSelected ? 'bg-white/10 text-white' : 'bg-slate-100 text-slate-700'
-                              }`}>
-                                <IconComp className="w-3.5 h-3.5" />
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <div className={`text-[11px] font-bold truncate leading-tight ${isSelected ? 'text-white' : 'text-slate-900'}`}>{cat.title}</div>
-                                <div className={`text-[9px] truncate leading-none mt-0.5 ${isSelected ? 'text-slate-300' : 'text-slate-400'}`}>{cat.badge}</div>
-                              </div>
-                              {isSelected && <Check className="w-3 h-3 text-emerald-400 shrink-0 stroke-[2.5]" />}
-                            </button>
-                          );
-                        })}
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => setShowMoreModal(false)}
-                        className="w-full mt-2 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer"
-                      >
-                        Close
-                      </button>
-                    </motion.div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </motion.div>
           )}
 
@@ -2054,6 +2279,87 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                     className="w-full mt-1 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer"
                   >
                     Cancel
+                  </button>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* ========================================================================= */}
+          {/* INDIAN REGIONAL LANGUAGES MODAL SELECTOR                                  */}
+          {/* ========================================================================= */}
+          <AnimatePresence>
+            {showLanguageModal && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex flex-col justify-end p-2.5"
+                onClick={() => setShowLanguageModal(false)}
+              >
+                <motion.div
+                  initial={{ y: 60, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: 60, opacity: 0 }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="bg-white rounded-3xl p-4 shadow-2xl border border-slate-200/90 max-h-[82%] flex flex-col space-y-3"
+                >
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                    <div className="flex items-center gap-2">
+                      <Globe className="w-4 h-4 text-emerald-600" />
+                      <div>
+                        <h4 className="text-sm font-bold text-slate-900">Select Indian Language</h4>
+                        <p className="text-[10px] text-slate-400">Live Speech-to-Text & Indian Voice Synthesis</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowLanguageModal(false)}
+                      className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  <div className="overflow-y-auto no-scrollbar space-y-1.5 flex-1 pr-1">
+                    {SUPPORTED_INDIAN_LANGUAGES.map((lang) => {
+                      const isSelected = selectedLanguage.code === lang.code;
+                      return (
+                        <button
+                          key={lang.code}
+                          type="button"
+                          onClick={() => {
+                            setSelectedLanguage(lang);
+                            setShowLanguageModal(false);
+                            if (isVoiceEnabled) {
+                              speakText(lang.spokenIntro, lang.code);
+                            }
+                          }}
+                          className={`w-full p-2.5 rounded-2xl text-left border flex items-center justify-between transition-all cursor-pointer ${
+                            isSelected
+                              ? 'bg-emerald-50 border-emerald-400 text-emerald-950 font-bold shadow-2xs ring-1 ring-emerald-200'
+                              : 'bg-slate-50/70 hover:bg-slate-100 border-slate-200/70 text-slate-800'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <span className="text-xl">{lang.flag}</span>
+                            <div>
+                              <div className="text-xs font-bold text-slate-900">{lang.name}</div>
+                              <div className="text-[10px] text-slate-400">{lang.englishName} • {lang.code}</div>
+                            </div>
+                          </div>
+                          {isSelected && <Check className="w-4 h-4 text-emerald-600 stroke-[2.5]" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowLanguageModal(false)}
+                    className="w-full mt-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+                  >
+                    Confirm Language
                   </button>
                 </motion.div>
               </motion.div>
