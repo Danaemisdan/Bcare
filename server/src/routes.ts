@@ -442,6 +442,28 @@ router.post('/op/book', (req: Request, res: Response) => {
   });
 });
 
+// Cancel OP Token
+router.post('/op/cancel', (req: Request, res: Response) => {
+  const { slotId } = req.body;
+  const slot = store.opSlots.find(s => s.id === slotId);
+  if (!slot) {
+    return res.status(404).json({ error: 'Slot not found' });
+  }
+
+  slot.status = 'AVAILABLE';
+  slot.patientId = undefined;
+  slot.patientName = undefined;
+  slot.patientPhone = undefined;
+  slot.bookedAt = undefined;
+  slot.bookedByNurseId = undefined;
+  slot.nurseReferralCode = undefined;
+
+  res.json({
+    message: 'Token cancelled successfully',
+    slot
+  });
+});
+
 // Nurse Portal: Bulk Slot Reservation (e.g. slots 11–15)
 router.post('/nurse/bulk-reserve', (req: Request, res: Response) => {
   const { nurseId, startToken, endToken, doctorId } = req.body;

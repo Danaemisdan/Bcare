@@ -462,13 +462,7 @@ export class AppDataStore {
         patientName = 'Meenakshi Sundaram';
         patientPhone = '9845023456';
       }
-      // Token 3: Booked by patient Ramesh Kumar
-      else if (tokenNumber === 3) {
-        status = 'BOOKED';
-        patientId = 'user-patient-1';
-        patientName = 'Ramesh Kumar';
-        patientPhone = '9876543210';
-      }
+      // Token 3: Available for patient booking (initially no booking)
       // Token 4: Booked via Nurse Priya referral
       else if (tokenNumber === 4) {
         status = 'BOOKED';

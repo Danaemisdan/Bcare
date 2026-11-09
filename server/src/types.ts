@@ -56,6 +56,7 @@ export interface DoctorProfile {
   status?: 'ACTIVE' | 'ON_LEAVE' | 'OFFLINE';
   distance?: string;
   nextAvailableToken?: number;
+  roomNumber?: string;
   estimatedWaitMins?: number;
   videoAvailable?: boolean;
 }

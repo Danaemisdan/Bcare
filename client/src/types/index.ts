@@ -58,6 +58,7 @@ export interface DoctorProfile {
   nextAvailableToken?: number;
   estimatedWaitMins?: number;
   videoAvailable?: boolean;
+  roomNumber?: string;
 }
 
 export interface NurseProfile {

@@ -390,31 +390,7 @@ export function App() {
     pendingReconciliation: 500
   });
 
-  const [slots, setSlots] = useState<OpSlot[]>([
-    {
-      id: 'slot-3',
-      doctorId: 'doc-1',
-      doctorName: 'Dr. Ananya Sharma, MD, DM',
-      hospitalId: 'hosp-1',
-      hospitalName: 'City Care Multi-Specialty Hospital',
-      specialty: 'Cardiology',
-      date: '2026-11-03',
-      time: '09:30 AM',
-      tokenNumber: 3,
-      status: 'BOOKED',
-      patientId: 'user-patient-1',
-      patientName: 'Ramesh Kumar',
-      patientPhone: '9876543210',
-      feePaid: 100,
-      feeSplit: {
-        doctor: 50,
-        nurse: 15,
-        franchise: 10,
-        platform: 20,
-        gst: 5
-      }
-    }
-  ]);
+  const [slots, setSlots] = useState<OpSlot[]>([]);
   const [prescriptions, setPrescriptions] = useState<DigitalPrescription[]>([
     {
       id: 'rx-2026-001',
@@ -596,10 +572,6 @@ export function App() {
       } else if (tokenNumber === 2) {
         status = 'IN_CONSULTATION';
         patientName = 'Meenakshi Sundaram';
-      } else if (tokenNumber === 3) {
-        status = 'BOOKED';
-        patientName = 'Ramesh Kumar';
-        patientId = 'user-patient-1';
       } else if (tokenNumber >= 11 && tokenNumber <= 15) {
         status = 'RESERVED_BULK';
         bookedByNurseId = 'nurse-1';
@@ -706,6 +678,40 @@ export function App() {
     }
 
     return { message: 'Slot booked locally' };
+  };
+
+  // 1b. Patient Action: Cancel Outpatient Slot
+  const handleCancelSlot = async (slotId: string) => {
+    try {
+      const res = await fetch('/api/op/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slotId })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSlots(prev => prev.map(s => s.id === slotId ? data.slot : s));
+        return data;
+      }
+    } catch (e) {}
+
+    setSlots(prev => prev.map(s => {
+      if (s.id === slotId) {
+        return {
+          ...s,
+          status: 'AVAILABLE',
+          patientId: undefined,
+          patientName: undefined,
+          patientPhone: undefined,
+          bookedAt: undefined,
+          bookedByNurseId: undefined,
+          nurseReferralCode: undefined
+        };
+      }
+      return s;
+    }));
+
+    return { message: 'Slot cancelled locally' };
   };
 
   // 2. Patient Action: Progressive Profile Update
@@ -1248,6 +1254,7 @@ export function App() {
             activeTab={patientTab}
             onTabChange={setPatientTab}
             onBookSlot={handleBookSlot}
+            onCancelSlot={handleCancelSlot}
             onBookVideoConsultation={handleBookVideoConsultation}
             onUpdateProfile={handleUpdateProfile}
             onAddCommunityPost={handleAddCommunityPost}
