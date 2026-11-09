@@ -16,15 +16,24 @@ import {
   MicOff, 
   Video,
   CheckCircle2,
-  AlertTriangle,
-  RotateCcw
+  RotateCcw,
+  Waves,
+  Bone,
+  Thermometer,
+  Wind,
+  HeartPulse,
+  Brain,
+  ShieldAlert,
+  Stethoscope,
+  Activity,
+  LucideIcon
 } from 'lucide-react';
 import { DoctorProfile, Hospital, OpSlot, PatientProfile } from '../types';
 import { ConsultationType } from './BookingConsultationScreen';
 import { SiriOrb } from './SiriOrb';
 
 // ============================================================================
-// CLINICAL AI KNOWLEDGE BASE (COVERS 100% OF HUMAN HEALTHCARE)
+// CLINICAL AI KNOWLEDGE BASE (PREMIUM VECTOR ICONS, ZERO EMOJIS)
 // ============================================================================
 export type ClinicalCategoryId = 
   | 'vomiting_gi'
@@ -39,15 +48,16 @@ export type ClinicalCategoryId =
 interface SmartChipOption {
   id: string;
   label: string;
-  icon?: string;
   sub?: string;
 }
 
 interface SmartCategoryConfig {
   id: ClinicalCategoryId;
   title: string;
-  icon: string;
   badge: string;
+  icon: LucideIcon;
+  iconBg: string;
+  iconColor: string;
   keywords: string[];
   spokenIntro: string;
   q2: {
@@ -69,19 +79,21 @@ interface SmartCategoryConfig {
 export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
   {
     id: 'vomiting_gi',
-    title: 'Stomach & Vomiting',
-    icon: '🤢',
+    title: 'Stomach & GI',
     badge: 'Gastroenterology',
-    keywords: ['vomit', 'vomiting', 'nausea', 'puke', 'food poison', 'loose motion', 'diarrhea', 'stomach bug', 'dehydration', 'acid reflux', 'indigestion', 'stomach cramp', 'belly pain'],
-    spokenIntro: "I've noted stomach distress and vomiting. How severe is your fluid retention right now?",
+    icon: Waves,
+    iconBg: 'bg-emerald-50',
+    iconColor: 'text-emerald-600',
+    keywords: ['vomit', 'vomiting', 'nausea', 'puke', 'food poison', 'loose motion', 'diarrhea', 'stomach bug', 'dehydration', 'acid reflux', 'indigestion', 'stomach cramp', 'belly pain', 'gastric'],
+    spokenIntro: "I have noted gastrointestinal distress. How severe is your fluid retention and vomiting right now?",
     q2: {
       prompt: "Can you keep fluids down right now?",
       sub: "Evaluates acute dehydration and gastrointestinal toxicity",
       options: [
-        { id: 'cannot_retain', label: "Cannot keep any water or liquids down", icon: '⚠️', sub: 'High risk of acute dehydration' },
-        { id: 'vomiting_food', label: "Frequent vomiting with painful stomach cramps", icon: '🤢', sub: '3 to 5 episodes today' },
-        { id: 'nausea_only', label: "Severe continuous nausea & dry retching", icon: '🌀', sub: 'Queasy stomach, food not staying' },
-        { id: 'loose_stool', label: "Mild indigestion, nausea, and loose stool", icon: '💧', sub: 'Able to drink small sips' }
+        { id: 'cannot_retain', label: "Unable to keep any water or liquids down", sub: "High risk of acute dehydration and electrolyte loss" },
+        { id: 'vomiting_food', label: "Frequent vomiting with acute abdominal spasms", sub: "Multiple episodes today with severe cramping" },
+        { id: 'nausea_only', label: "Persistent continuous nausea and dry retching", sub: "Continuous queasiness, difficulty tolerating food" },
+        { id: 'loose_stool', label: "Mild indigestion, nausea, and loose stool", sub: "Manageable discomfort, able to drink small sips" }
       ]
     },
     diagnosis: {
@@ -89,26 +101,28 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
       confidence: 96,
       specialty: 'General Medicine',
       urgency: 'PRIORITY',
-      explanation: 'Symptom trajectory points to acute gastrointestinal enterotoxin inflammation. Primary immediate priority is preventing electrolyte loss and hypovolemia.',
-      advice: 'Take oral rehydration salts (ORS) in sips every 5 minutes. Avoid dairy and solid food for 4 hours. If unable to hold water past 6 hours, in-person OPD IV hydration is recommended.',
+      explanation: 'Symptom trajectory is consistent with acute infectious gastroenteritis or foodborne enterotoxin reaction with mucosal irritation. Primary immediate priority is preventing electrolyte loss and hypovolemia.',
+      advice: 'Take oral rehydration salts (ORS) in small sips every 5 minutes. Avoid dairy and solid food for 4 hours. If unable to hold water past 6 hours, in-person OPD IV hydration is strongly advised.',
       spokenSummary: "This indicates acute foodborne gastroenteritis with dehydration risk. Oral rehydration salts are recommended. City Care Hospital nearby has OPD Token number 4 ready for immediate booking."
     }
   },
   {
     id: 'pain_ortho',
-    title: 'Pain, Spine & Joints',
-    icon: '⚡',
+    title: 'Spine & Joints',
     badge: 'Orthopedics',
-    keywords: ['pain', 'back', 'lower back', 'neck', 'spine', 'joint', 'knee', 'shoulder', 'sciatica', 'sprain', 'twist', 'muscle', 'ache', 'slip disc'],
+    icon: Bone,
+    iconBg: 'bg-amber-50',
+    iconColor: 'text-amber-600',
+    keywords: ['pain', 'back', 'lower back', 'neck', 'spine', 'joint', 'knee', 'shoulder', 'sciatica', 'sprain', 'twist', 'muscle', 'ache', 'slip disc', 'cervical', 'lumbar'],
     spokenIntro: "Musculoskeletal pain noted. How intense is the pain and does it limit your movement?",
     q2: {
       prompt: "How intense is the pain & mobility restriction?",
-      sub: "Distinguishes nerve root compression from muscular strain",
+      sub: "Distinguishes acute nerve compression from postural muscular strain",
       options: [
-        { id: 'sharp_incapacitating', label: "Incapacitating pain, cannot stand or walk", icon: '🚫', sub: 'Acute joint or spinal crisis' },
-        { id: 'radiating_nerve', label: "Radiating pain shooting down leg or arm", icon: '⚡', sub: 'Nerve root irritation / Sciatica' },
-        { id: 'constant_ache', label: "Constant moderate ache and joint stiffness", icon: '🧘', sub: 'Painful when bending or walking' },
-        { id: 'mild_strain', label: "Mild muscular soreness or postural strain", icon: '🩹', sub: 'Manageable with rest' }
+        { id: 'sharp_incapacitating', label: "Severe pain, unable to bear weight or walk", sub: "Acute structural joint or lumbar spine distress" },
+        { id: 'radiating_nerve', label: "Sharp radiating pain shooting down leg or arm", sub: "Suspected nerve root irritation or Sciatica" },
+        { id: 'constant_ache', label: "Constant moderate ache and joint stiffness", sub: "Painful during bending, walking, or lifting" },
+        { id: 'mild_strain', label: "Mild muscular soreness or postural strain", sub: "Low-level discomfort, manageable with rest" }
       ]
     },
     diagnosis: {
@@ -116,26 +130,28 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
       confidence: 95,
       specialty: 'Orthopedics',
       urgency: 'ROUTINE',
-      explanation: 'Biomechanical facet joint stress and muscular paraspinal guarding without acute red-flag neurological deficits.',
+      explanation: 'Biomechanical facet joint strain and muscular paraspinal guarding without acute cauda equina or progressive motor deficits.',
       advice: 'Avoid forward bending and heavy lifting. Apply warm fomentation to ease muscular spasms. An orthopedic consultation will provide targeted anti-inflammatory care.',
       spokenSummary: "Likely lumbar spondylosis with paraspinal muscle strain. Avoid heavy lifting. Top orthopedic physicians in Coimbatore South are available today."
     }
   },
   {
     id: 'fever_infection',
-    title: 'Fever, Cold & Flu',
-    icon: '🌡️',
+    title: 'Fever & Infection',
     badge: 'Internal Medicine',
-    keywords: ['fever', 'temperature', 'chills', 'shivering', 'flu', 'viral', 'body ache', 'dengue', 'malaria', 'cold', 'sore throat', 'cough'],
+    icon: Thermometer,
+    iconBg: 'bg-rose-50',
+    iconColor: 'text-rose-600',
+    keywords: ['fever', 'temperature', 'chills', 'shivering', 'flu', 'viral', 'body ache', 'dengue', 'malaria', 'cold', 'sore throat', 'cough', 'pyrexia'],
     spokenIntro: "Fever detected. How high is your temperature feeling right now?",
     q2: {
-      prompt: "How high is your fever & what accompanying signs?",
-      sub: "Screens for seasonal viral infections and Dengue signs",
+      prompt: "What is your temperature level and associated signs?",
+      sub: "Screens for acute viral pyrexia, Dengue, and systemic infection",
       options: [
-        { id: 'high_fever_chills', label: "High fever (> 102°F) with shaking chills", icon: '🔥', sub: 'Shivering under blankets' },
-        { id: 'fever_body_ache', label: "Fever with intense eye socket & body pain", icon: '🦴', sub: 'Screening for viral Dengue' },
-        { id: 'fever_cough', label: "Moderate fever with cough & sore throat", icon: '🧣', sub: 'Upper respiratory viral infection' },
-        { id: 'low_grade', label: "Mild low-grade fever started today", icon: '🌤️', sub: 'Fatigued and warm' }
+        { id: 'high_fever_chills', label: "High fever (> 102°F) with intense shaking chills", sub: "High-grade pyrexia with persistent rigors" },
+        { id: 'fever_body_ache', label: "Fever with intense eye socket and joint aches", sub: "Screening indicator for Dengue / Chikungunya" },
+        { id: 'fever_cough', label: "Moderate fever with cough and sore throat", sub: "Upper respiratory viral influenza signs" },
+        { id: 'low_grade', label: "Mild low-grade fever started today", sub: "Feeling fatigued and warm (< 100°F)" }
       ]
     },
     diagnosis: {
@@ -143,26 +159,28 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
       confidence: 94,
       specialty: 'General Medicine',
       urgency: 'PRIORITY',
-      explanation: 'Trajectory matches systemic viral pyrexia. Clinical evaluation ensures timely monitoring of complete blood count and hydration.',
-      advice: 'Maintain abundant fluid intake (ORS, tender coconut water). Luke-warm sponging if body temperature exceeds 101°F. Consult a physician for proper antipyretic dosing.',
+      explanation: 'Clinical trajectory indicates systemic viral pyrexia. Close clinical monitoring of hydration, complete blood count, and platelet levels is advised.',
+      advice: 'Maintain aggressive oral hydration (coconut water, ORS, clear broth). Sponge with lukewarm water if temperature exceeds 101°F. Consult a physician for proper antipyretic dosing.',
       spokenSummary: "Clinical analysis indicates acute viral pyrexia. Hydration is prioritized. Top general physicians in Coimbatore South are available for walk-in or video booking."
     }
   },
   {
     id: 'cough_breathing',
-    title: 'Breathing & Respiration',
-    icon: '🫁',
+    title: 'Lungs & Breathing',
     badge: 'Pulmonology',
-    keywords: ['cough', 'coughing', 'cold', 'breath', 'breathless', 'breathing', 'wheeze', 'wheezing', 'asthma', 'phlegm', 'sputum', 'bronchitis'],
+    icon: Wind,
+    iconBg: 'bg-cyan-50',
+    iconColor: 'text-cyan-600',
+    keywords: ['cough', 'coughing', 'cold', 'breath', 'breathless', 'breathing', 'wheeze', 'wheezing', 'asthma', 'phlegm', 'sputum', 'bronchitis', 'congestion'],
     spokenIntro: "Respiratory symptoms detected. Is your breathing labored or accompanied by wheezing?",
     q2: {
-      prompt: "Is your breathing restricted or painful?",
-      sub: "Assesses airway reactivity and bronchial obstruction",
+      prompt: "Is your breathing restricted or labored?",
+      sub: "Assesses airway resistance and bronchial hyperreactivity",
       options: [
-        { id: 'breathless_rest', label: "Shortness of breath even when resting", icon: '⚠️', sub: 'Requires priority clinical review' },
-        { id: 'wheezing_whistle', label: "Wheezing chest or whistling breaths", icon: '🫁', sub: 'Bronchial airway constriction' },
-        { id: 'heavy_productive', label: "Deep persistent cough with thick phlegm", icon: '🟡', sub: 'Possible bacterial bronchitis' },
-        { id: 'dry_tickle', label: "Dry tickling cough and throat irritation", icon: '🗣️', sub: 'Upper airway viral irritation' }
+        { id: 'breathless_rest', label: "Shortness of breath even while resting or speaking", sub: "Priority respiratory clinical review" },
+        { id: 'wheezing_whistle', label: "Chest wheezing or whistling breath on exhale", sub: "Bronchial airway constriction or reactive disease" },
+        { id: 'heavy_productive', label: "Deep persistent cough with thick sputum", sub: "Lower respiratory bronchial inflammation" },
+        { id: 'dry_tickle', label: "Dry tickling cough without breathing restriction", sub: "Upper airway irritation or post-nasal drip" }
       ]
     },
     diagnosis: {
@@ -170,80 +188,86 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
       confidence: 93,
       specialty: 'General Medicine',
       urgency: 'MODERATE',
-      explanation: 'Airway irritability and mucosal congestion consistent with respiratory infection or reactive bronchospasm.',
-      advice: 'Perform steam inhalation twice daily and drink warm fluids. Avoid cold drafts and dust. If breathing restriction worsens, seek prompt hospital evaluation.',
+      explanation: 'Airway hyperresponsiveness and mucosal congestion consistent with respiratory infection or reactive bronchospasm.',
+      advice: 'Perform steam inhalation twice daily and drink warm fluids. Avoid cold drafts, tobacco smoke, and dust. Seek urgent OPD evaluation if breathlessness worsens.',
       spokenSummary: "Assessment suggests bronchial hyperreactivity and airway congestion. Steam inhalation is recommended, and verified physicians are ready nearby."
     }
   },
   {
     id: 'chest_cardiac',
-    title: 'Chest & Acidity',
-    icon: '🫀',
+    title: 'Chest & Heart',
     badge: 'Cardiology',
+    icon: HeartPulse,
+    iconBg: 'bg-red-50',
+    iconColor: 'text-red-600',
     keywords: ['chest', 'chest pain', 'heart', 'heartburn', 'palpitation', 'racing heart', 'angina', 'acid', 'gerd'],
     spokenIntro: "Chest sensation detected. Let's distinguish gastric acid reflux from cardiac warning signs.",
     q2: {
-      prompt: "What is the sensation in your chest feeling like?",
-      sub: "Evaluates retrosternal pressure versus acid reflux",
+      prompt: "What is the character of your chest discomfort?",
+      sub: "Differentiates retrosternal acid reflux from cardiovascular indicators",
       options: [
-        { id: 'burning_acidity', label: "Burning acidity rising into throat after meals", icon: '🔥', sub: 'Likely acid reflux (GERD)' },
-        { id: 'heavy_pressure', label: "Heavy squeezing pressure across mid-chest", icon: '⚠️', sub: 'Priority cardiovascular screening' },
-        { id: 'palpitations', label: "Rapid fluttering or skipping heartbeats", icon: '💓', sub: 'Arrhythmia or stress trigger' },
-        { id: 'sharp_breath', label: "Sharp stabbing sensation on deep breath", icon: '⚡', sub: 'Rib wall or musculoskeletal' }
+        { id: 'burning_acidity', label: "Burning sensation rising into chest after meals", sub: "Classic gastroesophageal reflux (GERD)" },
+        { id: 'heavy_pressure', label: "Heavy squeezing or crushing sensation across mid-chest", sub: "Priority cardiovascular baseline screening" },
+        { id: 'palpitations', label: "Rapid fluttering or skipping heartbeats", sub: "Arrhythmia or adrenergic stress response" },
+        { id: 'sharp_breath', label: "Sharp localized pain that changes with deep breaths", sub: "Costochondral or chest wall muscular discomfort" }
       ]
     },
     diagnosis: {
-      primary: 'Gastroesophageal Reflux (GERD) & Atypical Chest Triage',
+      primary: 'Gastroesophageal Reflux (GERD) & Cardiovascular Triage',
       confidence: 91,
       specialty: 'Cardiology',
       urgency: 'PRIORITY',
-      explanation: 'Retrosternal discomfort requires an objective resting ECG alongside gastrointestinal antacid regulation.',
-      advice: 'Remain sitting upright. Avoid heavy exertion or lying flat. If heaviness radiates to your left arm or jaw with sweating, seek emergency OPD care immediately.',
+      explanation: 'Retrosternal discomfort requires an objective resting ECG alongside gastrointestinal antacid regulation to rule out atypical cardiac ischemia.',
+      advice: 'Remain sitting upright. Avoid heavy exertion or lying flat. If heaviness radiates to your left arm or jaw with cold sweating, seek emergency OPD care immediately. A resting 12-lead ECG is recommended.',
       spokenSummary: "Clinical analysis notes retrosternal acid reflux with cardiac screening advised. Resting ECG is available at City Care Hospital."
     }
   },
   {
     id: 'headache_neuro',
-    title: 'Headache & Migraine',
-    icon: '🧠',
+    title: 'Brain & Headache',
     badge: 'Neurology',
-    keywords: ['headache', 'migraine', 'head', 'throbbing', 'aura', 'dizziness', 'vertigo', 'spinning', 'temple'],
+    icon: Brain,
+    iconBg: 'bg-purple-50',
+    iconColor: 'text-purple-600',
+    keywords: ['headache', 'migraine', 'head', 'throbbing', 'aura', 'dizziness', 'vertigo', 'spinning', 'temple', 'balance'],
     spokenIntro: "Cranial discomfort detected. What does the headache feel like?",
     q2: {
-      prompt: "What is the pattern of your head discomfort?",
-      sub: "Evaluates neurovascular migraine vs tension headache",
+      prompt: "What is the pattern of your head discomfort or balance?",
+      sub: "Distinguishes neurovascular migraine from vestibular vertigo",
       options: [
-        { id: 'throbbing_unilateral', label: "Pulsing throbbing pain on one side of head", icon: '⚡', sub: 'Classic neurovascular migraine' },
-        { id: 'room_spinning', label: "Entire room spinning around you (Vertigo)", icon: '🌀', sub: 'Inner ear / vestibular imbalance' },
-        { id: 'band_tension', label: "Tight squeezing band around forehead & temples", icon: '💆', sub: 'Tension and postural strain' },
-        { id: 'mild_dull', label: "Mild dull ache from screen fatigue or lack of sleep", icon: '🥱', sub: 'Early tension headache' }
+        { id: 'throbbing_unilateral', label: "Pulsating throbbing pain on one side of head", sub: "Unilateral neurovascular migraine with light sensitivity" },
+        { id: 'room_spinning', label: "Room spinning sensation or loss of balance (Vertigo)", sub: "Vestibular or benign positional inner-ear disturbance" },
+        { id: 'band_tension', label: "Tight band-like squeezing pressure across forehead", sub: "Tension-type cephalea from screen strain and posture" },
+        { id: 'mild_dull', label: "Mild dull ache with general fatigue", sub: "Low-grade tension or sleep deprivation" }
       ]
     },
     diagnosis: {
-      primary: 'Episodic Neurovascular Migraine with Sensitivity',
+      primary: 'Episodic Neurovascular Migraine with Sensory Sensitivity',
       confidence: 94,
       specialty: 'Neurology',
       urgency: 'ROUTINE',
       explanation: 'Cranial vasodilation exacerbated by visual stimuli, fatigue, or stress without acute neurological focal deficits.',
-      advice: 'Rest in a cool, dark, quiet room. Apply a cold compress to forehead and temples. Stay hydrated. Consult a doctor for targeted abortive therapy.',
+      advice: 'Rest in a cool, dark, quiet room. Apply a cold compress to temples. Stay hydrated. Consult a doctor for targeted abortive therapy.',
       spokenSummary: "Symptoms match an episodic neurovascular migraine. Rest in a dark room. Neurological care centers nearby are available today."
     }
   },
   {
     id: 'skin_allergy',
-    title: 'Skin, Allergy & Rash',
-    icon: '🩹',
+    title: 'Skin & Allergy',
     badge: 'Dermatology',
-    keywords: ['rash', 'itching', 'itch', 'hives', 'allergy', 'allergic', 'skin', 'welts', 'red spots', 'eczema', 'bite'],
+    icon: ShieldAlert,
+    iconBg: 'bg-orange-50',
+    iconColor: 'text-orange-600',
+    keywords: ['rash', 'itching', 'itch', 'hives', 'allergy', 'allergic', 'skin', 'welts', 'red spots', 'eczema', 'bite', 'dermatitis'],
     spokenIntro: "Dermatological reaction detected. Are you having raised hives or any facial swelling?",
     q2: {
       prompt: "What does the skin reaction look like?",
-      sub: "Screens for acute urticaria versus allergic angioedema",
+      sub: "Screens for acute urticaria versus systemic angioedema",
       options: [
-        { id: 'raised_hives', label: "Raised itchy pink welts or hives (Urticaria)", icon: '🔴', sub: 'Acute histamine flare' },
-        { id: 'facial_swelling', label: "Swelling of lips, eyelids, or face", icon: '🚨', sub: 'Urgent allergy review' },
-        { id: 'dry_patches', label: "Dry itchy red patches or contact dermatitis", icon: '🩹', sub: 'Irritant / eczema' },
-        { id: 'mild_itch', label: "Mild surface itching without spreading rash", icon: '✨', sub: 'Localized irritation' }
+        { id: 'raised_hives', label: "Raised itchy red welts or hives (Urticaria)", sub: "Acute cutaneous histamine flare" },
+        { id: 'facial_swelling', label: "Swelling of lips, eyelids, or facial tissue", sub: "Urgent allergy review / potential angioedema" },
+        { id: 'dry_patches', label: "Dry itchy red patches or contact dermatitis", sub: "Irritant or eczema flare" },
+        { id: 'mild_itch', label: "Mild surface itching without spreading rash", sub: "Superficial irritant response" }
       ]
     },
     diagnosis: {
@@ -258,39 +282,41 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
   },
   {
     id: 'general_other',
-    title: 'Other Health Concern',
-    icon: '🩺',
-    badge: 'General Medicine',
-    keywords: ['other', 'general', 'weakness', 'fatigue', 'tired', 'body', 'checkup', 'unwell', 'sick', 'tooth', 'eye', 'ear'],
-    spokenIntro: "I've noted your health inquiry. How severely is this affecting you right now?",
+    title: 'General Wellness',
+    badge: 'Primary Care',
+    icon: Stethoscope,
+    iconBg: 'bg-blue-50',
+    iconColor: 'text-blue-600',
+    keywords: ['other', 'general', 'weakness', 'fatigue', 'tired', 'body', 'checkup', 'unwell', 'sick', 'tooth', 'eye', 'ear', 'faint'],
+    spokenIntro: "I have noted your health inquiry. How severely is this affecting you right now?",
     q2: {
-      prompt: "How severely is this impacting your daily routine?",
+      prompt: "How severely is this condition impacting daily activities?",
       sub: "Assesses clinical urgency and functional impairment",
       options: [
-        { id: 'severe_incapacitating', label: "Severe & incapacitating (Unable to work or sleep)", icon: '⚠️', sub: 'Urgent evaluation advised' },
-        { id: 'high_discomfort', label: "High discomfort throughout the day", icon: '⚡', sub: 'Noticeable pain or distress' },
-        { id: 'moderate_manageable', label: "Moderate discomfort, manageable at rest", icon: '🟡', sub: 'Uncomfortable but functioning' },
-        { id: 'mild_early', label: "Mild or early symptoms / preventive checkup", icon: '✨', sub: 'Routine doctor consultation' }
+        { id: 'severe_incapacitating', label: "Severe and incapacitating (Unable to work or sleep)", sub: "Requires prompt in-person medical evaluation" },
+        { id: 'high_discomfort', label: "High discomfort that disrupts normal routines", sub: "Noticeable pain or persistent distress" },
+        { id: 'moderate_manageable', label: "Moderate discomfort, manageable at rest", sub: "Uncomfortable but functioning" },
+        { id: 'mild_early', label: "Mild or early-stage symptoms seeking doctor review", sub: "Routine consultation and health review" }
       ]
     },
     diagnosis: {
-      primary: 'Comprehensive Clinical Assessment & Triage',
+      primary: 'Comprehensive Clinical Assessment & Physician Triage',
       confidence: 94,
       specialty: 'General Medicine',
       urgency: 'ROUTINE',
       explanation: 'Symptom trajectory warrants an in-person physical examination or video consultation to establish precise etiology and targeted prescription.',
       advice: 'Stay hydrated, rest, and avoid self-medicating with unprescribed medications. An accredited general physician will conduct a focused examination.',
-      spokenSummary: "I've noted your symptoms and matched top-rated general physicians in Coimbatore South ready for immediate walk-in or video booking."
+      spokenSummary: "I have noted your symptoms and matched top-rated general physicians in Coimbatore South ready for immediate walk-in or video booking."
     }
   }
 ];
 
-// Universal Duration Options for Question 3
+// Universal Duration Options for Question 3 (Zero Emojis, Pure Clinical Precision)
 const DURATION_OPTIONS: SmartChipOption[] = [
-  { id: 'today', label: "Started suddenly today (< 24 hours)", icon: '⚡', sub: 'Rapid acute onset' },
-  { id: 'few_days', label: "Ongoing for 2 to 3 days", icon: '🗓️', sub: 'Persistent or worsening symptoms' },
-  { id: 'week_plus', label: "Over a week (4 to 10 days)", icon: '📅', sub: 'Not resolving with basic home rest' },
-  { id: 'chronic', label: "Chronic or recurring flare-ups", icon: '🔄', sub: 'Episodes recurring over weeks/months' }
+  { id: 'today', label: "Under 24 Hours", sub: "Sudden, rapid acute onset today" },
+  { id: 'few_days', label: "2 to 3 Days", sub: "Persistent or gradually worsening symptoms" },
+  { id: 'week_plus', label: "4 to 7 Days", sub: "Symptoms not resolving with basic home rest" },
+  { id: 'chronic', label: "Over 1 Week or Chronic Flare-Up", sub: "Recurrent episodes or long-standing condition" }
 ];
 
 interface AiHealthAssistantProps {
@@ -604,7 +630,7 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
         <AnimatePresence mode="wait">
           
           {/* ===================================================================== */}
-          {/* SLIDE 1: FIRST QUESTION — PRIMARY HEALTH CONCERN (COVERS EVERYTHING)  */}
+          {/* SLIDE 1: FIRST QUESTION — PRIMARY HEALTH CONCERN (VECTOR ICONS)        */}
           {/* ===================================================================== */}
           {currentStep === 'QUESTION_1' && (
             <motion.div
@@ -630,7 +656,7 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                   What is your main symptom?
                 </h3>
                 <p className="text-[11px] text-slate-500 mt-0.5">
-                  Type, speak, or select any medical category below
+                  Type, speak, or select a clinical specialty below
                 </p>
               </div>
 
@@ -646,7 +672,7 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                     type="text"
                     value={inputText}
                     onChange={(e) => handleQueryChange(e.target.value)}
-                    placeholder="Describe what's wrong (e.g. vomiting, fever, sprain)..."
+                    placeholder="Describe symptoms (e.g. vomiting, back pain, fever)..."
                     className="w-full py-2 px-2 bg-transparent text-xs font-semibold text-slate-900 placeholder:text-slate-400 outline-none"
                   />
                   {inputText && (
@@ -673,11 +699,12 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                 </div>
               </div>
 
-              {/* Comprehensive Categories Grid (Covers 100% of Medical Inquiries) */}
+              {/* Comprehensive Categories Grid (High-End Vector Icons, Zero Cheap Emojis) */}
               <div className="flex-1 flex flex-col justify-center min-h-0">
                 <div className="grid grid-cols-2 gap-1.5">
                   {SMART_CLINICAL_CATEGORIES.map((cat) => {
                     const isSelected = selectedCategoryId === cat.id;
+                    const IconComponent = cat.icon;
                     return (
                       <button
                         key={cat.id}
@@ -689,7 +716,9 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                             : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700 shadow-2xs'
                         }`}
                       >
-                        <span className="text-base shrink-0">{cat.icon}</span>
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${cat.iconBg} ${cat.iconColor}`}>
+                          <IconComponent className="w-4 h-4" />
+                        </div>
                         <div className="min-w-0 flex-1">
                           <div className="text-[11.5px] font-bold truncate leading-tight">{cat.title}</div>
                           <div className="text-[9.5px] text-slate-500 truncate leading-none mt-0.5">{cat.badge}</div>
@@ -749,7 +778,7 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                 </p>
               </div>
 
-              {/* 4 Options (A, B, C, D) with Crisp Letter Badges */}
+              {/* 4 Options (A, B, C, D) with Crisp Letter Badges (Zero Emojis) */}
               <div className="flex-1 flex flex-col justify-center space-y-1.5 min-h-0 py-1">
                 {activeCategory.q2.options.map((opt, idx) => {
                   const isChecked = selectedQ2 === opt.id;
@@ -775,9 +804,8 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                       </span>
 
                       <div className="flex-1 min-w-0">
-                        <div className="text-[11.5px] font-bold flex items-center gap-1.5 text-slate-900 leading-tight">
-                          {opt.icon && <span>{opt.icon}</span>}
-                          <span className="truncate">{opt.label}</span>
+                        <div className="text-[11.5px] font-bold text-slate-900 leading-tight truncate">
+                          {opt.label}
                         </div>
                         {opt.sub && (
                           <div className="text-[10px] text-slate-500 leading-none mt-0.5 truncate">
@@ -838,7 +866,7 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                 </p>
               </div>
 
-              {/* 4 Duration Options (A, B, C, D) */}
+              {/* 4 Duration Options (A, B, C, D) (Zero Emojis) */}
               <div className="flex-1 flex flex-col justify-center space-y-1.5 min-h-0 py-1">
                 {DURATION_OPTIONS.map((opt, idx) => {
                   const isChecked = selectedQ3 === opt.id;
@@ -864,9 +892,8 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                       </span>
 
                       <div className="flex-1 min-w-0">
-                        <div className="text-[11.5px] font-bold flex items-center gap-1.5 text-slate-900 leading-tight">
-                          {opt.icon && <span>{opt.icon}</span>}
-                          <span className="truncate">{opt.label}</span>
+                        <div className="text-[11.5px] font-bold text-slate-900 leading-tight truncate">
+                          {opt.label}
                         </div>
                         {opt.sub && (
                           <div className="text-[10px] text-slate-500 leading-none mt-0.5 truncate">
