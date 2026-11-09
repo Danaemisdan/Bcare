@@ -51,6 +51,7 @@ import {
   AlertTriangle,
   FileCheck2,
   Share2,
+  Eye,
   Lock,
   Bell,
   Globe,
@@ -179,77 +180,225 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
   // Luxury Banner Carousel State (Apollo 24/7 Inspired with High-End Polish)
   const [activeBanner, setActiveBanner] = useState(0);
   const [specialtyCategory, setSpecialtyCategory] = useState<'GENERAL' | 'ADVANCED'>('GENERAL');
+  const [selectedQAItem, setSelectedQAItem] = useState<{
+    id: string;
+    timeAgo: string;
+    question: string;
+    aiInsight: string;
+    aiUrgency: 'Routine' | 'Advisory' | 'Urgent';
+    aiSpecialty: string;
+    doctorName: string;
+    doctorCredentials: string;
+    doctorHospital: string;
+    doctorAvatar: string;
+    doctorAvatars: string[];
+    moreAnswersCount: number;
+    doctorAnswer: string;
+    views: number;
+    specialtyId: string;
+  } | null>(null);
 
+  // Exact 8 squircle specialty cards each for General Care and Advanced Care (Screenshot 2026-11-10 at 3.18.43 AM.png)
   const practoSpecialties = [
+    // General Care (8 specialties)
     {
       id: 'General Medicine',
       name: 'General Physician',
       category: 'GENERAL' as const,
-      image: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=260&auto=format&fit=crop&q=80',
-      tag: 'Fever, Cold, Body Pain'
+      image: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=320&auto=format&fit=crop&q=80',
+      tag: 'Fever, Cold, Viral'
     },
     {
       id: 'Gynecology',
       name: "Women's Health",
       category: 'GENERAL' as const,
-      image: 'https://images.unsplash.com/photo-1594824813619-33560eb11a68?w=260&auto=format&fit=crop&q=80',
-      tag: 'Gynecology & Wellness'
+      image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=320&auto=format&fit=crop&q=80',
+      tag: 'Gynecology & Care'
     },
     {
       id: 'Dermatology',
       name: 'Skin Specialist',
       category: 'GENERAL' as const,
-      image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=260&auto=format&fit=crop&q=80',
-      tag: 'Skin, Hair & Acne'
+      image: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=320&auto=format&fit=crop&q=80',
+      tag: 'Acne, Hair & Skin'
     },
     {
       id: 'Pediatrics',
-      name: 'Child Specialist',
+      name: 'Child Care',
       category: 'GENERAL' as const,
-      image: 'https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?w=260&auto=format&fit=crop&q=80',
-      tag: 'Infants & Kids Care'
+      image: 'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=320&auto=format&fit=crop&q=80',
+      tag: 'Infants & Kids'
     },
     {
       id: 'Dentistry',
-      name: 'Dental Care',
+      name: 'Dentist',
       category: 'GENERAL' as const,
-      image: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=260&auto=format&fit=crop&q=80',
-      tag: 'Teeth & Gums'
+      image: 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=320&auto=format&fit=crop&q=80',
+      tag: 'Teeth, Root Canal'
     },
     {
       id: 'Ophthalmology',
       name: 'Eye Specialist',
-      category: 'ADVANCED' as const,
-      image: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=260&auto=format&fit=crop&q=80',
-      tag: 'Vision & Lasik'
+      category: 'GENERAL' as const,
+      image: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=320&auto=format&fit=crop&q=80',
+      tag: 'Vision & Retina'
     },
     {
       id: 'ENT',
       name: 'Ear, Nose & Throat',
-      category: 'ADVANCED' as const,
-      image: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=260&auto=format&fit=crop&q=80',
-      tag: 'Sinus, Throat, Hearing'
+      category: 'GENERAL' as const,
+      image: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=320&auto=format&fit=crop&q=80',
+      tag: 'Sinus & Hearing'
     },
+    {
+      id: 'Mental Wellness',
+      name: 'Mental Wellness',
+      category: 'GENERAL' as const,
+      image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=320&auto=format&fit=crop&q=80',
+      tag: 'Therapy & Mind'
+    },
+
+    // Advanced Care (8 specialties)
     {
       id: 'Orthopedics',
       name: 'Bones & Joints',
       category: 'ADVANCED' as const,
-      image: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=260&auto=format&fit=crop&q=80',
-      tag: 'Knee, Joint & Spine'
+      image: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=320&auto=format&fit=crop&q=80',
+      tag: 'Knee, Spine & Pain'
     },
     {
       id: 'Cardiology',
       name: 'Heart & Chest',
       category: 'ADVANCED' as const,
-      image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=260&auto=format&fit=crop&q=80',
+      image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=320&auto=format&fit=crop&q=80',
       tag: 'ECG, BP & Chest'
     },
     {
       id: 'Neurology',
-      name: 'Mental Wellness',
+      name: 'Brain & Nerves',
       category: 'ADVANCED' as const,
-      image: 'https://images.unsplash.com/photo-1527613426441-4da17471b66d?w=260&auto=format&fit=crop&q=80',
-      tag: 'Anxiety, Sleep & Mind'
+      image: 'https://images.unsplash.com/photo-1559757175-5700dde675bc?w=320&auto=format&fit=crop&q=80',
+      tag: 'Migraine & Stroke'
+    },
+    {
+      id: 'Gastroenterology',
+      name: 'Digestive Issues',
+      category: 'ADVANCED' as const,
+      image: 'https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?w=320&auto=format&fit=crop&q=80',
+      tag: 'GERD, Liver, Bowel'
+    },
+    {
+      id: 'Nephrology',
+      name: 'Kidney Issues',
+      category: 'ADVANCED' as const,
+      image: 'https://images.unsplash.com/photo-1530497610245-94d3c16cda28?w=320&auto=format&fit=crop&q=80',
+      tag: 'Kidney & Dialysis'
+    },
+    {
+      id: 'Pulmonology',
+      name: 'Lungs & Breathing',
+      category: 'ADVANCED' as const,
+      image: 'https://images.unsplash.com/photo-1584432810601-6c7f27d2362b?w=320&auto=format&fit=crop&q=80',
+      tag: 'Asthma, Cough'
+    },
+    {
+      id: 'Diabetology',
+      name: 'Diabetes Care',
+      category: 'ADVANCED' as const,
+      image: 'https://images.unsplash.com/photo-1628771065518-0d82f1938462?w=320&auto=format&fit=crop&q=80',
+      tag: 'Sugar & Endocrine'
+    },
+    {
+      id: 'General Surgery',
+      name: 'General Surgery',
+      category: 'ADVANCED' as const,
+      image: 'https://images.unsplash.com/photo-1551601651-2a8555f1a136?w=320&auto=format&fit=crop&q=80',
+      tag: 'Laparoscopy & Hernia'
+    }
+  ];
+
+  // AI-Integrated Clinical Q&A Items (Screenshot 2026-11-10 at 3.18.43 AM & 3.18.57 AM)
+  const practoQAItems = [
+    {
+      id: 'qa-1',
+      timeAgo: '15h ago',
+      question: 'ADHD: Executive dysfunction, difficulty initiating/completing tasks, mental hyperactivity, inconsistent focus despite best efforts. What clinical options exist?',
+      aiInsight: 'Executive pattern consistent with Adult ADHD / Attentional dysregulation. Neuro-Psychiatry evaluation recommended.',
+      aiUrgency: 'Advisory' as const,
+      aiSpecialty: 'Mental Wellness',
+      doctorName: 'Dr. Vikram Singh',
+      doctorCredentials: 'MD (Psychiatry), AIIMS',
+      doctorHospital: 'Kovai Medical & Research Centre',
+      doctorAvatar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150',
+      doctorAvatars: [
+        'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150',
+        'https://images.unsplash.com/photo-1594824813619-33560eb11a68?w=150',
+        'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150'
+      ],
+      moreAnswersCount: 4,
+      doctorAnswer: 'Executive dysfunction stems from dopamine pathway variations in the prefrontal cortex. Standard evidence-based protocol includes structured CBT, executive coaching routines, and when indicated, non-stimulant or stimulant medication after comprehensive neuropsychiatric profiling.',
+      views: 21,
+      specialtyId: 'Mental Wellness'
+    },
+    {
+      id: 'qa-2',
+      timeAgo: '1d ago',
+      question: 'Persistent heartburn, sour acid regurgitation and chest burning sensation after meals. Antacids only give temporary 30-min relief. Could this be GERD or ulcer?',
+      aiInsight: 'Gastroesophageal Reflux (GERD) / Peptic hyperacidity indicated. Rule out nocturnal reflux and esophageal irritation.',
+      aiUrgency: 'Advisory' as const,
+      aiSpecialty: 'Gastroenterology',
+      doctorName: 'Dr. Arun Kumar',
+      doctorCredentials: 'DM (Gastroenterology)',
+      doctorHospital: 'City Care Multi-Specialty Hospital',
+      doctorAvatar: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=150',
+      doctorAvatars: [
+        'https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=150',
+        'https://images.unsplash.com/photo-1594824813619-33560eb11a68?w=150'
+      ],
+      moreAnswersCount: 2,
+      doctorAnswer: 'Frequent acid reflux refractory to OTC antacids usually reflects lower esophageal sphincter relaxation or gastritis. An upper GI endoscopy is recommended if symptoms persist over 2 weeks or if you experience difficulty swallowing.',
+      views: 45,
+      specialtyId: 'Gastroenterology'
+    },
+    {
+      id: 'qa-3',
+      timeAgo: '2d ago',
+      question: '14-month-old child running sudden 102°F temperature with lethargy, irritability and poor fluid intake for past 12 hours. When should I visit the hospital?',
+      aiInsight: 'Acute pediatric febrile episode with reduced oral intake. Prompt pediatric assessment recommended within 4-6 hours.',
+      aiUrgency: 'Urgent' as const,
+      aiSpecialty: 'Pediatrics',
+      doctorName: 'Dr. Shalini Sundaram',
+      doctorCredentials: 'DCH, MD (Pediatrics)',
+      doctorHospital: 'Kovai Medical & Research Centre',
+      doctorAvatar: 'https://images.unsplash.com/photo-1594824813619-33560eb11a68?w=150',
+      doctorAvatars: [
+        'https://images.unsplash.com/photo-1594824813619-33560eb11a68?w=150',
+        'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150'
+      ],
+      moreAnswersCount: 3,
+      doctorAnswer: 'High fever (>101°F) coupled with lethargy or refusal of fluids in infants warrants same-day pediatric physical examination. Maintain hydration with sips of ORS, do light tepid sponging, and avoid overdressing.',
+      views: 78,
+      specialtyId: 'Pediatrics'
+    },
+    {
+      id: 'qa-4',
+      timeAgo: '3d ago',
+      question: 'Sharp shooting electric pain radiating from lower lumbar spine through left buttock down to calf muscle, aggravated by sitting or coughing. Is it sciatica?',
+      aiInsight: 'Classic L4-L5/S1 Radiculopathy pattern (Sciatica). Orthopedic / Spine evaluation advised to test for disc protrusion.',
+      aiUrgency: 'Advisory' as const,
+      aiSpecialty: 'Orthopedics',
+      doctorName: 'Dr. Rajesh Verma',
+      doctorCredentials: 'MS (Orthopedics)',
+      doctorHospital: 'City Care Multi-Specialty Hospital',
+      doctorAvatar: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=150',
+      doctorAvatars: [
+        'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=150',
+        'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150'
+      ],
+      moreAnswersCount: 4,
+      doctorAnswer: 'The dermatomal distribution down the posterior leg strongly suggests nerve root compression, typically caused by a herniated lumbar disc. Avoid prolonged sitting and heavy lifting; conservative physiotherapy or an MRI may be needed.',
+      views: 62,
+      specialtyId: 'Orthopedics'
     }
   ];
   const banners = [
@@ -292,7 +441,25 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
     return () => clearInterval(timer);
   }, []);
 
-  const specialties = ['All', 'Cardiology', 'Orthopedics', 'Neurology', 'Pediatrics', 'General Medicine', 'Dermatology'];
+  const specialties = [
+    'All', 
+    'General Medicine', 
+    'Gynecology', 
+    'Dermatology', 
+    'Pediatrics', 
+    'Dentistry', 
+    'Ophthalmology', 
+    'ENT', 
+    'Mental Wellness', 
+    'Orthopedics', 
+    'Cardiology', 
+    'Neurology', 
+    'Gastroenterology', 
+    'Nephrology', 
+    'Pulmonology', 
+    'Diabetology', 
+    'General Surgery'
+  ];
   const areas = ['All', 'Coimbatore South', 'Coimbatore Central', 'Pollachi Rural'];
 
   // Enhanced Doctor Directory Filtering
@@ -420,11 +587,14 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
 
   const specialtyPills = [
     { id: 'All', label: 'All Specialists', icon: Sparkles },
+    { id: 'General Medicine', label: 'General Medicine', icon: Stethoscope },
+    { id: 'Gynecology', label: "Women's Health", icon: Sparkles },
     { id: 'Cardiology', label: 'Cardiology', icon: HeartPulse },
     { id: 'Orthopedics', label: 'Orthopedics', icon: Bone },
     { id: 'Neurology', label: 'Neurology', icon: Brain },
     { id: 'Pediatrics', label: 'Pediatrics', icon: Baby },
-    { id: 'General Medicine', label: 'General Medicine', icon: Stethoscope }
+    { id: 'Dermatology', label: 'Dermatology', icon: Sparkles },
+    { id: 'Mental Wellness', label: 'Mental Wellness', icon: Brain }
   ];
 
   if (activeBookingTarget) {
@@ -1031,76 +1201,201 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
             </div>
           </div>
 
-          {/* 5. "FIND DOCTORS BY SPECIALITY" SECTION (Practo Style) */}
-          <div className="space-y-2 pt-1">
-            <div className="flex items-center justify-between px-1">
-              <h3 className="text-sm font-extrabold text-slate-900 tracking-tight">
-                Find doctors by speciality
-              </h3>
-              <div className="flex items-center gap-1 p-0.5 bg-slate-100 rounded-xl text-[10px] font-bold">
-                <button
-                  type="button"
-                  onClick={() => setSpecialtyCategory('GENERAL')}
-                  className={`px-2 py-0.5 rounded-lg transition-all ${
-                    specialtyCategory === 'GENERAL'
-                      ? 'bg-white text-blue-700 shadow-2xs font-extrabold'
-                      : 'text-slate-500 hover:text-slate-900'
-                  }`}
-                >
-                  General Care
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSpecialtyCategory('ADVANCED')}
-                  className={`px-2 py-0.5 rounded-lg transition-all ${
-                    specialtyCategory === 'ADVANCED'
-                      ? 'bg-white text-blue-700 shadow-2xs font-extrabold'
-                      : 'text-slate-500 hover:text-slate-900'
-                  }`}
-                >
-                  Advanced Care
-                </button>
-              </div>
+          {/* 5. "FIND DOCTORS BY SPECIALITY" SECTION (Matching Practo Screenshot 2026-11-10 at 3.18.43 AM) */}
+          <div className="space-y-2.5 pt-1">
+            <h3 className="text-base font-extrabold text-slate-900 tracking-tight px-0.5">
+              Find doctors by speciality
+            </h3>
+
+            {/* Full-Width Pill Segmented Switcher (General Care / Advanced Care) */}
+            <div className="w-full bg-[#f1f4f8] p-1 rounded-full flex items-center gap-1 select-none">
+              <button
+                type="button"
+                onClick={() => setSpecialtyCategory('GENERAL')}
+                className={`flex-1 py-2 text-center text-xs font-bold rounded-full transition-all cursor-pointer ${
+                  specialtyCategory === 'GENERAL'
+                    ? 'bg-white text-slate-900 shadow-xs'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                General Care
+              </button>
+              <button
+                type="button"
+                onClick={() => setSpecialtyCategory('ADVANCED')}
+                className={`flex-1 py-2 text-center text-xs font-bold rounded-full transition-all cursor-pointer ${
+                  specialtyCategory === 'ADVANCED'
+                    ? 'bg-white text-slate-900 shadow-xs'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                Advanced Care
+              </button>
             </div>
 
-            {/* Specialty Cards Grid with Doctor Photos (Matching Practo Screenshot) */}
-            <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 select-none">
+            {/* 4x2 Specialty Grid: 8 Squircle Cards with Doctor Photos (Screenshot 2026-11-10 at 3.18.43 AM) */}
+            <div className="grid grid-cols-4 gap-2 sm:gap-2.5 select-none pt-0.5">
               {practoSpecialties
                 .filter(s => s.category === specialtyCategory)
-                .slice(0, 4)
                 .map(spec => {
                   const isSelected = selectedSpecialty.toLowerCase() === spec.id.toLowerCase();
                   return (
                     <motion.div
                       key={spec.id}
-                      whileTap={{ scale: 0.96 }}
+                      whileTap={{ scale: 0.95 }}
                       onClick={() => {
                         setSelectedSpecialty(spec.id);
+                        setDirectoryMode('doctors');
                         const el = document.getElementById('nearby-directory');
                         el?.scrollIntoView({ behavior: 'smooth' });
                       }}
-                      className={`p-2 rounded-2xl border transition-all flex flex-col items-center text-center cursor-pointer group ${
+                      className={`relative p-1.5 sm:p-2 rounded-[20px] border transition-all flex flex-col items-center justify-between text-center cursor-pointer group aspect-[4/5] min-h-[112px] ${
                         isSelected
-                          ? 'bg-blue-50/90 border-blue-400 shadow-xs ring-1 ring-blue-500/30'
-                          : 'bg-white border-slate-200/80 hover:border-blue-300 hover:bg-slate-50 shadow-2xs'
+                          ? 'bg-blue-50/90 border-blue-400 shadow-xs ring-2 ring-blue-500/40'
+                          : 'bg-[#f8fafc] border-slate-200/70 hover:border-blue-300 hover:bg-white shadow-2xs'
                       }`}
                     >
-                      <div className="relative w-14 h-14 rounded-2xl overflow-hidden bg-slate-100 mb-1.5 shrink-0 shadow-2xs">
+                      <div className="w-full flex-1 rounded-xl overflow-hidden bg-slate-100 flex items-center justify-center">
                         <img
                           src={spec.image}
                           alt={spec.name}
                           className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
                         />
                       </div>
-                      <span className="text-[10px] font-bold text-slate-800 leading-tight line-clamp-1 w-full">
+                      <span className="text-[10px] sm:text-[11px] font-bold text-slate-800 leading-[1.2] pt-1.5 px-0.5 line-clamp-2 w-full text-center">
                         {spec.name}
-                      </span>
-                      <span className="text-[8.5px] text-slate-400 truncate w-full mt-0.5">
-                        {spec.tag.split(',')[0]}
                       </span>
                     </motion.div>
                   );
                 })}
+            </div>
+          </div>
+
+          {/* ============================================================== */}
+          {/* FREE EXPERT & AI Q&A (Practo Screenshot 2026-11-10 at 3.18.43 AM & 3.18.57 AM) */}
+          {/* ============================================================== */}
+          <div className="pt-2 space-y-2.5">
+            <div className="flex items-center justify-between px-0.5">
+              <div className="flex items-center gap-1.5">
+                <h3 className="text-base font-extrabold text-slate-900 tracking-tight">
+                  Free Expert Q&A
+                </h3>
+                <span className="bg-blue-50 text-blue-700 text-[9.5px] font-bold px-2 py-0.5 rounded-full border border-blue-200/70 flex items-center gap-1">
+                  <Sparkles className="w-2.5 h-2.5 text-blue-600" />
+                  AI Verified
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => onTabChange?.('ai_assist')}
+                className="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-0.5 cursor-pointer"
+              >
+                <span>Explore all</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* Horizontally Scrolling Q&A Community Cards */}
+            <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-none no-scrollbar snap-x">
+              {practoQAItems.map(item => (
+                <div
+                  key={item.id}
+                  onClick={() => setSelectedQAItem(item)}
+                  className="w-[275px] shrink-0 p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs hover:shadow-xs hover:border-blue-300 transition-all cursor-pointer flex flex-col justify-between snap-start active:scale-[0.99]"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-slate-600">
+                          <Users className="w-3 h-3" />
+                        </div>
+                        <span className="text-[10px] font-semibold text-slate-400">
+                          Community Question • {item.timeAgo}
+                        </span>
+                      </div>
+                      <span className="bg-emerald-50 text-emerald-700 text-[9.5px] font-bold px-2 py-0.5 rounded-full border border-emerald-200/60">
+                        Answered
+                      </span>
+                    </div>
+
+                    <h4 className="text-[11.5px] font-bold text-slate-900 leading-snug line-clamp-3">
+                      {item.question}
+                    </h4>
+
+                    {/* AI Clinical Triage Insight */}
+                    <div className="bg-blue-50/70 rounded-xl p-2 border border-blue-100/80 flex items-start gap-1.5">
+                      <Sparkles className="w-3 h-3 text-blue-600 shrink-0 mt-0.5" />
+                      <div className="text-[9.5px] text-blue-900 leading-tight">
+                        <span className="font-extrabold text-blue-800">AI Triage: </span>
+                        {item.aiInsight}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-2.5 mt-2 border-t border-slate-100 space-y-2">
+                    {/* Doctor Answers Row */}
+                    <div className="flex items-center gap-1.5">
+                      <div className="flex -space-x-1.5 overflow-hidden">
+                        {item.doctorAvatars.map((av, i) => (
+                          <img
+                            key={i}
+                            src={av}
+                            alt="Doctor"
+                            className="inline-block h-5 w-5 rounded-full ring-2 ring-white object-cover"
+                          />
+                        ))}
+                        <div className="h-5 w-5 rounded-full bg-blue-600 text-white text-[8.5px] font-bold flex items-center justify-center ring-2 ring-white">
+                          +{item.moreAnswersCount}
+                        </div>
+                      </div>
+                      <span className="text-[10.5px] font-semibold text-slate-700 truncate">
+                        {item.doctorName} +{item.moreAnswersCount} Expert Answers
+                      </span>
+                    </div>
+
+                    {/* Views & Share */}
+                    <div className="flex items-center justify-between text-[10.5px] font-medium text-slate-400 pt-0.5">
+                      <div className="flex items-center gap-1">
+                        <Eye className="w-3 h-3" />
+                        <span>{item.views}</span>
+                      </div>
+                      <div className="flex items-center gap-1 hover:text-slate-600">
+                        <Share2 className="w-3 h-3" />
+                        <span>Share</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Prominent "Got a health query? Ask B Care AI" CTA Banner (Screenshot 2026-11-10 at 3.18.57 AM) */}
+            <div
+              onClick={() => onTabChange?.('ai_assist')}
+              className="p-3.5 rounded-2xl bg-gradient-to-r from-blue-50/90 via-sky-50/80 to-indigo-50/70 border border-blue-200/80 flex items-center justify-between gap-3 shadow-2xs hover:border-blue-300 hover:shadow-xs cursor-pointer transition-all active:scale-[0.99] group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-2xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                  <MessageCircle className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <h4 className="font-extrabold text-slate-900 text-xs sm:text-sm">
+                      Got a health query?
+                    </h4>
+                    <span className="bg-amber-100 text-amber-800 text-[9px] font-extrabold px-1.5 py-0.2 rounded-full uppercase tracking-wider">
+                      Free AI
+                    </span>
+                  </div>
+                  <p className="text-[10.5px] text-slate-600 mt-0.5">
+                    Ask B Care AI and get instant doctor-verified answers
+                  </p>
+                </div>
+              </div>
+              <div className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:bg-blue-700 transition-colors">
+                <ChevronRight className="w-4 h-4" />
+              </div>
             </div>
           </div>
 
@@ -2323,6 +2618,146 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
 
       {/* Interactive Live OPD Queue Pass Modal (Tapped from Top-Right Smart Element) */}
       <AnimatePresence>
+        {/* Selected Clinical Health Q&A Modal (Practo Free Expert Q&A + AI Integration) */}
+        {selectedQAItem && (
+          <PhoneModalPortal>
+            <div
+              className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs pointer-events-auto"
+              onClick={() => setSelectedQAItem(null)}
+            >
+              <motion.div
+                initial={{ scale: 0.92, opacity: 0, y: 16 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.92, opacity: 0, y: 12 }}
+                transition={{ type: 'spring', stiffness: 380, damping: 28 }}
+                onClick={(e) => e.stopPropagation()}
+                className="relative w-full max-w-sm rounded-[28px] overflow-hidden shadow-2xl border border-slate-200/90 bg-white text-slate-900 p-5 space-y-4 max-h-[85vh] overflow-y-auto no-scrollbar"
+              >
+                {/* Modal Header */}
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[11px] font-extrabold uppercase text-slate-700 tracking-wider font-mono">
+                      Doctor & AI Q&A
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10px] font-bold">
+                      Verified Answer
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedQAItem(null)}
+                      className="p-1 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Patient Query Card */}
+                <div className="bg-slate-50 rounded-2xl p-3 border border-slate-200/70 space-y-1.5">
+                  <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-semibold">
+                    <Users className="w-3.5 h-3.5" />
+                    <span>Community Patient Question • {selectedQAItem.timeAgo}</span>
+                  </div>
+                  <p className="text-xs font-bold text-slate-900 leading-snug">
+                    "{selectedQAItem.question}"
+                  </p>
+                </div>
+
+                {/* B Care AI Clinical Triage Assessment */}
+                <div className="rounded-2xl bg-gradient-to-br from-blue-50/90 via-sky-50/70 to-indigo-50/60 border border-blue-200/80 p-3.5 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 text-blue-700 font-extrabold text-[11px]">
+                      <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+                      <span>B Care AI Clinical Assessment</span>
+                    </div>
+                    <span className={`text-[9.5px] font-extrabold px-2 py-0.5 rounded-full uppercase ${
+                      selectedQAItem.aiUrgency === 'Urgent'
+                        ? 'bg-rose-100 text-rose-700 border border-rose-200'
+                        : 'bg-blue-100 text-blue-800 border border-blue-200'
+                    }`}>
+                      {selectedQAItem.aiUrgency}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-blue-950 leading-relaxed font-medium">
+                    {selectedQAItem.aiInsight}
+                  </p>
+                  <div className="flex items-center gap-1 text-[10px] font-bold text-blue-800 pt-0.5">
+                    <span>Matched Specialty:</span>
+                    <span className="bg-white/90 px-1.5 py-0.5 rounded-md border border-blue-200 text-blue-700">
+                      {selectedQAItem.aiSpecialty}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Verified Specialist Doctor Response */}
+                <div className="rounded-2xl bg-white border border-slate-200/80 p-3.5 space-y-2 shadow-2xs">
+                  <div className="flex items-center gap-2.5">
+                    <img
+                      src={selectedQAItem.doctorAvatar}
+                      alt={selectedQAItem.doctorName}
+                      className="w-10 h-10 rounded-full object-cover ring-2 ring-blue-100 shrink-0"
+                    />
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1">
+                        <h4 className="font-bold text-xs text-slate-900 truncate">
+                          {selectedQAItem.doctorName}
+                        </h4>
+                        <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                      </div>
+                      <p className="text-[10px] text-slate-500 truncate">
+                        {selectedQAItem.doctorCredentials} • {selectedQAItem.doctorHospital}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-slate-700 leading-relaxed pt-1 border-t border-slate-100">
+                    "{selectedQAItem.doctorAnswer}"
+                  </p>
+                </div>
+
+                {/* Modal Footer Action Buttons */}
+                <div className="pt-1 space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const matched = doctors.find(d => 
+                        d.specialty.toLowerCase() === selectedQAItem.aiSpecialty.toLowerCase() ||
+                        d.name.toLowerCase().includes(selectedQAItem.doctorName.toLowerCase())
+                      ) || doctors[0];
+                      const matchedHosp = hospitals.find(h => h.id === matched.hospitalId) || hospitals[0];
+                      setSelectedQAItem(null);
+                      setActiveBookingTarget({
+                        doctor: matched,
+                        hospital: matchedHosp,
+                        consultationType: 'IN_PERSON_OPD',
+                        slot: slots[0] || null
+                      });
+                    }}
+                    className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer active:scale-98"
+                  >
+                    <Building2 className="w-3.5 h-3.5" />
+                    <span>Book OPD Visit with {selectedQAItem.doctorName.split(',')[0]} (₹100)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedQAItem(null);
+                      onTabChange?.('ai_assist');
+                    }}
+                    className="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+                    <span>Ask B Care AI Follow-up on this Topic</span>
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          </PhoneModalPortal>
+        )}
+
         {showLivePassModal && activeUserTokens.length > 0 && (() => {
           const token = activeUserTokens[0];
           const mDoc = doctors.find(d => d.id === token.doctorId);

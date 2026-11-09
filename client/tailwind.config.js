@@ -8,8 +8,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"Inter"', '"Geist"', '-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', '"SF Pro Text"', 'sans-serif'],
-        display: ['"Inter"', '"Geist"', '-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', 'sans-serif'],
+        sans: ['"Figtree"', '"Plus Jakarta Sans"', '"Outfit"', '"Inter"', '"Geist"', '-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', '"SF Pro Text"', 'sans-serif'],
+        display: ['"Figtree"', '"Plus Jakarta Sans"', '"Outfit"', '"Inter"', '"Geist"', '-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
       },
       colors: {
