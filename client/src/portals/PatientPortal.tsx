@@ -55,6 +55,7 @@ import {
   Bell,
   Globe,
   ChevronRight,
+  ChevronDown,
   ExternalLink,
   LogOut,
   Search,
@@ -430,7 +431,18 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
               <div>
                 <div className="flex items-center gap-1.5 mb-0.5 text-slate-500 text-[11px] font-medium tracking-tight">
                   <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>Coimbatore South</span>
+                  <div className="relative inline-flex items-center cursor-pointer">
+                    <select
+                      value={selectedArea}
+                      onChange={(e) => setSelectedArea(e.target.value)}
+                      className="appearance-none bg-transparent pr-4 font-semibold text-slate-800 text-[11px] cursor-pointer focus:outline-none"
+                    >
+                      {areas.map(a => (
+                        <option key={a} value={a}>{a === 'All' ? 'Coimbatore (All Areas)' : a}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="w-3 h-3 text-slate-400 absolute right-0 pointer-events-none" />
+                  </div>
                   <span className="text-slate-300">•</span>
                   <span className="text-emerald-700 font-semibold">24/7 OPD</span>
                 </div>
@@ -699,7 +711,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
             animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
             exit={{ opacity: 0, y: -6, filter: 'blur(2px)' }}
             transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            className="space-y-4 pb-36"
+            className="space-y-3.5 pb-44"
           >
             {/* Active Booked Video Call or Toast Confirmation */}
           {(userVideoAppointments.length > 0 || bookedConfirmation) && (
@@ -785,92 +797,65 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
             )}
           </div>
 
-          {/* Directory Switcher & Area Selector Bar */}
-          <div className="flex items-center justify-between gap-2 px-0.5">
-            {/* Minimalist Segmented Control (Hospitals Near You primary) */}
-            <div className="inline-flex p-0.5 bg-slate-100 rounded-xl border border-slate-200/70 shrink-0">
-              <button
-                type="button"
-                onClick={() => {
-                  setDirectoryMode('hospitals');
-                  setConsultationFilter('ALL');
-                }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  directoryMode === 'hospitals'
-                    ? 'bg-white text-slate-900 shadow-xs'
-                    : 'text-slate-500 hover:text-slate-900'
-                }`}
-              >
-                <Building2 className={`w-3.5 h-3.5 ${directoryMode === 'hospitals' ? 'text-emerald-600' : 'text-slate-500'}`} />
-                <span>Hospitals ({allFilteredHospitals.length})</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setDirectoryMode('doctors');
-                  setConsultationFilter('ALL');
-                }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  directoryMode === 'doctors'
-                    ? 'bg-white text-slate-900 shadow-xs'
-                    : 'text-slate-500 hover:text-slate-900'
-                }`}
-              >
-                <Stethoscope className={`w-3.5 h-3.5 ${directoryMode === 'doctors' ? 'text-emerald-600' : 'text-slate-500'}`} />
-                <span>Doctors ({allFilteredDoctors.length})</span>
-              </button>
-            </div>
-
-            {/* Area Territory Selector */}
-            <div className="flex items-center gap-1 bg-white px-2.5 py-1.5 rounded-xl border border-slate-200/80 text-xs font-medium text-slate-700 shadow-xs hover:border-slate-300 transition-colors shrink-0">
-              <MapPin className="w-3 h-3 text-emerald-600 shrink-0" />
-              <select
-                value={selectedArea}
-                onChange={(e) => setSelectedArea(e.target.value)}
-                className="bg-transparent text-xs font-semibold text-slate-800 focus:outline-none cursor-pointer tracking-tight pr-0.5"
-              >
-                {areas.map(a => (
-                  <option key={a} value={a}>{a === 'All' ? 'All Areas' : a.replace('Coimbatore ', '')}</option>
-                ))}
-              </select>
-            </div>
+          {/* View Mode Switcher: Full-Width iOS-Style Segmented Control */}
+          <div className="p-1 bg-slate-100 rounded-2xl border border-slate-200/70 grid grid-cols-2 gap-1 shadow-2xs">
+            <button
+              type="button"
+              onClick={() => {
+                setDirectoryMode('hospitals');
+                setConsultationFilter('ALL');
+              }}
+              className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                directoryMode === 'hospitals'
+                  ? 'bg-white text-slate-900 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              <Building2 className={`w-3.5 h-3.5 ${directoryMode === 'hospitals' ? 'text-emerald-600' : 'text-slate-400'}`} />
+              <span>Hospitals ({allFilteredHospitals.length})</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setDirectoryMode('doctors');
+                setConsultationFilter('ALL');
+              }}
+              className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                directoryMode === 'doctors'
+                  ? 'bg-white text-slate-900 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              <Stethoscope className={`w-3.5 h-3.5 ${directoryMode === 'doctors' ? 'text-emerald-600' : 'text-slate-400'}`} />
+              <span>Doctors ({allFilteredDoctors.length})</span>
+            </button>
           </div>
 
-          {/* Medical Specialty Selector Pills */}
-          <div>
-            <div className="flex items-center justify-between mb-2 px-0.5">
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                Specialties
-              </h2>
-              <span className="text-[11px] text-slate-400 font-medium tabular-nums">
-                {specialtyPills.length} disciplines
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none no-scrollbar w-full">
-              {specialtyPills.map(spec => {
-                const isSelected = selectedSpecialty === spec.id;
-                const IconComponent = spec.icon;
+          {/* Medical Specialty Selector Pills (Horizontal Rail without cluttered headers) */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none no-scrollbar w-full">
+            {specialtyPills.map(spec => {
+              const isSelected = selectedSpecialty === spec.id;
+              const IconComponent = spec.icon;
 
-                return (
-                  <motion.button
-                    whileTap={{ scale: 0.96 }}
-                    key={spec.id}
-                    onClick={() => setSelectedSpecialty(spec.id)}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all shrink-0 cursor-pointer ${
-                      isSelected
-                        ? 'bg-slate-900 text-white shadow-xs'
-                        : 'bg-white text-slate-600 border border-slate-200/80 hover:text-slate-900 hover:border-slate-300'
-                    }`}
-                  >
-                    <IconComponent
-                      className={`w-3.5 h-3.5 ${isSelected ? 'text-emerald-400' : 'text-slate-400'}`}
-                      strokeWidth={1.8}
-                    />
-                    <span>{spec.label}</span>
-                  </motion.button>
-                );
-              })}
-            </div>
+              return (
+                <motion.button
+                  whileTap={{ scale: 0.96 }}
+                  key={spec.id}
+                  onClick={() => setSelectedSpecialty(spec.id)}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all shrink-0 cursor-pointer ${
+                    isSelected
+                      ? 'bg-slate-900 text-white shadow-xs'
+                      : 'bg-white text-slate-600 border border-slate-200/90 hover:text-slate-900 hover:border-slate-300'
+                  }`}
+                >
+                  <IconComponent
+                    className={`w-3.5 h-3.5 ${isSelected ? 'text-emerald-400' : 'text-slate-400'}`}
+                    strokeWidth={1.8}
+                  />
+                  <span>{spec.label}</span>
+                </motion.button>
+              );
+            })}
           </div>
 
           {/* ============================================================== */}
@@ -878,12 +863,17 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
           {/* ============================================================== */}
           {directoryMode === 'doctors' && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between px-0.5">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Specialist Physicians in Your Area
-                </h3>
-                <span className="text-xs text-slate-400 font-medium tabular-nums">
-                  {allFilteredDoctors.length} available today
+              <div className="flex items-center justify-between px-0.5 pt-0.5">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                    Specialist Doctors Near You
+                  </h3>
+                  <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold tabular-nums">
+                    {allFilteredDoctors.length}
+                  </span>
+                </div>
+                <span className="text-[11px] text-slate-400 font-medium">
+                  Sorted by distance
                 </span>
               </div>
 
@@ -892,6 +882,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                   const hosp = hospitals.find(h => h.id === doc.hospitalId);
                   const docOpSlots = slots.filter(s => s.doctorId === doc.id);
                   const isSelectedForSlotView = selectedDoctor?.id === doc.id;
+                  const docInitials = doc.name.replace(/^Dr\.\s*/i, '').split(' ').map(n => n[0]).slice(0, 2).join('') || 'DR';
 
                   return (
                     <SlapBlock
@@ -900,67 +891,54 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                       delay={Math.min(idx * 0.05, 0.25)}
                       className="w-full"
                     >
-                      <motion.div
-                        whileHover={{ y: -1 }}
-                        transition={{ duration: 0.15 }}
-                        className="p-3.5 rounded-2xl border border-slate-200/80 bg-white hover:border-[#4a6cf0]/40 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_4px_12px_rgba(0,0,0,0.03)] transition-all space-y-3 flex flex-col justify-between relative overflow-hidden group"
-                      >
-                      {/* Doctor Profile Info */}
-                      <div>
-                        <div className="flex items-start justify-between gap-2.5">
-                          <div className="flex items-start gap-3 min-w-0 flex-1">
-                            <div className="relative shrink-0">
-                              <div className="w-11 h-11 rounded-xl bg-slate-900 text-white flex items-center justify-center font-semibold text-sm shrink-0">
-                                {doc.name.replace('Dr. ', '').split(' ')[0][0]}
-                              </div>
-                              <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white" />
+                      <div className="rounded-3xl border border-slate-200/90 bg-white shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-md transition-all p-3.5 sm:p-4 space-y-3 relative overflow-hidden">
+                        {/* Row 1: Doctor Avatar + Identity + Rating */}
+                        <div className="flex items-start gap-3.5">
+                          {/* Doctor Avatar with Online Status */}
+                          <div className="relative shrink-0">
+                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-600 via-teal-700 to-slate-900 text-white flex items-center justify-center font-bold text-base shadow-xs border border-slate-100">
+                              {docInitials}
                             </div>
-
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-                                <h4 className="font-semibold text-sm text-slate-900 tracking-tight truncate max-w-full">
-                                  {doc.name}
-                                </h4>
-                                <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 text-[11px] font-medium border border-emerald-200/60 shrink-0">
-                                  {doc.specialty}
-                                </span>
-                              </div>
-                              <p className="text-xs text-slate-500 mt-0.5 truncate font-normal flex items-center gap-1">
-                                <Building2 className="w-3 h-3 text-slate-400 shrink-0" />
-                                <span>{doc.hospitalName} • {doc.distance || '1.2 km'}</span>
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-1 bg-slate-50 border border-slate-200/80 px-2 py-0.5 rounded-lg text-slate-800 text-[11px] font-semibold shrink-0">
-                            <Star className="w-3 h-3 text-amber-500 fill-amber-400 shrink-0" />
-                            <span>{doc.rating}</span>
-                          </div>
-                        </div>
-
-                        {/* Badges strip: Experience, Wait Time, Video Ready */}
-                        <div className="mt-2.5 flex items-center gap-1.5 flex-wrap text-[11px] text-slate-600 font-medium">
-                          <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
-                            {doc.experienceYears} Yrs Exp
-                          </span>
-                          <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 flex items-center gap-1 font-medium border border-emerald-200/50">
-                            <Clock className="w-3 h-3 text-emerald-600" />
-                            <span>Next: Token #{doc.nextAvailableToken || 4} (~{doc.estimatedWaitMins || 15}m)</span>
-                          </span>
-                          {doc.videoAvailable && (
-                            <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 flex items-center gap-1 font-medium">
-                              <Video className="w-3 h-3 text-slate-500" />
-                              <span>Video</span>
+                            <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center shadow-xs">
+                              <Check className="w-2.5 h-2.5 text-white stroke-[3]" />
                             </span>
-                          )}
-                        </div>
-                      </div>
+                          </div>
 
-                      {/* Dual Action Buttons: In-Person Visit vs Video Call */}
-                      <div className="pt-2 border-t border-slate-100 space-y-2">
-                        <div className="grid grid-cols-2 gap-2">
-                          
-                          {/* Button 1: Book Normal Visit (OPD) */}
+                          {/* Doctor Identity & Hospital */}
+                          <div className="min-w-0 flex-1 space-y-1">
+                            <div className="flex items-center justify-between gap-1">
+                              <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md">
+                                {doc.specialty}
+                              </span>
+                              <div className="flex items-center gap-1 bg-amber-50 border border-amber-200/60 px-1.5 py-0.5 rounded-md text-[11px] font-bold text-amber-800 shrink-0">
+                                <Star className="w-3 h-3 text-amber-500 fill-amber-400" />
+                                <span>{doc.rating}</span>
+                              </div>
+                            </div>
+
+                            <h4 className="font-bold text-sm text-slate-900 tracking-tight leading-snug line-clamp-1">
+                              {doc.name}
+                            </h4>
+
+                            <p className="text-xs text-slate-500 truncate font-normal flex items-center gap-1">
+                              <Building2 className="w-3 h-3 text-slate-400 shrink-0" />
+                              <span>{doc.hospitalName} • {doc.distance || '1.2 km'}</span>
+                            </p>
+
+                            {/* Live OPD status & Experience */}
+                            <div className="flex items-center gap-2 text-[11px] text-slate-600 font-medium pt-0.5">
+                              <span className="text-emerald-700 font-semibold flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                Token #{doc.nextAvailableToken || 4} (~{doc.estimatedWaitMins || 10}m)
+                              </span>
+                              <span className="text-slate-300">•</span>
+                              <span>{doc.experienceYears} Yrs Exp</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Row 2: Dual Action Buttons */}
+                        <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100">
                           <motion.button
                             whileTap={{ scale: 0.97 }}
                             type="button"
@@ -969,13 +947,12 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                               if (hosp) setSelectedHospital(hosp);
                               handleOpenCheckout(doc, 'IN_PERSON_OPD');
                             }}
-                            className="py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                            className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer"
                           >
-                            <Stethoscope className="w-3.5 h-3.5 text-white" />
+                            <Stethoscope className="w-3.5 h-3.5" />
                             <span>Normal Visit • ₹{doc.opConsultationFee || splitConfig.baseOpFee}</span>
                           </motion.button>
 
-                          {/* Button 2: Book HD Video Consultation */}
                           <motion.button
                             whileTap={{ scale: 0.97 }}
                             type="button"
@@ -984,71 +961,15 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                               if (hosp) setSelectedHospital(hosp);
                               handleOpenCheckout(doc, 'VIDEO_CONSULTATION');
                             }}
-                            className="py-2 px-3 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                            className="py-2.5 px-3 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200/80 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                           >
                             <Video className="w-3.5 h-3.5 text-sky-600" />
-                            <span>Video Call • ₹{doc.teleConsultationFee || 200}</span>
+                            <span>Video Call • ₹{doc.teleConsultationFee || 250}</span>
                           </motion.button>
                         </div>
-
-                        {/* Optional Toggle to inspect exact OPD token times */}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (isSelectedForSlotView) {
-                              setSelectedDoctor(doctors[0]);
-                            } else {
-                              setSelectedDoctor(doc);
-                              if (hosp) setSelectedHospital(hosp);
-                            }
-                          }}
-                          className="w-full text-center text-[11px] font-semibold text-zinc-500 hover:text-emerald-700 py-1 transition-colors cursor-pointer flex items-center justify-center gap-1"
-                        >
-                          <span>{isSelectedForSlotView ? '▲ Hide Available OPD Slots' : `▼ View ${docOpSlots.length} Specific OPD Token Slots`}</span>
-                        </button>
-
-                        {/* Expandable Token Slots */}
-                        <AnimatePresence>
-                          {isSelectedForSlotView && (
-                            <motion.div
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: 'auto' }}
-                              exit={{ opacity: 0, height: 0 }}
-                              transition={{ duration: 0.2 }}
-                              className="pt-2 border-t border-zinc-100/80 overflow-hidden"
-                            >
-                              <span className="text-[11px] font-bold text-zinc-700 block mb-2 font-display">
-                                Select Slot for {doc.name}:
-                              </span>
-                              <div className={`grid ${isMobile ? 'grid-cols-3' : 'grid-cols-3 sm:grid-cols-4'} gap-2`}>
-                                {docOpSlots.slice(0, 8).map(slot => {
-                                  const isAvailable = slot.status === 'AVAILABLE';
-                                  return (
-                                    <motion.button
-                                      whileTap={{ scale: isAvailable ? 0.95 : 1 }}
-                                      key={slot.id}
-                                      type="button"
-                                      disabled={!isAvailable}
-                                      onClick={() => handleOpenCheckout(doc, 'IN_PERSON_OPD', slot)}
-                                      className={`p-2 rounded-xl text-center border transition-all ${
-                                        isAvailable 
-                                          ? 'border-emerald-200/80 bg-emerald-50/40 hover:bg-emerald-100/60 cursor-pointer shadow-2xs' 
-                                          : 'border-zinc-200 bg-zinc-50 text-zinc-400 cursor-not-allowed opacity-60'
-                                      }`}
-                                    >
-                                      <span className="block font-bold text-xs text-zinc-950 tabular-nums font-display">#{slot.tokenNumber}</span>
-                                      <span className="block text-[10px] text-zinc-500 tabular-nums">{slot.time}</span>
-                                    </motion.button>
-                                  );
-                                })}
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
                       </div>
-                    </motion.div>
-                  </SlapBlock>
-                );
+                    </SlapBlock>
+                  );
                 })}
               </div>
             </div>
@@ -1059,16 +980,21 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
           {/* ============================================================== */}
           {directoryMode === 'hospitals' && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between px-0.5">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                  Hospitals & Healthcare Centres Near You
-                </h3>
-                <span className="text-xs text-slate-400 font-medium tabular-nums">
-                  {allFilteredHospitals.length} centres available
+              <div className="flex items-center justify-between px-0.5 pt-0.5">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                    Healthcare Centres Near You
+                  </h3>
+                  <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold tabular-nums">
+                    {allFilteredHospitals.length}
+                  </span>
+                </div>
+                <span className="text-[11px] text-slate-400 font-medium">
+                  Sorted by distance
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 gap-3.5">
+              <div className="grid grid-cols-1 gap-3">
                 {allFilteredHospitals.map((hosp, idx) => {
                   const hospDoctors = doctors.filter(d => d.hospitalId === hosp.id);
                   const primaryDoc = hospDoctors[0] || doctors[0];
@@ -1080,136 +1006,113 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                       delay={Math.min(idx * 0.05, 0.25)}
                       className="w-full"
                     >
-                      <motion.div
-                        whileHover={{ y: -1 }}
-                        transition={{ duration: 0.15 }}
-                        className="rounded-2xl border border-slate-200/80 bg-white hover:border-[#4a6cf0]/40 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_4px_12px_rgba(0,0,0,0.03)] p-3.5 space-y-3 flex flex-col justify-between relative overflow-hidden group transition-all"
-                      >
-                        <div>
-                          {/* Hospital Image Banner */}
-                          <div className="h-32 rounded-xl overflow-hidden mb-2.5 bg-slate-100 relative group/img">
+                      <div className="rounded-3xl border border-slate-200/90 bg-white shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-md transition-all p-3.5 sm:p-4 space-y-3 relative overflow-hidden">
+                        {/* Row 1: Hospital Thumbnail + Identity + Live Status */}
+                        <div className="flex items-start gap-3.5">
+                          {/* 80x80px Media Thumbnail with Rating */}
+                          <div className="w-20 h-20 rounded-2xl overflow-hidden bg-slate-100 relative shrink-0 border border-slate-100 shadow-xs">
                             <img
                               src={hosp.imageUrl}
                               alt={hosp.name}
-                              className="w-full h-full object-cover transition-transform duration-500 group-hover/img:scale-105"
+                              className="w-full h-full object-cover"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent" />
-                            
                             {/* Rating Tag */}
-                            <div className="absolute top-2 right-2 bg-slate-900/80 backdrop-blur-md px-2 py-0.5 rounded-full text-[10px] font-semibold text-white shadow-2xs flex items-center gap-1 border border-white/10">
+                            <div className="absolute top-1.5 left-1.5 bg-slate-900/85 backdrop-blur-xs px-1.5 py-0.5 rounded-md text-[10px] font-bold text-white flex items-center gap-0.5 shadow-xs">
                               <Star className="w-2.5 h-2.5 text-amber-400 fill-amber-400" />
                               <span>{hosp.rating}</span>
                             </div>
-
-                            {/* Emergency Badge */}
-                            {hosp.emergencyAvailable && (
-                              <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-600 text-[10px] font-semibold text-white shadow-xs">
-                                <span>24/7 Emergency & OPD</span>
-                              </div>
-                            )}
-
-                            {/* Distance Tag on Image */}
-                            <div className="absolute bottom-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-900/80 backdrop-blur-md text-[10px] font-medium text-white border border-white/10">
-                              <MapPin className="w-2.5 h-2.5 text-emerald-400" />
-                              <span>{hosp.distance || '1.2 km'} away</span>
-                            </div>
                           </div>
 
-                          {/* Hospital Name & Address */}
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="min-w-0 flex-1">
-                              <h4 className="font-semibold text-sm text-slate-900 tracking-tight truncate">
-                                {hosp.name}
-                              </h4>
-                              <p className="text-xs text-slate-500 mt-0.5 truncate font-normal">
-                                {hosp.address}
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Live Queue & Specialists Count */}
-                          <div className="mt-2.5 flex items-center gap-1.5 flex-wrap text-[11px]">
-                            <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-medium border border-emerald-200/50 flex items-center gap-1">
-                              <Clock className="w-3 h-3 text-emerald-600" />
-                              <span>Next: Token #{primaryDoc?.nextAvailableToken || 4} (~10m wait)</span>
-                            </span>
-                            <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-medium">
-                              {hospDoctors.length} Specialists On Duty
-                            </span>
-                          </div>
-
-                          {/* Specialties Pills */}
-                          <div className="mt-2 flex flex-wrap gap-1">
-                            {hosp.specialties.slice(0, 4).map(s => (
-                              <span key={s} className="px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-medium">
-                                {s}
+                          {/* Hospital Details & Live Queue */}
+                          <div className="min-w-0 flex-1 space-y-1">
+                            <div className="flex items-center justify-between gap-1">
+                              <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md flex items-center gap-1">
+                                <MapPin className="w-3 h-3 text-emerald-600 shrink-0" />
+                                <span>{hosp.distance || '1.2 km'} away</span>
                               </span>
-                            ))}
-                          </div>
 
-                          {/* Doctor Quick Preview */}
-                          {primaryDoc && (
-                            <div className="mt-2.5 p-2 rounded-xl bg-slate-50 border border-slate-100 flex items-center gap-2">
-                              <div className="w-7 h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-xs shrink-0">
-                                {primaryDoc.name.replace('Dr. ', '').split(' ')[0][0]}
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <p className="text-[11px] font-semibold text-slate-800 truncate">
-                                  {primaryDoc.name} • <span className="text-slate-500 font-normal">{primaryDoc.specialty}</span>
-                                </p>
-                                <p className="text-[10px] text-emerald-600 font-medium">Available for immediate consult</p>
-                              </div>
+                              {hosp.emergencyAvailable && (
+                                <span className="text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200/60 px-1.5 py-0.5 rounded-md shrink-0">
+                                  24/7 OPD
+                                </span>
+                              )}
                             </div>
-                          )}
+
+                            <h4 className="font-bold text-sm text-slate-900 tracking-tight leading-snug line-clamp-1">
+                              {hosp.name}
+                            </h4>
+
+                            <p className="text-xs text-slate-500 truncate font-normal">
+                              {hosp.address}
+                            </p>
+
+                            {/* Live Token Status Pill */}
+                            <div className="inline-flex items-center gap-1.5 text-[11px] font-medium text-emerald-800 bg-emerald-50/80 border border-emerald-200/50 px-2 py-0.5 rounded-md">
+                              <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                              </span>
+                              <span>Next: Token #{primaryDoc?.nextAvailableToken || 4}</span>
+                              <span className="text-emerald-500">•</span>
+                              <span className="text-slate-600 font-normal">~10m wait</span>
+                            </div>
+                          </div>
                         </div>
 
-                        {/* Direct 1-Tap Booking Buttons: Normal Visit vs Video Call */}
-                        <div className="pt-2 border-t border-slate-100 space-y-2">
-                          <div className="grid grid-cols-2 gap-2">
-                            {/* Button 1: Normal Visit */}
-                            <motion.button
-                              whileTap={{ scale: 0.97 }}
-                              type="button"
-                              onClick={() => {
-                                setSelectedHospital(hosp);
-                                setSelectedDoctor(primaryDoc);
-                                handleOpenCheckout(primaryDoc, 'IN_PERSON_OPD');
-                              }}
-                              className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer"
-                            >
-                              <Stethoscope className="w-3.5 h-3.5 text-white" />
-                              <span>Normal Visit • ₹{hosp.baseOpFee || 100}</span>
-                            </motion.button>
-
-                            {/* Button 2: Video Call */}
-                            <motion.button
-                              whileTap={{ scale: 0.97 }}
-                              type="button"
-                              onClick={() => {
-                                setSelectedHospital(hosp);
-                                setSelectedDoctor(primaryDoc);
-                                handleOpenCheckout(primaryDoc, 'VIDEO_CONSULTATION');
-                              }}
-                              className="py-2.5 px-3 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                            >
-                              <Video className="w-3.5 h-3.5 text-sky-600" />
-                              <span>Video Call • ₹{primaryDoc?.teleConsultationFee || 200}</span>
-                            </motion.button>
+                        {/* Row 2: Doctor on Duty & Specialists Strip */}
+                        <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 text-[11px]">
+                          <div className="flex items-center gap-1.5 min-w-0 text-slate-600 truncate">
+                            <Stethoscope className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <span className="font-semibold text-slate-800 shrink-0">{primaryDoc?.name.split(',')[0] || 'On-Duty Specialist'}</span>
+                            <span className="text-slate-300">•</span>
+                            <span className="text-slate-500 truncate">{primaryDoc?.specialty}</span>
                           </div>
 
-                          {/* Link to view individual doctors at this hospital */}
                           <button
                             type="button"
                             onClick={() => {
                               setSelectedHospital(hosp);
                               setDirectoryMode('doctors');
                             }}
-                            className="w-full text-center text-[11px] font-semibold text-slate-500 hover:text-emerald-700 py-0.5 transition-colors cursor-pointer flex items-center justify-center gap-1"
+                            className="text-[10px] font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/60 px-2 py-0.5 rounded-md shrink-0 transition-colors cursor-pointer"
                           >
-                            <span>Browse all {hospDoctors.length} doctors at {hosp.name.split(' ')[0]} →</span>
+                            {hospDoctors.length} Specialists →
                           </button>
                         </div>
-                      </motion.div>
+
+                        {/* Row 3: Dual 1-Tap Booking Actions */}
+                        <div className="grid grid-cols-2 gap-2 pt-0.5">
+                          {/* Button 1: Normal Visit */}
+                          <motion.button
+                            whileTap={{ scale: 0.97 }}
+                            type="button"
+                            onClick={() => {
+                              setSelectedHospital(hosp);
+                              setSelectedDoctor(primaryDoc);
+                              handleOpenCheckout(primaryDoc, 'IN_PERSON_OPD');
+                            }}
+                            className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                          >
+                            <Building2 className="w-3.5 h-3.5" />
+                            <span>Normal Visit • ₹{hosp.baseOpFee || 100}</span>
+                          </motion.button>
+
+                          {/* Button 2: Video Call */}
+                          <motion.button
+                            whileTap={{ scale: 0.97 }}
+                            type="button"
+                            onClick={() => {
+                              setSelectedHospital(hosp);
+                              setSelectedDoctor(primaryDoc);
+                              handleOpenCheckout(primaryDoc, 'VIDEO_CONSULTATION');
+                            }}
+                            className="py-2.5 px-3 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200/80 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                          >
+                            <Video className="w-3.5 h-3.5 text-sky-600" />
+                            <span>Video Call • ₹{primaryDoc?.teleConsultationFee || 250}</span>
+                          </motion.button>
+                        </div>
+                      </div>
                     </SlapBlock>
                   );
                 })}
