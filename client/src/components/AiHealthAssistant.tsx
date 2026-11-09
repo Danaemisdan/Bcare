@@ -23,9 +23,18 @@ import {
   Wind,
   HeartPulse,
   Brain,
+  Eye,
+  Ear,
+  Smile,
+  Droplets,
   ShieldAlert,
+  HeartHandshake,
+  Baby,
+  Syringe,
+  Moon,
+  FlaskConical,
+  Bandage,
   Stethoscope,
-  Activity,
   LucideIcon
 } from 'lucide-react';
 import { DoctorProfile, Hospital, OpSlot, PatientProfile } from '../types';
@@ -33,7 +42,7 @@ import { ConsultationType } from './BookingConsultationScreen';
 import { SiriOrb } from './SiriOrb';
 
 // ============================================================================
-// CLINICAL AI KNOWLEDGE BASE (PREMIUM VECTOR ICONS, ZERO EMOJIS)
+// CLINICAL AI KNOWLEDGE BASE (18 COMPREHENSIVE MEDICAL SPECIALTIES)
 // ============================================================================
 export type ClinicalCategoryId = 
   | 'vomiting_gi'
@@ -42,8 +51,20 @@ export type ClinicalCategoryId =
   | 'cough_breathing'
   | 'chest_cardiac'
   | 'headache_neuro'
+  | 'eye_vision'
+  | 'ent_throat'
+  | 'dental_oral'
+  | 'urinary_kidney'
   | 'skin_allergy'
+  | 'womens_health'
+  | 'pediatrics_child'
+  | 'diabetes_endocrine'
+  | 'mental_sleep'
+  | 'trauma_firstaid'
+  | 'diagnostics_lab'
   | 'general_other';
+
+export type FilterGroup = 'all' | 'core' | 'sensory' | 'organs' | 'family' | 'diagnostics';
 
 interface SmartChipOption {
   id: string;
@@ -55,6 +76,7 @@ interface SmartCategoryConfig {
   id: ClinicalCategoryId;
   title: string;
   badge: string;
+  group: FilterGroup;
   icon: LucideIcon;
   iconBg: string;
   iconColor: string;
@@ -81,6 +103,7 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     id: 'vomiting_gi',
     title: 'Stomach & GI',
     badge: 'Gastroenterology',
+    group: 'core',
     icon: Waves,
     iconBg: 'bg-emerald-50',
     iconColor: 'text-emerald-600',
@@ -110,6 +133,7 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     id: 'pain_ortho',
     title: 'Spine & Joints',
     badge: 'Orthopedics',
+    group: 'core',
     icon: Bone,
     iconBg: 'bg-amber-50',
     iconColor: 'text-amber-600',
@@ -139,6 +163,7 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     id: 'fever_infection',
     title: 'Fever & Infection',
     badge: 'Internal Medicine',
+    group: 'core',
     icon: Thermometer,
     iconBg: 'bg-rose-50',
     iconColor: 'text-rose-600',
@@ -168,6 +193,7 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     id: 'cough_breathing',
     title: 'Lungs & Breathing',
     badge: 'Pulmonology',
+    group: 'core',
     icon: Wind,
     iconBg: 'bg-cyan-50',
     iconColor: 'text-cyan-600',
@@ -197,6 +223,7 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     id: 'chest_cardiac',
     title: 'Chest & Heart',
     badge: 'Cardiology',
+    group: 'organs',
     icon: HeartPulse,
     iconBg: 'bg-red-50',
     iconColor: 'text-red-600',
@@ -226,6 +253,7 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     id: 'headache_neuro',
     title: 'Brain & Headache',
     badge: 'Neurology',
+    group: 'core',
     icon: Brain,
     iconBg: 'bg-purple-50',
     iconColor: 'text-purple-600',
@@ -252,9 +280,130 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     }
   },
   {
+    id: 'eye_vision',
+    title: 'Eye & Vision',
+    badge: 'Ophthalmology',
+    group: 'sensory',
+    icon: Eye,
+    iconBg: 'bg-indigo-50',
+    iconColor: 'text-indigo-600',
+    keywords: ['eye', 'eyes', 'vision', 'red eye', 'blur', 'conjunctivitis', 'stye', 'itchy eye', 'tear', 'sight'],
+    spokenIntro: "Eye discomfort detected. Are you experiencing redness, discharge, or blurry vision?",
+    q2: {
+      prompt: "What eye discomfort or visual changes are you having?",
+      sub: "Evaluates acute conjunctivitis versus corneal abrasions",
+      options: [
+        { id: 'redness_discharge', label: "Severe eye redness with sticky or watery discharge", sub: "Classic acute conjunctivitis (Pink Eye)" },
+        { id: 'foreign_body', label: "Sharp foreign body sensation or scratchy pain", sub: "Suspected corneal irritation or foreign particle" },
+        { id: 'blur_halos', label: "Sudden blurred vision, floaters, or halos around light", sub: "Requires prompt ophthalmic evaluation" },
+        { id: 'stye_lid', label: "Painful localized swelling on eyelid (Stye)", sub: "Blepharitis or meibomian gland inflammation" }
+      ]
+    },
+    diagnosis: {
+      primary: 'Acute Conjunctival Inflammation & Ophthalmic Triage',
+      confidence: 93,
+      specialty: 'General Medicine',
+      urgency: 'ROUTINE',
+      explanation: 'Surface ocular conjunctival hyperaemia without acute anterior chamber or retinal involvement.',
+      advice: 'Do not rub eyes. Wash hands frequently. Avoid wearing contact lenses. If sharp pain or vision drop occurs, seek prompt ophthalmic care.',
+      spokenSummary: "Analysis indicates acute conjunctival irritation. Avoid rubbing eyes. Accredited ophthalmic clinics are ready for consultation."
+    }
+  },
+  {
+    id: 'ent_throat',
+    title: 'Ear, Nose & ENT',
+    badge: 'ENT Specialist',
+    group: 'sensory',
+    icon: Ear,
+    iconBg: 'bg-sky-50',
+    iconColor: 'text-sky-600',
+    keywords: ['ear', 'nose', 'throat', 'ent', 'earache', 'sinus', 'sinusitis', 'tonsil', 'tonsillitis', 'swallow', 'hearing', 'nasal'],
+    spokenIntro: "ENT symptoms detected. Where is the discomfort primarily localized?",
+    q2: {
+      prompt: "What specific ENT symptom is affecting you most?",
+      sub: "Differentiates otitis media from acute suppurative sinusitis",
+      options: [
+        { id: 'ear_canal_pain', label: "Sharp throbbing ear canal pain or ear discharge", sub: "Acute otitis externa / middle ear effusion" },
+        { id: 'sinus_pressure', label: "Intense facial pressure, nasal blockage, and brow pain", sub: "Maxillary / frontal sinus congestion" },
+        { id: 'severe_throat', label: "Severe painful swallowing and swollen tonsils", sub: "Acute pharyngitis or bacterial tonsillitis" },
+        { id: 'blocked_nasal', label: "Blocked nasal passages with clear watery drip", sub: "Allergic rhinitis or early cold" }
+      ]
+    },
+    diagnosis: {
+      primary: 'Acute Rhino-Sinusitis & Pharyngotonsillar Triage',
+      confidence: 92,
+      specialty: 'General Medicine',
+      urgency: 'ROUTINE',
+      explanation: 'Mucosal edema across the upper aerodigestive tract. Clinical inspection rules out suppurative middle ear infection.',
+      advice: 'Gargle with warm salt water 3 times daily. Inhale warm steam to relieve sinus pressure. Consult an ENT specialist if ear pain is severe.',
+      spokenSummary: "Assessment suggests acute rhino-sinusitis. Salt water gargles and steam inhalation are recommended. Nearby ENT care centers are available."
+    }
+  },
+  {
+    id: 'dental_oral',
+    title: 'Dental & Oral',
+    badge: 'Dentistry',
+    group: 'sensory',
+    icon: Smile,
+    iconBg: 'bg-teal-50',
+    iconColor: 'text-teal-600',
+    keywords: ['tooth', 'teeth', 'dental', 'gum', 'dentist', 'toothache', 'molar', 'mouth', 'cavity', 'jaw', 'ulcer'],
+    spokenIntro: "Dental discomfort noted. Is there constant throbbing pain or sensitivity to cold and heat?",
+    q2: {
+      prompt: "What is the nature of your tooth or gum discomfort?",
+      sub: "Evaluates acute pulpitis, dental abscess, and gum infection",
+      options: [
+        { id: 'throbbing_toothache', label: "Continuous severe throbbing toothache with cheek swelling", sub: "Acute dental pulpitis or periapical abscess risk" },
+        { id: 'cold_hot_sensitivity', label: "Sharp shooting pain when drinking cold, hot, or sweet", sub: "Dentin exposure, enamel decay, or deep cavity" },
+        { id: 'bleeding_gums', label: "Swollen, tender, bleeding gums or painful mouth ulcers", sub: "Gingivitis or aphthous mucosal ulceration" },
+        { id: 'chipped_molar', label: "Chipped or broken tooth edge causing cheek cuts", sub: "Mechanical dental fracture requiring restoration" }
+      ]
+    },
+    diagnosis: {
+      primary: 'Acute Dental Pulpitis & Periapical Inflammatory Protocol',
+      confidence: 95,
+      specialty: 'General Medicine',
+      urgency: 'PRIORITY',
+      explanation: 'Deep dentin or pulp canal inflammation resulting in localized periapical pressure and hypersensitivity.',
+      advice: 'Rinse with warm salt water. Avoid very hot, cold, or sugary drinks. Do not apply aspirin directly to the gum. An immediate dental OPD token ensures pulp relief.',
+      spokenSummary: "Identified acute dental pulpitis. Avoid cold liquids. City Care Hospital dental department has tokens open for walk-in treatment."
+    }
+  },
+  {
+    id: 'urinary_kidney',
+    title: 'Kidney & Urinary',
+    badge: 'Urology',
+    group: 'organs',
+    icon: Droplets,
+    iconBg: 'bg-blue-50',
+    iconColor: 'text-blue-600',
+    keywords: ['urine', 'urination', 'pee', 'peeing', 'uti', 'kidney', 'bladder', 'flank', 'burning urine', 'stone', 'blood urine'],
+    spokenIntro: "Urinary symptoms detected. Are you having sharp burning while passing urine or flank pain?",
+    q2: {
+      prompt: "What specific urinary or flank sensation are you having?",
+      sub: "Screens for acute cystitis versus renal calculous colic",
+      options: [
+        { id: 'burning_dysuria', label: "Sharp burning or stinging while passing urine", sub: "Acute lower urinary tract infection (UTI)" },
+        { id: 'flank_colic', label: "Severe knife-like flank pain radiating to groin", sub: "Classic presentation of suspected Kidney Stone" },
+        { id: 'frequent_urgency', label: "Urgent bladder urge every few minutes with tiny drops", sub: "Bladder tenesmus and urethral irritation" },
+        { id: 'cloudy_red', label: "Reddish, pink, or discolored cloudy urine", sub: "Hematuria indicator requiring urgent urinalysis" }
+      ]
+    },
+    diagnosis: {
+      primary: 'Acute Lower Urinary Tract Infection & Renal Calculi Triage',
+      confidence: 94,
+      specialty: 'General Medicine',
+      urgency: 'PRIORITY',
+      explanation: 'Bacterial urothelium irritation or micro-calculus passage causing dysuria and muscular bladder irritability.',
+      advice: 'Increase fluid intake to 3+ liters of water daily. Avoid caffeine, alcohol, and hot spices. A urine routine and culture test is recommended for targeted clearance.',
+      spokenSummary: "Likely lower urinary tract infection. Increase water intake immediately. Urine culture and general medicine consultation are recommended."
+    }
+  },
+  {
     id: 'skin_allergy',
     title: 'Skin & Allergy',
     badge: 'Dermatology',
+    group: 'core',
     icon: ShieldAlert,
     iconBg: 'bg-orange-50',
     iconColor: 'text-orange-600',
@@ -281,9 +430,190 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
     }
   },
   {
+    id: 'womens_health',
+    title: "Women's Health",
+    badge: 'Gynecology',
+    group: 'family',
+    icon: HeartHandshake,
+    iconBg: 'bg-fuchsia-50',
+    iconColor: 'text-fuchsia-600',
+    keywords: ['women', 'female', 'period', 'menstrual', 'cramp', 'pcos', 'pregnancy', 'pregnant', 'bleeding', 'pelvic', 'uterus', 'gynecologist'],
+    spokenIntro: "Gynecological symptoms noted. Are you having severe pelvic cramping or cycle irregularities?",
+    q2: {
+      prompt: "What is your primary gynecological concern?",
+      sub: "Assesses spasmodic dysmenorrhea and pelvic reproductive health",
+      options: [
+        { id: 'severe_pelvic_cramp', label: "Severe incapacitating lower pelvic cramps and back pain", sub: "Acute spasmodic dysmenorrhea" },
+        { id: 'irregular_cycle', label: "Irregular cycle, unusual bleeding, or delayed period", sub: "Hormonal ovulatory variation or PCOS check" },
+        { id: 'pregnancy_consult', label: "Pregnancy inquiry, morning nausea, or prenatal care", sub: "Obstetric maternal checkup" },
+        { id: 'pelvic_fullness', label: "Pelvic pressure, bloating, or unusual discharge", sub: "Benign pelvic floor or localized flora check" }
+      ]
+    },
+    diagnosis: {
+      primary: 'Acute Pelvic Spasmodic Dysmenorrhea & Hormonal Review',
+      confidence: 94,
+      specialty: 'General Medicine',
+      urgency: 'ROUTINE',
+      explanation: 'Elevated uterine prostaglandin secretion resulting in myometrial contractions and lumbar referred pain.',
+      advice: 'Apply warm heating pads over lower abdomen. Sip warm herbal teas and stay rested. An OPD gynecology consultation can evaluate hormonal balance and prescribe targeted relief.',
+      spokenSummary: "Assessment points to spasmodic pelvic dysmenorrhea. Warm heating pads are advised, and certified gynecologists are available nearby."
+    }
+  },
+  {
+    id: 'pediatrics_child',
+    title: 'Child & Pediatrics',
+    badge: 'Pediatrics',
+    group: 'family',
+    icon: Baby,
+    iconBg: 'bg-pink-50',
+    iconColor: 'text-pink-600',
+    keywords: ['baby', 'child', 'infant', 'kid', 'pediatric', 'colic', 'newborn', 'toddler', 'vaccine', 'pediatrician'],
+    spokenIntro: "Pediatric concern noted. What symptoms is the child experiencing?",
+    q2: {
+      prompt: "What symptoms is the child experiencing?",
+      sub: "Evaluates pediatric pyrexia, feeding tolerance, and respiration",
+      options: [
+        { id: 'child_high_fever', label: "Spiking fever with lethargy and low energy in child", sub: "Acute pediatric febrile assessment" },
+        { id: 'inconsolable_crying', label: "Inconsolable crying, abdominal colic, or refusing feed", sub: "Infantile colic or feeding distress" },
+        { id: 'pediatric_cough', label: "Barking cough, noisy breathing, or chest retraction", sub: "Croup or reactive airway review" },
+        { id: 'mild_rash_vaccine', label: "Mild skin bumps, loose stool, or routine vaccination", sub: "Routine pediatric health maintenance" }
+      ]
+    },
+    diagnosis: {
+      primary: 'Pediatric Acute Febrile & Viral Syndromic Protocol',
+      confidence: 95,
+      specialty: 'Pediatrics',
+      urgency: 'PRIORITY',
+      explanation: 'Acute pediatric immune activation. Timely evaluation ensures proper hydration, weight-based dosage, and otoscopic screening.',
+      advice: 'Offer frequent sips of water or milk to keep child hydrated. Monitor temperature every 3 hours. Do not give adult medicines; an OPD pediatric specialist consultation is recommended.',
+      spokenSummary: "Pediatric assessment indicates acute febrile monitoring. Frequent hydration is key. Dr. Shalini Sundaram in Kovai Medical Centre is available today."
+    }
+  },
+  {
+    id: 'diabetes_endocrine',
+    title: 'Diabetes & Thyroid',
+    badge: 'Endocrinology',
+    group: 'organs',
+    icon: Syringe,
+    iconBg: 'bg-violet-50',
+    iconColor: 'text-violet-600',
+    keywords: ['diabetes', 'sugar', 'blood sugar', 'glucose', 'thyroid', 'insulin', 'endocrine', 'hba1c', 'hypo', 'hyper'],
+    spokenIntro: "Endocrine indicators detected. Are you having blood sugar spikes or unexplained fatigue?",
+    q2: {
+      prompt: "What metabolic indicators are you experiencing?",
+      sub: "Screens for acute glycemic imbalance and thyroid dysfunction",
+      options: [
+        { id: 'high_sugar_thirst', label: "High blood sugar spike with extreme thirst and urination", sub: "Acute hyperglycemia / insulin resistance" },
+        { id: 'shaking_hypo', label: "Cold shakes, sweating, and dizziness (Low sugar)", sub: "Hypoglycemia risk requiring immediate fast sugars" },
+        { id: 'weight_thyroid', label: "Unexplained weight change, hair thinning, or thyroid swelling", sub: "Thyroid hormone dysregulation (TSH)" },
+        { id: 'routine_diabetic', label: "Routine HbA1c review and diabetic prescription check", sub: "Preventive metabolic chronic management" }
+      ]
+    },
+    diagnosis: {
+      primary: 'Metabolic Glycemic Dysregulation & Endocrine Review',
+      confidence: 93,
+      specialty: 'General Medicine',
+      urgency: 'ROUTINE',
+      explanation: 'Impaired carbohydrate metabolism and glycemic fluctuation requiring fasting plasma glucose and HbA1c tracking.',
+      advice: 'Drink water and avoid refined carbohydrates. If experiencing sweating or shaking, take half a glass of juice or glucose tablet immediately. A physician consult will adjust dosage.',
+      spokenSummary: "Clinical analysis notes glycemic dysregulation. Stay hydrated. General physicians and diabetologists in Coimbatore South are ready for booking."
+    }
+  },
+  {
+    id: 'mental_sleep',
+    title: 'Mental & Sleep',
+    badge: 'Psychiatry',
+    group: 'family',
+    icon: Moon,
+    iconBg: 'bg-slate-100',
+    iconColor: 'text-slate-700',
+    keywords: ['mental', 'sleep', 'insomnia', 'anxiety', 'panic', 'stress', 'depress', 'depression', 'scared', 'worry', 'restless'],
+    spokenIntro: "Mental wellness concern noted. Are you having acute anxiety or severe sleep loss?",
+    q2: {
+      prompt: "How are you feeling emotionally and physically?",
+      sub: "Evaluates acute anxiety episodes and circadian sleep disruption",
+      options: [
+        { id: 'panic_racing_heart', label: "Acute panic attack with chest flutter and impending dread", sub: "Autonomic sympathetic fight-or-flight surge" },
+        { id: 'chronic_insomnia', label: "Severe insomnia, unable to sleep for multiple nights", sub: "Circadian rhythm disorder or high cortisol" },
+        { id: 'daily_anxiety', label: "Constant worry, muscle tension, and restlessness", sub: "Generalized anxiety and somatic strain" },
+        { id: 'fatigue_low_mood', label: "Low mood, chronic exhaustion, and lack of interest", sub: "Depressive mood evaluation" }
+      ]
+    },
+    diagnosis: {
+      primary: 'Acute Stress Response & Circadian Sleep Disturbance',
+      confidence: 92,
+      specialty: 'Neurology',
+      urgency: 'ROUTINE',
+      explanation: 'Heightened hypothalamic-pituitary-adrenal axis activation causing sympathetic overdrive and fragmented sleep architecture.',
+      advice: 'Practice deep 4-7-8 diaphragmatic breathing. Avoid screens and caffeine 3 hours before bed. A confidential medical consultation provides supportive therapy.',
+      spokenSummary: "Identified acute stress response and sleep disturbance. Breathing exercises are recommended. Certified specialists are available for confidential consultation."
+    }
+  },
+  {
+    id: 'trauma_firstaid',
+    title: 'Injury & First Aid',
+    badge: 'Emergency / Trauma',
+    group: 'diagnostics',
+    icon: Bandage,
+    iconBg: 'bg-amber-50',
+    iconColor: 'text-amber-700',
+    keywords: ['cut', 'wound', 'burn', 'injury', 'bleed', 'bleeding', 'hit', 'fall', 'first aid', 'accident', 'trauma', 'stitch'],
+    spokenIntro: "Injury noted. Is there active bleeding, a deep cut, or a severe burn?",
+    q2: {
+      prompt: "What is the nature of your physical injury?",
+      sub: "Screens for acute laceration, fracture, and burn severity",
+      options: [
+        { id: 'active_bleeding_cut', label: "Deep cut with continuous bleeding requiring stitches", sub: "Acute laceration needing sterile closure and tetanus" },
+        { id: 'sprain_swelling', label: "Twisted limb with rapid swelling, unable to move joint", sub: "Ligamentous tear or hairline fracture risk" },
+        { id: 'thermal_burn', label: "Skin burn with blisters, peeling, or hot oil contact", sub: "Partial-thickness thermal burn" },
+        { id: 'minor_scrape', label: "Superficial scrape, abrasion, or minor blunt contusion", sub: "Manageable with antiseptic dressing" }
+      ]
+    },
+    diagnosis: {
+      primary: 'Acute Mechanical Soft Tissue Trauma & Wound Care',
+      confidence: 96,
+      specialty: 'Orthopedics',
+      urgency: 'PRIORITY',
+      explanation: 'Disruption of dermal or subcutaneous integrity with risk of hemorrhage, bacterial inoculate, or osseous strain.',
+      advice: 'Apply direct clean pressure on bleeding areas. Do not burst blisters. Keep the area elevated. Walk-in to City Care Hospital OPD for sterile dressing and tetanus prophylaxis.',
+      spokenSummary: "Identified acute soft tissue trauma. Apply direct clean pressure. City Care Hospital emergency OPD has tokens ready immediately."
+    }
+  },
+  {
+    id: 'diagnostics_lab',
+    title: 'Lab Tests & Scans',
+    badge: 'Diagnostics',
+    group: 'diagnostics',
+    icon: FlaskConical,
+    iconBg: 'bg-emerald-50',
+    iconColor: 'text-emerald-700',
+    keywords: ['test', 'lab', 'blood test', 'scan', 'xray', 'ultrasound', 'ecg', 'cbc', 'lipid', 'checkup', 'pathology', 'screening'],
+    spokenIntro: "Diagnostic investigation requested. What type of lab test or scan are you looking to book?",
+    q2: {
+      prompt: "Which clinical investigation or health check do you need?",
+      sub: "Connects with accredited pathology and diagnostic radiology",
+      options: [
+        { id: 'cbc_fever_panel', label: "Complete Blood Count (CBC) & Dengue / Malaria test", sub: "Immediate infectious biomarker screening" },
+        { id: 'master_checkup', label: "Master Health Checkup with Lipid, Liver, and Kidney tests", sub: "Comprehensive preventive health profile" },
+        { id: 'diabetes_thyroid_lab', label: "Fasting Blood Sugar, HbA1c, and Thyroid panel", sub: "Metabolic tracking and medication calibration" },
+        { id: 'ecg_xray', label: "ECG, Chest X-Ray, or Ultrasound scan review", sub: "Cardiorespiratory and abdominal imaging" }
+      ]
+    },
+    diagnosis: {
+      primary: 'Diagnostic Laboratory Protocol & Health Screening',
+      confidence: 95,
+      specialty: 'General Medicine',
+      urgency: 'ROUTINE',
+      explanation: 'Objective biochemical and hematological profile provides definitive clinical baseline for physician diagnosis.',
+      advice: 'Fast for 8 to 10 hours if booking blood sugar or lipid profile tests. Water is permitted. Walk-in tokens provide same-day digital reports via B Care.',
+      spokenSummary: "Diagnostic lab profile ready. Fasting is recommended for lipid and glucose panels. Accredited diagnostic centers nearby are available."
+    }
+  },
+  {
     id: 'general_other',
     title: 'General Wellness',
     badge: 'Primary Care',
+    group: 'core',
     icon: Stethoscope,
     iconBg: 'bg-blue-50',
     iconColor: 'text-blue-600',
@@ -346,6 +676,9 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
   // Step Navigation State
   const [currentStep, setCurrentStep] = useState<AiFlowStep>('QUESTION_1');
 
+  // Filter Group State for Question 1
+  const [activeFilterGroup, setActiveFilterGroup] = useState<FilterGroup>('all');
+
   // Unified Questionnaire Answers
   const [selectedCategoryId, setSelectedCategoryId] = useState<ClinicalCategoryId>('vomiting_gi');
   const [inputText, setInputText] = useState<string>('Severe vomiting and stomach cramps');
@@ -356,6 +689,24 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
   const [isVoiceEnabled, setIsVoiceEnabled] = useState<boolean>(true);
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
   const [isListening, setIsListening] = useState<boolean>(false);
+
+  // Filtered categories based on selected tab and search text
+  const filteredCategories = useMemo(() => {
+    let list = SMART_CLINICAL_CATEGORIES;
+    if (activeFilterGroup !== 'all') {
+      list = list.filter(c => c.group === activeFilterGroup);
+    }
+    if (inputText.trim().length > 1) {
+      const q = inputText.toLowerCase();
+      const matched = list.filter(c => 
+        c.title.toLowerCase().includes(q) || 
+        c.badge.toLowerCase().includes(q) || 
+        c.keywords.some(k => k.includes(q))
+      );
+      if (matched.length > 0) return matched;
+    }
+    return list;
+  }, [activeFilterGroup, inputText]);
 
   // Active Category Config
   const activeCategory = useMemo(() => {
@@ -626,11 +977,11 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
       {/* ========================================================================= */}
       {/* 2. MAIN SLIDE VIEW (EXACTLY 1 QUESTION / UX PER FRAME, ZERO SCROLLING)     */}
       {/* ========================================================================= */}
-      <div className="flex-1 flex flex-col justify-between overflow-hidden min-h-0 py-1.5">
+      <div className="flex-1 flex flex-col justify-between overflow-hidden min-h-0 py-1">
         <AnimatePresence mode="wait">
           
           {/* ===================================================================== */}
-          {/* SLIDE 1: FIRST QUESTION — PRIMARY HEALTH CONCERN (VECTOR ICONS)        */}
+          {/* SLIDE 1: QUESTION 1 — ALL 18 MEDICAL SPECIALTIES + TABS + ZERO EMOJIS */}
           {/* ===================================================================== */}
           {currentStep === 'QUESTION_1' && (
             <motion.div
@@ -641,10 +992,10 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
               className="h-full flex flex-col justify-between overflow-hidden"
             >
-              {/* Question Header & Siri Orb */}
-              <div className="flex flex-col items-center text-center shrink-0 pt-0.5">
+              {/* Question Header & Siri Orb (Compact) */}
+              <div className="flex flex-col items-center text-center shrink-0">
                 <SiriOrb
-                  size={46}
+                  size={38}
                   state={isSpeaking ? "streaming" : isListening ? "listening" : "idle"}
                   className="cursor-pointer transition-transform hover:scale-105"
                   onClick={() => {
@@ -652,16 +1003,16 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                     else if (isVoiceEnabled) speakText("What is your main symptom or health concern?");
                   }}
                 />
-                <h3 className="text-base font-bold text-slate-900 tracking-tight mt-1.5">
+                <h3 className="text-[15px] font-bold text-slate-900 tracking-tight mt-1 leading-none">
                   What is your main symptom?
                 </h3>
-                <p className="text-[11px] text-slate-500 mt-0.5">
-                  Type, speak, or select a clinical specialty below
+                <p className="text-[10px] text-slate-500 mt-0.5">
+                  Type, speak, or select from all clinical specialties
                 </p>
               </div>
 
               {/* Free-Text Search & Voice Mic Bar */}
-              <div className="shrink-0 my-1.5">
+              <div className="shrink-0 my-1">
                 <div className={`relative flex items-center bg-white rounded-xl border shadow-2xs transition-all ${
                   isListening
                     ? 'border-rose-400 ring-2 ring-rose-100'
@@ -672,8 +1023,8 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                     type="text"
                     value={inputText}
                     onChange={(e) => handleQueryChange(e.target.value)}
-                    placeholder="Describe symptoms (e.g. vomiting, back pain, fever)..."
-                    className="w-full py-2 px-2 bg-transparent text-xs font-semibold text-slate-900 placeholder:text-slate-400 outline-none"
+                    placeholder="Search symptoms (e.g. toothache, eye, rash, urine)..."
+                    className="w-full py-1.5 px-2 bg-transparent text-xs font-semibold text-slate-900 placeholder:text-slate-400 outline-none"
                   />
                   {inputText && (
                     <button
@@ -687,7 +1038,7 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                   <button
                     type="button"
                     onClick={toggleListening}
-                    className={`p-1.5 mr-1 rounded-lg transition-all cursor-pointer shrink-0 ${
+                    className={`p-1 mr-1 rounded-lg transition-all cursor-pointer shrink-0 ${
                       isListening
                         ? 'bg-rose-500 text-white shadow-xs animate-pulse ring-1 ring-rose-300'
                         : 'bg-sky-50 text-sky-600 hover:bg-sky-100'
@@ -699,10 +1050,35 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                 </div>
               </div>
 
-              {/* Comprehensive Categories Grid (High-End Vector Icons, Zero Cheap Emojis) */}
-              <div className="flex-1 flex flex-col justify-center min-h-0">
+              {/* Specialty Segment Filter Bar (Quick Category Switching) */}
+              <div className="flex items-center gap-1 overflow-x-auto scrollbar-none py-0.5 shrink-0">
+                {[
+                  { id: 'all', label: 'All (18)' },
+                  { id: 'core', label: 'Core Care' },
+                  { id: 'sensory', label: 'Dental & ENT' },
+                  { id: 'organs', label: 'Internal Organs' },
+                  { id: 'family', label: 'Family & Women' },
+                  { id: 'diagnostics', label: 'Labs & Injury' }
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveFilterGroup(tab.id as FilterGroup)}
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap transition-all cursor-pointer ${
+                      activeFilterGroup === tab.id
+                        ? 'bg-slate-900 text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Comprehensive Categories Scroll Container (18 Medical Things Right Here!) */}
+              <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin pr-0.5 py-1">
                 <div className="grid grid-cols-2 gap-1.5">
-                  {SMART_CLINICAL_CATEGORIES.map((cat) => {
+                  {filteredCategories.map((cat) => {
                     const isSelected = selectedCategoryId === cat.id;
                     const IconComponent = cat.icon;
                     return (
@@ -710,20 +1086,20 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                         key={cat.id}
                         type="button"
                         onClick={() => handleSelectCategory(cat)}
-                        className={`p-2 rounded-xl text-left border transition-all cursor-pointer flex items-center gap-2 ${
+                        className={`p-1.5 rounded-xl text-left border transition-all cursor-pointer flex items-center gap-1.5 ${
                           isSelected
                             ? 'bg-sky-50/90 border-sky-500 text-sky-950 shadow-2xs ring-1.5 ring-sky-200'
                             : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700 shadow-2xs'
                         }`}
                       >
-                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${cat.iconBg} ${cat.iconColor}`}>
-                          <IconComponent className="w-4 h-4" />
+                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 ${cat.iconBg} ${cat.iconColor}`}>
+                          <IconComponent className="w-3.5 h-3.5" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <div className="text-[11.5px] font-bold truncate leading-tight">{cat.title}</div>
-                          <div className="text-[9.5px] text-slate-500 truncate leading-none mt-0.5">{cat.badge}</div>
+                          <div className="text-[11px] font-bold truncate leading-tight">{cat.title}</div>
+                          <div className="text-[9px] text-slate-400 truncate leading-none mt-0.5">{cat.badge}</div>
                         </div>
-                        {isSelected && <Check className="w-3.5 h-3.5 text-sky-600 shrink-0 stroke-[2.5]" />}
+                        {isSelected && <Check className="w-3 h-3 text-sky-600 shrink-0 stroke-[2.5]" />}
                       </button>
                     );
                   })}
@@ -731,7 +1107,7 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
               </div>
 
               {/* Bottom CTA Button */}
-              <div className="pt-2 shrink-0">
+              <div className="pt-1.5 shrink-0">
                 <button
                   type="button"
                   onClick={handleGoToQ2}
