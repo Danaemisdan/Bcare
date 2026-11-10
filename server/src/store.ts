@@ -35,6 +35,24 @@ export class AppDataStore {
       createdAt: '2026-01-10T09:00:00Z'
     },
     {
+      id: 'user-doctor-2',
+      phone: '9876543215',
+      email: 'dr.rajesh@apexhealth.com',
+      name: 'Dr. Rajesh Verma',
+      role: 'DOCTOR',
+      avatarUrl: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150',
+      createdAt: '2026-01-18T09:00:00Z'
+    },
+    {
+      id: 'user-doctor-3',
+      phone: '9876543216',
+      email: 'dr.meera@kovairesearch.org',
+      name: 'Dr. Meera Swaminathan',
+      role: 'DOCTOR',
+      avatarUrl: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150',
+      createdAt: '2026-01-20T09:00:00Z'
+    },
+    {
       id: 'user-nurse-1',
       phone: '9876543212',
       email: 'nurse.priya@districtclinic.org',
@@ -47,10 +65,19 @@ export class AppDataStore {
       id: 'user-franchise-1',
       phone: '9876543213',
       email: 'franchise.admin@apexcoimbatore.com',
-      name: 'Vikas Patel',
+      name: 'Vikas Patel (Apex Healthcare Ops)',
       role: 'FRANCHISE_ADMIN',
       avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
       createdAt: '2026-01-05T09:00:00Z'
+    },
+    {
+      id: 'user-franchise-2',
+      phone: '9876543217',
+      email: 'admin@kovaicentre.org',
+      name: 'Kovai Trust Hospital Operations',
+      role: 'FRANCHISE_ADMIN',
+      avatarUrl: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=150',
+      createdAt: '2026-01-08T09:00:00Z'
     },
     {
       id: 'user-admin-1',
@@ -82,7 +109,7 @@ export class AppDataStore {
     }]
   ]);
 
-  // Hospitals
+  // Accredited Hospitals with Registered Accounts
   hospitals: Hospital[] = [
     {
       id: 'hosp-1',
@@ -91,12 +118,19 @@ export class AppDataStore {
       districtName: 'Coimbatore South',
       address: '42 Avinashi Road, Peelamedu, Coimbatore',
       rating: 4.8,
-      specialties: ['Cardiology', 'Neurology', 'Orthopedics', 'General Medicine', 'Dermatology', 'Dentistry', 'Ophthalmology', 'ENT', 'Gastroenterology', 'General Surgery'],
+      specialties: ['Cardiology', 'Orthopedics', 'General Medicine'],
       baseOpFee: 100,
       imageUrl: 'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?w=600',
       emergencyAvailable: true,
       distance: '1.2 km',
-      activeDoctorsCount: 14
+      activeDoctorsCount: 2,
+      adminUserId: 'user-franchise-1',
+      isAccountVerified: true,
+      latitude: 11.0267,
+      longitude: 77.0089,
+      phone: '+91 422 257 0108',
+      emergencyPhone: '108',
+      googleMapsUrl: 'https://www.google.com/maps/dir/?api=1&destination=11.0267,77.0089'
     },
     {
       id: 'hosp-2',
@@ -105,30 +139,23 @@ export class AppDataStore {
       districtName: 'Coimbatore South',
       address: '15 Trichy Road, Singanallur, Coimbatore',
       rating: 4.6,
-      specialties: ['Pediatrics', 'Obstetrics & Gynecology', 'Gynecology', 'Dermatology', 'Neurology', 'Mental Wellness', 'Pulmonology', 'Nephrology'],
+      specialties: ['Neurology', 'General Medicine'],
       baseOpFee: 100,
       imageUrl: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=600',
       emergencyAvailable: true,
       distance: '2.8 km',
-      activeDoctorsCount: 18
-    },
-    {
-      id: 'hosp-3',
-      name: 'Rural Community Health Centre - Pollachi',
-      districtId: 'dist-coimbatore-rural',
-      districtName: 'Pollachi Rural',
-      address: 'Main Market Road, Pollachi',
-      rating: 4.3,
-      specialties: ['General Medicine', 'Orthopedics', 'Diabetology', 'ENT', 'Dentistry'],
-      baseOpFee: 80,
-      imageUrl: 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=600',
-      emergencyAvailable: false,
-      distance: '6.4 km',
-      activeDoctorsCount: 8
+      activeDoctorsCount: 1,
+      adminUserId: 'user-franchise-2',
+      isAccountVerified: true,
+      latitude: 11.0016,
+      longitude: 77.0253,
+      phone: '+91 422 268 0100',
+      emergencyPhone: '108',
+      googleMapsUrl: 'https://www.google.com/maps/dir/?api=1&destination=11.0016,77.0253'
     }
   ];
 
-  // Doctors Directory (Full Network in District)
+  // Doctors Directory (Strictly Only Doctors with Registered Signed-up Accounts)
   doctors: DoctorProfile[] = [
     {
       id: 'doc-1',
@@ -145,9 +172,12 @@ export class AppDataStore {
       totalConsultations: 1420,
       status: 'ACTIVE',
       distance: '1.2 km',
-      nextAvailableToken: 4,
-      estimatedWaitMins: 15,
-      videoAvailable: true
+      nextAvailableToken: 5,
+      roomNumber: '204',
+      estimatedWaitMins: 12,
+      videoAvailable: true,
+      registrationNumber: 'TMC-77492',
+      isAccountVerified: true
     },
     {
       id: 'doc-2',
@@ -164,9 +194,12 @@ export class AppDataStore {
       totalConsultations: 980,
       status: 'ACTIVE',
       distance: '1.2 km',
-      nextAvailableToken: 2,
+      nextAvailableToken: 3,
+      roomNumber: '108',
       estimatedWaitMins: 8,
-      videoAvailable: true
+      videoAvailable: true,
+      registrationNumber: 'TMC-66291',
+      isAccountVerified: true
     },
     {
       id: 'doc-3',
@@ -183,256 +216,12 @@ export class AppDataStore {
       totalConsultations: 2100,
       status: 'ACTIVE',
       distance: '2.8 km',
-      nextAvailableToken: 6,
-      estimatedWaitMins: 25,
-      videoAvailable: true
-    },
-    {
-      id: 'doc-4',
-      userId: 'user-doctor-4',
-      name: 'Dr. Karthik Subramanian, MD (Med)',
-      specialty: 'General Medicine',
-      hospitalId: 'hosp-3',
-      hospitalName: 'Rural Community Health Centre - Pollachi',
-      experienceYears: 9,
-      opConsultationFee: 80,
-      teleConsultationFee: 180,
-      availableDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-      rating: 4.65,
-      totalConsultations: 850,
-      status: 'ACTIVE',
-      distance: '6.4 km',
-      nextAvailableToken: 1,
-      estimatedWaitMins: 5,
-      videoAvailable: true
-    },
-    {
-      id: 'doc-5',
-      userId: 'user-doctor-5',
-      name: 'Dr. Shalini Sundaram, DCH, MD (Peds)',
-      specialty: 'Pediatrics',
-      hospitalId: 'hosp-2',
-      hospitalName: 'Kovai Medical & Research Centre',
-      experienceYears: 12,
-      opConsultationFee: 100,
-      teleConsultationFee: 220,
-      availableDays: ['Mon', 'Tue', 'Thu', 'Fri', 'Sat'],
-      rating: 4.88,
-      totalConsultations: 1630,
-      status: 'ACTIVE',
-      distance: '2.8 km',
-      nextAvailableToken: 3,
-      estimatedWaitMins: 12,
-      videoAvailable: true
-    },
-    {
-      id: 'doc-6',
-      userId: 'user-doctor-6',
-      name: 'Dr. Arvind Narayanan, MD (Derm)',
-      specialty: 'Dermatology',
-      hospitalId: 'hosp-1',
-      hospitalName: 'City Care Multi-Specialty Hospital',
-      experienceYears: 8,
-      opConsultationFee: 100,
-      teleConsultationFee: 200,
-      availableDays: ['Tue', 'Wed', 'Fri', 'Sat'],
-      rating: 4.75,
-      totalConsultations: 710,
-      status: 'ACTIVE',
-      distance: '1.2 km',
-      nextAvailableToken: 5,
-      estimatedWaitMins: 20,
-      videoAvailable: true
-    },
-    {
-      id: 'doc-7',
-      userId: 'user-doctor-7',
-      name: 'Dr. Priya Nair, MD (OBG)',
-      specialty: 'Gynecology',
-      hospitalId: 'hosp-2',
-      hospitalName: 'Kovai Medical & Research Centre',
-      experienceYears: 13,
-      opConsultationFee: 120,
-      teleConsultationFee: 250,
-      availableDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-      rating: 4.92,
-      totalConsultations: 1840,
-      status: 'ACTIVE',
-      distance: '2.8 km',
-      nextAvailableToken: 2,
-      estimatedWaitMins: 10,
-      videoAvailable: true
-    },
-    {
-      id: 'doc-8',
-      userId: 'user-doctor-8',
-      name: 'Dr. Kavitha Raman, MDS (Dentistry)',
-      specialty: 'Dentistry',
-      hospitalId: 'hosp-1',
-      hospitalName: 'City Care Multi-Specialty Hospital',
-      experienceYears: 10,
-      opConsultationFee: 100,
-      teleConsultationFee: 180,
-      availableDays: ['Mon', 'Wed', 'Thu', 'Sat'],
-      rating: 4.85,
-      totalConsultations: 920,
-      status: 'ACTIVE',
-      distance: '1.2 km',
-      nextAvailableToken: 1,
-      estimatedWaitMins: 5,
-      videoAvailable: true
-    },
-    {
-      id: 'doc-9',
-      userId: 'user-doctor-9',
-      name: 'Dr. Suresh Balaji, MS (Ophthalmology)',
-      specialty: 'Ophthalmology',
-      hospitalId: 'hosp-1',
-      hospitalName: 'City Care Multi-Specialty Hospital',
-      experienceYears: 15,
-      opConsultationFee: 100,
-      teleConsultationFee: 200,
-      availableDays: ['Tue', 'Thu', 'Fri', 'Sat'],
-      rating: 4.89,
-      totalConsultations: 1510,
-      status: 'ACTIVE',
-      distance: '1.2 km',
-      nextAvailableToken: 3,
-      estimatedWaitMins: 12,
-      videoAvailable: true
-    },
-    {
-      id: 'doc-10',
-      userId: 'user-doctor-10',
-      name: 'Dr. Deepa Chandran, MS (ENT)',
-      specialty: 'ENT',
-      hospitalId: 'hosp-3',
-      hospitalName: 'Rural Community Health Centre - Pollachi',
-      experienceYears: 11,
-      opConsultationFee: 80,
-      teleConsultationFee: 180,
-      availableDays: ['Mon', 'Tue', 'Thu', 'Fri'],
-      rating: 4.78,
-      totalConsultations: 1120,
-      status: 'ACTIVE',
-      distance: '6.4 km',
-      nextAvailableToken: 2,
-      estimatedWaitMins: 8,
-      videoAvailable: true
-    },
-    {
-      id: 'doc-11',
-      userId: 'user-doctor-11',
-      name: 'Dr. Vikram Singh, MD (Psychiatry)',
-      specialty: 'Mental Wellness',
-      hospitalId: 'hosp-2',
-      hospitalName: 'Kovai Medical & Research Centre',
-      experienceYears: 14,
-      opConsultationFee: 150,
-      teleConsultationFee: 300,
-      availableDays: ['Mon', 'Wed', 'Fri', 'Sat'],
-      rating: 4.96,
-      totalConsultations: 1340,
-      status: 'ACTIVE',
-      distance: '2.8 km',
       nextAvailableToken: 4,
+      roomNumber: '302',
       estimatedWaitMins: 15,
-      videoAvailable: true
-    },
-    {
-      id: 'doc-12',
-      userId: 'user-doctor-12',
-      name: 'Dr. Arun Kumar, DM (Gastroenterology)',
-      specialty: 'Gastroenterology',
-      hospitalId: 'hosp-1',
-      hospitalName: 'City Care Multi-Specialty Hospital',
-      experienceYears: 17,
-      opConsultationFee: 120,
-      teleConsultationFee: 280,
-      availableDays: ['Mon', 'Tue', 'Thu', 'Sat'],
-      rating: 4.91,
-      totalConsultations: 2050,
-      status: 'ACTIVE',
-      distance: '1.2 km',
-      nextAvailableToken: 3,
-      estimatedWaitMins: 12,
-      videoAvailable: true
-    },
-    {
-      id: 'doc-13',
-      userId: 'user-doctor-13',
-      name: 'Dr. Sanjay Varma, DM (Nephrology)',
-      specialty: 'Nephrology',
-      hospitalId: 'hosp-2',
-      hospitalName: 'Kovai Medical & Research Centre',
-      experienceYears: 12,
-      opConsultationFee: 120,
-      teleConsultationFee: 260,
-      availableDays: ['Tue', 'Wed', 'Fri'],
-      rating: 4.82,
-      totalConsultations: 870,
-      status: 'ACTIVE',
-      distance: '2.8 km',
-      nextAvailableToken: 2,
-      estimatedWaitMins: 10,
-      videoAvailable: true
-    },
-    {
-      id: 'doc-14',
-      userId: 'user-doctor-14',
-      name: 'Dr. Reshma Menon, MD (Pulmonology)',
-      specialty: 'Pulmonology',
-      hospitalId: 'hosp-2',
-      hospitalName: 'Kovai Medical & Research Centre',
-      experienceYears: 9,
-      opConsultationFee: 100,
-      teleConsultationFee: 220,
-      availableDays: ['Mon', 'Thu', 'Sat'],
-      rating: 4.86,
-      totalConsultations: 760,
-      status: 'ACTIVE',
-      distance: '2.8 km',
-      nextAvailableToken: 1,
-      estimatedWaitMins: 6,
-      videoAvailable: true
-    },
-    {
-      id: 'doc-15',
-      userId: 'user-doctor-15',
-      name: 'Dr. Mohan Raj, MD (Diabetology)',
-      specialty: 'Diabetology',
-      hospitalId: 'hosp-3',
-      hospitalName: 'Rural Community Health Centre - Pollachi',
-      experienceYears: 18,
-      opConsultationFee: 80,
-      teleConsultationFee: 180,
-      availableDays: ['Mon', 'Tue', 'Wed', 'Fri'],
-      rating: 4.9,
-      totalConsultations: 2400,
-      status: 'ACTIVE',
-      distance: '6.4 km',
-      nextAvailableToken: 3,
-      estimatedWaitMins: 10,
-      videoAvailable: true
-    },
-    {
-      id: 'doc-16',
-      userId: 'user-doctor-16',
-      name: 'Dr. Harish Venkatesh, MS (General Surgery)',
-      specialty: 'General Surgery',
-      hospitalId: 'hosp-1',
-      hospitalName: 'City Care Multi-Specialty Hospital',
-      experienceYears: 16,
-      opConsultationFee: 120,
-      teleConsultationFee: 250,
-      availableDays: ['Wed', 'Thu', 'Fri', 'Sat'],
-      rating: 4.88,
-      totalConsultations: 1690,
-      status: 'ACTIVE',
-      distance: '1.2 km',
-      nextAvailableToken: 4,
-      estimatedWaitMins: 18,
-      videoAvailable: true
+      videoAvailable: true,
+      registrationNumber: 'TMC-88102',
+      isAccountVerified: true
     }
   ];
 
@@ -641,11 +430,12 @@ export class AppDataStore {
       let nurseReferralCode: string | undefined = undefined;
       let bulkReservationBatchId: string | undefined = undefined;
 
-      // Token 1: Completed consultation
+      // Token 1: Completed consultation earlier this morning for Ramesh Kumar
       if (tokenNumber === 1) {
         status = 'COMPLETED';
-        patientName = 'Suresh Balan';
-        patientPhone = '9845012345';
+        patientId = 'user-patient-1';
+        patientName = 'Ramesh Kumar';
+        patientPhone = '9876543210';
       } 
       // Token 2: In Consultation right now
       else if (tokenNumber === 2) {
@@ -653,14 +443,20 @@ export class AppDataStore {
         patientName = 'Meenakshi Sundaram';
         patientPhone = '9845023456';
       }
-      // Token 3: Available for patient booking (initially no booking)
-      // Token 4: Booked via Nurse Priya referral
-      else if (tokenNumber === 4) {
+      // Token 3: Booked via Nurse Priya referral
+      else if (tokenNumber === 3) {
         status = 'BOOKED';
         patientName = 'K. Arumugam';
         patientPhone = '9845034567';
         bookedByNurseId = 'nurse-1';
         nurseReferralCode = 'NURSE-PRIYA-782';
+      }
+      // Token 4: Active live token pass for Ramesh Kumar!
+      else if (tokenNumber === 4) {
+        status = 'BOOKED';
+        patientId = 'user-patient-1';
+        patientName = 'Ramesh Kumar';
+        patientPhone = '9876543210';
       }
       // Tokens 11 to 15: Reserved in BULK by Nurse Priya for rural/walk-in patients!
       else if (tokenNumber >= 11 && tokenNumber <= 15) {

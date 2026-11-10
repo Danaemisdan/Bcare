@@ -197,7 +197,25 @@ export function App() {
     }
   });
 
-  const [videoAppointments, setVideoAppointments] = useState<VideoAppointment[]>([]);
+  const [videoAppointments, setVideoAppointments] = useState<VideoAppointment[]>([
+    {
+      id: 'vid-apt-1',
+      doctorId: 'doc-1',
+      doctorName: 'Dr. Ananya Sharma, MD, DM',
+      doctorSpecialty: 'Cardiology',
+      hospitalName: 'City Care Multi-Specialty Hospital',
+      patientId: 'user-patient-1',
+      patientName: 'Ramesh Kumar',
+      patientPhone: '9876543210',
+      date: new Date().toLocaleDateString('en-CA'),
+      time: '11:30 AM',
+      meetingLink: 'https://meet.bcare.health/room/bc-vid-doc1-rk',
+      feePaid: 250,
+      status: 'SCHEDULED',
+      paymentMethod: 'UPI',
+      createdAt: new Date().toISOString()
+    }
+  ]);
 
   const [hospitals, setHospitals] = useState<Hospital[]>([
     {
@@ -207,17 +225,19 @@ export function App() {
       districtName: 'Coimbatore South',
       address: '42 Avinashi Road, Peelamedu, Coimbatore',
       rating: 4.8,
-      specialties: ['Cardiology', 'Neurology', 'Orthopedics', 'General Medicine', 'Dermatology'],
+      specialties: ['Cardiology', 'Orthopedics', 'General Medicine'],
       baseOpFee: 100,
       imageUrl: 'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?w=600',
       emergencyAvailable: true,
       distance: '1.2 km',
-      activeDoctorsCount: 14,
+      activeDoctorsCount: 2,
       latitude: 11.0267,
       longitude: 77.0089,
       phone: '+91 422 257 0100',
       emergencyPhone: '+91 422 257 0108',
-      googleMapsUrl: 'https://www.google.com/maps/dir/?api=1&destination=11.0267,77.0089'
+      googleMapsUrl: 'https://www.google.com/maps/dir/?api=1&destination=11.0267,77.0089',
+      adminUserId: 'user-franchise-1',
+      isAccountVerified: true
     },
     {
       id: 'hosp-2',
@@ -226,36 +246,19 @@ export function App() {
       districtName: 'Coimbatore South',
       address: '15 Trichy Road, Singanallur, Coimbatore',
       rating: 4.6,
-      specialties: ['Pediatrics', 'Obstetrics & Gynecology', 'Dermatology', 'Neurology'],
+      specialties: ['Neurology', 'General Medicine'],
       baseOpFee: 100,
       imageUrl: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=600',
       emergencyAvailable: true,
       distance: '2.8 km',
-      activeDoctorsCount: 18,
+      activeDoctorsCount: 1,
       latitude: 11.0016,
       longitude: 77.0253,
       phone: '+91 422 259 4400',
       emergencyPhone: '+91 422 259 4499',
-      googleMapsUrl: 'https://www.google.com/maps/dir/?api=1&destination=11.0016,77.0253'
-    },
-    {
-      id: 'hosp-3',
-      name: 'Rural Community Health Centre - Pollachi',
-      districtId: 'dist-coimbatore-rural',
-      districtName: 'Pollachi Rural',
-      address: 'Main Market Road, Pollachi',
-      rating: 4.3,
-      specialties: ['General Medicine', 'Orthopedics', 'Diabetology'],
-      baseOpFee: 80,
-      imageUrl: 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=600',
-      emergencyAvailable: false,
-      distance: '6.4 km',
-      activeDoctorsCount: 8,
-      latitude: 10.6609,
-      longitude: 77.0048,
-      phone: '+91 4259 223 300',
-      emergencyPhone: '108',
-      googleMapsUrl: 'https://www.google.com/maps/dir/?api=1&destination=10.6609,77.0048'
+      googleMapsUrl: 'https://www.google.com/maps/dir/?api=1&destination=11.0016,77.0253',
+      adminUserId: 'user-franchise-2',
+      isAccountVerified: true
     }
   ]);
 
@@ -275,9 +278,12 @@ export function App() {
       totalConsultations: 1420,
       status: 'ACTIVE',
       distance: '1.2 km',
-      nextAvailableToken: 4,
-      estimatedWaitMins: 15,
-      videoAvailable: true
+      nextAvailableToken: 5,
+      roomNumber: '204',
+      estimatedWaitMins: 12,
+      videoAvailable: true,
+      registrationNumber: 'TMC-77492',
+      isAccountVerified: true
     },
     {
       id: 'doc-2',
@@ -294,9 +300,12 @@ export function App() {
       totalConsultations: 980,
       status: 'ACTIVE',
       distance: '1.2 km',
-      nextAvailableToken: 2,
+      nextAvailableToken: 3,
+      roomNumber: '108',
       estimatedWaitMins: 8,
-      videoAvailable: true
+      videoAvailable: true,
+      registrationNumber: 'TMC-66291',
+      isAccountVerified: true
     },
     {
       id: 'doc-3',
@@ -313,66 +322,12 @@ export function App() {
       totalConsultations: 2100,
       status: 'ACTIVE',
       distance: '2.8 km',
-      nextAvailableToken: 6,
-      estimatedWaitMins: 25,
-      videoAvailable: true
-    },
-    {
-      id: 'doc-4',
-      userId: 'user-doctor-4',
-      name: 'Dr. Karthik Subramanian, MD (Med)',
-      specialty: 'General Medicine',
-      hospitalId: 'hosp-3',
-      hospitalName: 'Rural Community Health Centre - Pollachi',
-      experienceYears: 9,
-      opConsultationFee: 80,
-      teleConsultationFee: 180,
-      availableDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-      rating: 4.65,
-      totalConsultations: 850,
-      status: 'ACTIVE',
-      distance: '6.4 km',
-      nextAvailableToken: 1,
-      estimatedWaitMins: 5,
-      videoAvailable: true
-    },
-    {
-      id: 'doc-5',
-      userId: 'user-doctor-5',
-      name: 'Dr. Shalini Sundaram, DCH, MD (Peds)',
-      specialty: 'Pediatrics',
-      hospitalId: 'hosp-2',
-      hospitalName: 'Kovai Medical & Research Centre',
-      experienceYears: 12,
-      opConsultationFee: 100,
-      teleConsultationFee: 220,
-      availableDays: ['Mon', 'Tue', 'Thu', 'Fri', 'Sat'],
-      rating: 4.88,
-      totalConsultations: 1630,
-      status: 'ACTIVE',
-      distance: '2.8 km',
-      nextAvailableToken: 3,
-      estimatedWaitMins: 12,
-      videoAvailable: true
-    },
-    {
-      id: 'doc-6',
-      userId: 'user-doctor-6',
-      name: 'Dr. Arvind Narayanan, MD (Derm)',
-      specialty: 'Dermatology',
-      hospitalId: 'hosp-1',
-      hospitalName: 'City Care Multi-Specialty Hospital',
-      experienceYears: 8,
-      opConsultationFee: 100,
-      teleConsultationFee: 200,
-      availableDays: ['Tue', 'Wed', 'Fri', 'Sat'],
-      rating: 4.75,
-      totalConsultations: 710,
-      status: 'ACTIVE',
-      distance: '1.2 km',
-      nextAvailableToken: 5,
-      estimatedWaitMins: 20,
-      videoAvailable: true
+      nextAvailableToken: 4,
+      roomNumber: '302',
+      estimatedWaitMins: 15,
+      videoAvailable: true,
+      registrationNumber: 'TMC-88102',
+      isAccountVerified: true
     }
   ]);
 
@@ -580,15 +535,30 @@ export function App() {
       let status: OpSlot['status'] = 'AVAILABLE';
       let patientId: string | undefined = undefined;
       let patientName: string | undefined = undefined;
+      let patientPhone: string | undefined = undefined;
       let bookedByNurseId: string | undefined = undefined;
       let nurseReferralCode: string | undefined = undefined;
 
       if (tokenNumber === 1) {
         status = 'COMPLETED';
-        patientName = 'Suresh Balan';
+        patientId = 'user-patient-1';
+        patientName = 'Ramesh Kumar';
+        patientPhone = '9876543210';
       } else if (tokenNumber === 2) {
         status = 'IN_CONSULTATION';
         patientName = 'Meenakshi Sundaram';
+        patientPhone = '9845023456';
+      } else if (tokenNumber === 3) {
+        status = 'BOOKED';
+        patientName = 'K. Arumugam';
+        patientPhone = '9845034567';
+        bookedByNurseId = 'nurse-1';
+        nurseReferralCode = 'NURSE-PRIYA-782';
+      } else if (tokenNumber === 4) {
+        status = 'BOOKED';
+        patientId = 'user-patient-1';
+        patientName = 'Ramesh Kumar';
+        patientPhone = '9876543210';
       } else if (tokenNumber >= 11 && tokenNumber <= 15) {
         status = 'RESERVED_BULK';
         bookedByNurseId = 'nurse-1';
@@ -608,6 +578,7 @@ export function App() {
         status,
         patientId,
         patientName,
+        patientPhone,
         bookedByNurseId,
         nurseReferralCode,
         feePaid: 100,
@@ -1216,7 +1187,7 @@ export function App() {
   ];
 
   const activeUserTokens = slots.filter(
-    s => s.patientPhone === patientProfile.phone && (s.status === 'BOOKED' || s.status === 'IN_CONSULTATION')
+    s => (s.patientPhone === patientProfile.phone || (patientProfile.userId && s.patientId === patientProfile.userId)) && (s.status === 'BOOKED' || s.status === 'IN_CONSULTATION')
   );
 
   const handleAuthSuccess = (data: { user: any; token: string; role: UserRole; profile: any }) => {

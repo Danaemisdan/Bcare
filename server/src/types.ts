@@ -39,6 +39,13 @@ export interface Hospital {
   emergencyAvailable?: boolean;
   distance?: string;
   activeDoctorsCount?: number;
+  adminUserId?: string; // Registered administrator / franchise account ID
+  isAccountVerified?: boolean;
+  latitude?: number;
+  longitude?: number;
+  phone?: string;
+  emergencyPhone?: string;
+  googleMapsUrl?: string;
 }
 
 export interface DoctorProfile {
@@ -60,6 +67,8 @@ export interface DoctorProfile {
   roomNumber?: string;
   estimatedWaitMins?: number;
   videoAvailable?: boolean;
+  registrationNumber?: string;
+  isAccountVerified?: boolean;
 }
 
 export interface NurseProfile {

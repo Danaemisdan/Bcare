@@ -134,10 +134,10 @@ router.post('/auth/signup', (req: Request, res: Response) => {
     districtName
   } = req.body as SignUpRequest;
 
-  // Only patients are allowed to create an account online
-  if (role && role !== 'PATIENT') {
+  // Allow self-registration for Patients and Registered Doctors
+  if (role && role !== 'PATIENT' && role !== 'DOCTOR') {
     return res.status(403).json({ 
-      error: 'Self-registration is only permitted for Patients. Doctor, nurse, and staff accounts must be provisioned by Hospital Administration.' 
+      error: 'Self-registration is permitted for Patients and Doctors. Nurse and franchise administrative accounts must be provisioned by Network Administration.' 
     });
   }
 
@@ -159,8 +159,10 @@ router.post('/auth/signup', (req: Request, res: Response) => {
     phone: cleanPhone,
     email: email?.trim().toLowerCase() || `${cleanPhone}@bcare.in`,
     name: name.trim(),
-    role: 'PATIENT',
-    avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+    role: role as UserRole,
+    avatarUrl: role === 'DOCTOR' 
+      ? 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150' 
+      : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
     createdAt: new Date().toISOString()
   };
 
@@ -185,23 +187,57 @@ router.post('/auth/signup', (req: Request, res: Response) => {
     store.patientProfiles.set(userId, patientProfile);
     profile = patientProfile;
   } else if (role === 'DOCTOR') {
-    const defaultHosp = store.hospitals[0];
+    const matchedHosp = store.hospitals.find(h => h.id === hospitalId) || store.hospitals[0];
     const docProfile: DoctorProfile = {
       id: `doc-${Date.now()}`,
       userId,
-      name: `Dr. ${newUser.name}`,
+      name: newUser.name.startsWith('Dr.') ? newUser.name : `Dr. ${newUser.name}`,
       specialty: specialty || 'General Medicine',
-      hospitalId: hospitalId || defaultHosp.id,
-      hospitalName: defaultHosp.name,
+      hospitalId: matchedHosp.id,
+      hospitalName: matchedHosp.name,
       experienceYears: 8,
       opConsultationFee: 100,
       teleConsultationFee: 200,
       availableDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
       rating: 5.0,
-      totalConsultations: 0
+      totalConsultations: 0,
+      status: 'ACTIVE',
+      distance: matchedHosp.distance || '1.2 km',
+      nextAvailableToken: 1,
+      roomNumber: '106',
+      estimatedWaitMins: 5,
+      videoAvailable: true,
+      registrationNumber: registrationNumber || 'NMC-TN-88219',
+      isAccountVerified: true
     };
     store.doctors.push(docProfile);
     profile = docProfile;
+
+    // Seed slots for this new doctor today
+    const today = new Date().toISOString().split('T')[0];
+    const newDocTimes = ['10:00 AM', '10:15 AM', '10:30 AM', '10:45 AM', '11:00 AM', '11:15 AM'];
+    newDocTimes.forEach((t, i) => {
+      store.opSlots.push({
+        id: `slot-${docProfile.id}-${i + 1}`,
+        doctorId: docProfile.id,
+        doctorName: docProfile.name,
+        hospitalId: docProfile.hospitalId,
+        hospitalName: docProfile.hospitalName,
+        specialty: docProfile.specialty,
+        date: today,
+        time: t,
+        tokenNumber: i + 1,
+        status: 'AVAILABLE',
+        feePaid: 100,
+        feeSplit: {
+          doctor: store.revenueSplitConfig.doctorFee,
+          nurse: 0,
+          franchise: store.revenueSplitConfig.franchiseShare,
+          platform: store.revenueSplitConfig.platformShare + store.revenueSplitConfig.nurseReferralCommission,
+          gst: store.revenueSplitConfig.gstAmount
+        }
+      });
+    });
   } else if (role === 'NURSE') {
     const defaultHosp = store.hospitals[0];
     const nurseCode = referralCode || `NURSE-${newUser.name.slice(0, 4).toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`;
@@ -358,10 +394,17 @@ router.post('/patient/profile-update', (req: Request, res: Response) => {
   res.json({ message: 'Profile updated successfully', profile });
 });
 
-// Hospitals & Specialties
+// Hospitals & Specialties (Strictly Only Hospitals with Registered Verified Accounts)
 router.get('/hospitals', (req: Request, res: Response) => {
   const { specialty, district } = req.query;
-  let list = store.hospitals;
+
+  // Filter to hospitals that have an active registered administrator account
+  const validAdminUserIds = new Set(
+    store.users.filter(u => u.role === 'FRANCHISE_ADMIN' || u.role === 'SUPER_ADMIN').map(u => u.id)
+  );
+
+  let list = store.hospitals.filter(h => h.adminUserId && validAdminUserIds.has(h.adminUserId));
+
   if (specialty) {
     list = list.filter(h => h.specialties.some(s => s.toLowerCase() === (specialty as string).toLowerCase()));
   }
@@ -371,10 +414,17 @@ router.get('/hospitals', (req: Request, res: Response) => {
   res.json(list);
 });
 
-// Doctors
+// Doctors (Strictly Only Doctors with Registered Signed-up Accounts)
 router.get('/doctors', (req: Request, res: Response) => {
   const { hospitalId, specialty } = req.query;
-  let list = store.doctors;
+
+  // Filter to doctors whose userId exists in store.users with DOCTOR role
+  const doctorAccounts = new Map(
+    store.users.filter(u => u.role === 'DOCTOR').map(u => [u.id, u])
+  );
+
+  let list = store.doctors.filter(d => doctorAccounts.has(d.userId));
+
   if (hospitalId) list = list.filter(d => d.hospitalId === hospitalId);
   if (specialty) list = list.filter(d => d.specialty.toLowerCase() === (specialty as string).toLowerCase());
   res.json(list);

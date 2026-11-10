@@ -44,6 +44,8 @@ export interface Hospital {
   phone?: string;
   emergencyPhone?: string;
   googleMapsUrl?: string;
+  adminUserId?: string;
+  isAccountVerified?: boolean;
 }
 
 export interface DoctorProfile {
@@ -65,6 +67,8 @@ export interface DoctorProfile {
   estimatedWaitMins?: number;
   videoAvailable?: boolean;
   roomNumber?: string;
+  registrationNumber?: string;
+  isAccountVerified?: boolean;
 }
 
 export interface NurseProfile {

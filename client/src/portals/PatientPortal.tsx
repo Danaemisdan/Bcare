@@ -76,6 +76,7 @@ import {
   MapPin,
   Calendar,
   Ticket,
+  Plus,
   Home,
   Mic
 } from 'lucide-react';
@@ -143,6 +144,8 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
   };
   const [historyFilter, setHistoryFilter] = useState<'ALL' | 'PRESCRIPTIONS' | 'TOKENS'>('ALL');
   const [bookingFilter, setBookingFilter] = useState<'ALL' | 'IN_PERSON' | 'VIDEO' | 'COMPLETED'>('ALL');
+  const [bookingScope, setBookingScope] = useState<'ACTIVE' | 'PAST'>('ACTIVE');
+  const [showNewBookingModal, setShowNewBookingModal] = useState(false);
   const [activeLegalModal, setActiveLegalModal] = useState<'CONSENT' | 'NMC' | 'PRIVACY' | 'GRIEVANCE' | null>(null);
   const [dpdpShareEHR, setDpdpShareEHR] = useState(true);
   const [dpdpAbhaSync, setDpdpAbhaSync] = useState(true);
@@ -430,6 +433,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
   const doctorSlots = slots.filter(s => s.doctorId === activeDoctor.id);
 
   const activeUserTokens = slots.filter(s => (s.patientPhone === patientProfile.phone || (patientProfile.userId && s.patientId === patientProfile.userId)) && (s.status === 'BOOKED' || s.status === 'IN_CONSULTATION'));
+  const completedUserTokens = slots.filter(s => (s.patientPhone === patientProfile.phone || (patientProfile.userId && s.patientId === patientProfile.userId)) && s.status === 'COMPLETED');
 
   const handleOpenCheckout = (doc: DoctorProfile, type: ConsultationType, explicitSlot?: OpSlot) => {
     const hosp = hospitals.find(h => h.id === doc.hospitalId) || hospitals[0];
@@ -1473,374 +1477,449 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
           transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
           className="space-y-4 pb-32"
         >
-          {/* Header */}
-          <div className="flex items-center justify-between pb-1 border-b border-slate-100">
+          {/* Header & Quick Booking Action */}
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
             <div>
               <h2 className="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
                 <CalendarCheck className="w-5 h-5 text-blue-600" />
-                <span>My Bookings & OPD Passes</span>
+                <span>My Bookings</span>
               </h2>
               <p className="text-[11px] text-slate-500 mt-0.5">
-                Hospital OPD queue passes & certified video consultations in one place
+                Real-time hospital queue passes & scheduled teleconsultations
               </p>
             </div>
             
-            <span className="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/70 text-[11px] font-bold">
-              {activeUserTokens.length + (videoAppointments?.filter(v => v.status === 'SCHEDULED').length || 0)} Active
-            </span>
+            <button
+              type="button"
+              onClick={() => setShowNewBookingModal(true)}
+              className="px-3.5 py-1.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all active:scale-95 cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Book New</span>
+            </button>
           </div>
 
-          {/* Quick Action Booking Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {/* Quick Card 1: Book In-Person Hospital Visit */}
-            <div
-              onClick={() => {
-                setDirectoryMode('hospitals');
-                setActiveTab('op_booking');
-                setTimeout(() => {
-                  const el = document.getElementById('nearby-directory');
-                  el?.scrollIntoView({ behavior: 'smooth' });
-                }, 100);
-              }}
-              className="p-3.5 rounded-2xl bg-gradient-to-br from-blue-50 via-white to-blue-50/40 border border-blue-200/80 shadow-2xs hover:border-blue-400 transition-all cursor-pointer flex items-center justify-between group active:scale-[0.99]"
+          {/* Scope Switcher: Upcoming Passes vs Past Visits */}
+          <div className="bg-slate-100 p-1 rounded-full flex items-center gap-1 select-none">
+            <button
+              type="button"
+              onClick={() => setBookingScope('ACTIVE')}
+              className={`flex-1 py-1.5 px-3 rounded-full text-xs font-bold transition-all text-center cursor-pointer ${
+                bookingScope === 'ACTIVE'
+                  ? 'bg-white text-slate-900 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
             >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold shadow-xs group-hover:scale-105 transition-transform">
-                  <Building2 className="w-5 h-5" />
+              Upcoming Passes ({activeUserTokens.length + (videoAppointments?.filter(v => v.status === 'SCHEDULED').length || 0)})
+            </button>
+            <button
+              type="button"
+              onClick={() => setBookingScope('PAST')}
+              className={`flex-1 py-1.5 px-3 rounded-full text-xs font-bold transition-all text-center cursor-pointer ${
+                bookingScope === 'PAST'
+                  ? 'bg-white text-slate-900 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              Past Visits ({completedUserTokens.length + prescriptions.length})
+            </button>
+          </div>
+
+          {/* ============================================================== */}
+          {/* VIEW 1: ACTIVE / UPCOMING PASSES                               */}
+          {/* ============================================================== */}
+          {bookingScope === 'ACTIVE' && (
+            <div className="space-y-4">
+              {/* Secondary Category Filters */}
+              {(activeUserTokens.length > 0 || (videoAppointments?.length || 0) > 0) && (
+                <div className="bg-slate-100/70 p-1 rounded-full flex items-center gap-1 select-none overflow-x-auto">
+                  <button
+                    type="button"
+                    onClick={() => setBookingFilter('ALL')}
+                    className={`flex-1 py-1 px-3 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                      bookingFilter === 'ALL'
+                        ? 'bg-white text-slate-900 shadow-xs'
+                        : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    All Active ({activeUserTokens.length + (videoAppointments?.filter(v => v.status === 'SCHEDULED').length || 0)})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBookingFilter('IN_PERSON')}
+                    className={`flex-1 py-1 px-3 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                      bookingFilter === 'IN_PERSON'
+                        ? 'bg-white text-slate-900 shadow-xs'
+                        : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    In-Person OPD ({activeUserTokens.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBookingFilter('VIDEO')}
+                    className={`flex-1 py-1 px-3 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                      bookingFilter === 'VIDEO'
+                        ? 'bg-white text-slate-900 shadow-xs'
+                        : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    Video Calls ({videoAppointments?.filter(v => v.status === 'SCHEDULED').length || 0})
+                  </button>
                 </div>
-                <div>
-                  <h4 className="text-xs font-extrabold text-slate-900 group-hover:text-blue-700 transition-colors">
-                    Book In-Person OPD Pass
-                  </h4>
-                  <p className="text-[11px] text-slate-500 mt-0.5">
-                    Hospitals & Clinics • Live Queue • From ₹100
-                  </p>
+              )}
+
+              {/* SECTION A: IN-PERSON OPD PASSES */}
+              {(bookingFilter === 'ALL' || bookingFilter === 'IN_PERSON') && activeUserTokens.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between px-1">
+                    <span className="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                      <Ticket className="w-4 h-4 text-blue-600" />
+                      <span>Live Hospital OPD Passes ({activeUserTokens.length})</span>
+                    </span>
+                    <span className="text-[11px] text-blue-600 font-bold">Real-Time Queue</span>
+                  </div>
+
+                  {activeUserTokens.map(token => {
+                    const doc = doctors.find(d => d.id === token.doctorId);
+                    const hosp = hospitals.find(h => h.id === token.hospitalId) || hospitals[0];
+                    const googleMapsUrl = hosp?.googleMapsUrl || `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(hosp?.address || 'Coimbatore')}`;
+
+                    const currentServingSlot = slots.find(s => s.status === 'IN_CONSULTATION' && s.doctorId === token.doctorId);
+                    const currentServingToken = currentServingSlot?.tokenNumber ?? Math.max(1, token.tokenNumber - 2);
+                    const tokensAhead = Math.max(0, token.tokenNumber - currentServingToken);
+                    const estWait = tokensAhead * 6;
+
+                    return (
+                      <div
+                        key={token.id}
+                        className="rounded-[24px] border border-blue-200/90 bg-white p-4 shadow-sm hover:shadow-md transition-all space-y-3 relative overflow-hidden"
+                      >
+                        {/* Header Row: Token # + Status badge */}
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white font-black text-sm flex items-center justify-center shadow-xs">
+                              #{token.tokenNumber < 10 ? `0${token.tokenNumber}` : token.tokenNumber}
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-blue-600 font-bold uppercase tracking-wider block">
+                                Hospital OPD Token
+                              </span>
+                              <h4 className="font-extrabold text-xs text-slate-900 leading-tight">
+                                {doc?.name || token.doctorName || 'Attending Specialist'}
+                              </h4>
+                            </div>
+                          </div>
+
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1 ${
+                            token.status === 'IN_CONSULTATION'
+                              ? 'bg-amber-50 text-amber-700 border-amber-300 animate-pulse'
+                              : 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                          }`}>
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            <span>{token.status === 'IN_CONSULTATION' ? 'In Consultation' : 'Live in Queue'}</span>
+                          </span>
+                        </div>
+
+                        {/* Metadata: Hospital, Room, Slot Time */}
+                        <div className="text-xs space-y-1.5 text-slate-600">
+                          <div className="flex items-center justify-between">
+                            <span className="text-slate-400">Hospital:</span>
+                            <span className="font-bold text-slate-900">{hosp?.name}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-slate-400">Department & Room:</span>
+                            <span className="font-semibold text-slate-800">{doc?.specialty || token.specialty || 'General'} • Room {doc?.roomNumber || '204'}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-slate-400">Slot & Status:</span>
+                            <span className="font-bold text-slate-900">Today • {token.time} • ₹{token.feePaid || 100} (Paid)</span>
+                          </div>
+                        </div>
+
+                        {/* Queue Status Box */}
+                        <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-2.5 space-y-1.5">
+                          <div className="flex items-center justify-between text-[11px]">
+                            <span className="text-slate-600 flex items-center gap-1 font-medium">
+                              <Clock className="w-3.5 h-3.5 text-blue-600" />
+                              <span>Now Serving:</span>
+                              <strong className="text-slate-900 font-bold">Token #{currentServingToken}</strong>
+                            </span>
+                            <span className="text-blue-700 font-bold">
+                              {tokensAhead === 0 ? 'You are next in line!' : `~${estWait} mins (${tokensAhead} ahead)`}
+                            </span>
+                          </div>
+                          <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden flex">
+                            <div
+                              className="bg-blue-600 h-full rounded-full transition-all duration-500"
+                              style={{ width: `${Math.min(100, Math.max(15, (currentServingToken / token.tokenNumber) * 100))}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Actions: Google Maps Navigation, View Full Pass */}
+                        <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100">
+                          <button
+                            type="button"
+                            onClick={() => window.open(googleMapsUrl, '_blank')}
+                            className="py-2 px-3 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/80 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                            title="Open Google Maps Route"
+                          >
+                            <MapPin className="w-3.5 h-3.5 text-blue-600" />
+                            <span>Navigate (Maps)</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setShowLivePassModal(true)}
+                            className="py-2 px-3 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                          >
+                            <QrCode className="w-3.5 h-3.5 text-emerald-400" />
+                            <span>View Pass (QR)</span>
+                          </button>
+                        </div>
+
+                        {/* Secondary WhatsApp & Cancel Row */}
+                        <div className="flex items-center justify-between pt-0.5 text-xs">
+                          <button
+                            type="button"
+                            onClick={() => onTriggerWhatsAppToast(
+                              'OP Queue Pass',
+                              `Token #${token.tokenNumber} details shared to your WhatsApp (+91 ${patientProfile.phone})`,
+                              'TOKEN_CONFIRMATION'
+                            )}
+                            className="text-emerald-700 hover:text-emerald-800 font-bold text-[11px] flex items-center gap-1 cursor-pointer"
+                          >
+                            <MessageCircle className="w-3 h-3 text-emerald-600" />
+                            <span>Send to WhatsApp</span>
+                          </button>
+
+                          {onCancelSlot && (
+                            <button
+                              type="button"
+                              onClick={() => onCancelSlot(token.id)}
+                              className="text-slate-400 hover:text-rose-600 text-[11px] font-semibold transition-colors cursor-pointer"
+                            >
+                              Cancel Pass
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              </div>
-              <ArrowRight className="w-4 h-4 text-blue-600 group-hover:translate-x-1 transition-transform" />
+              )}
+
+              {/* SECTION B: VIDEO CONSULTATIONS */}
+              {(bookingFilter === 'ALL' || bookingFilter === 'VIDEO') && (videoAppointments?.filter(v => v.status === 'SCHEDULED').length || 0) > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between px-1">
+                    <span className="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                      <Video className="w-4 h-4 text-emerald-600" />
+                      <span>Video Consultations ({videoAppointments?.filter(v => v.status === 'SCHEDULED').length})</span>
+                    </span>
+                    <span className="text-[11px] text-emerald-700 font-bold">10 Languages</span>
+                  </div>
+
+                  {videoAppointments?.filter(v => v.status === 'SCHEDULED').map(apt => {
+                    const doc = doctors.find(d => d.id === apt.doctorId) || doctors[0];
+
+                    return (
+                      <div
+                        key={apt.id}
+                        className="rounded-[24px] border border-emerald-200/90 bg-white p-4 shadow-sm hover:shadow-md transition-all space-y-3"
+                      >
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center shadow-xs">
+                              <Video className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-emerald-700 font-bold uppercase tracking-wider block">
+                                Video Telehealth
+                              </span>
+                              <h4 className="font-extrabold text-xs text-slate-900 leading-tight">
+                                {apt.doctorName || doc.name}
+                              </h4>
+                              <span className="text-[11px] text-slate-500 font-medium">
+                                {apt.doctorSpecialty || doc.specialty} • {apt.hospitalName || doc.hospitalName}
+                              </span>
+                            </div>
+                          </div>
+
+                          <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            <span>Ready</span>
+                          </span>
+                        </div>
+
+                        <div className="text-xs space-y-1 text-slate-600">
+                          <div className="flex justify-between text-[11px]">
+                            <span className="text-slate-400">Scheduled Time:</span>
+                            <span className="font-bold text-slate-900">Today • {apt.time}</span>
+                          </div>
+                          <div className="flex justify-between text-[11px]">
+                            <span className="text-slate-400">Consultation Fee:</span>
+                            <span className="font-bold text-emerald-700">₹{apt.feePaid} (Paid via {apt.paymentMethod})</span>
+                          </div>
+                          <div className="flex justify-between text-[11px]">
+                            <span className="text-slate-400">Languages:</span>
+                            <span className="font-semibold text-slate-800">English, Tamil, Hindi</span>
+                          </div>
+                        </div>
+
+                        {/* Join Real Video Call Button */}
+                        <div className="pt-1 flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setActiveVideoModalDoc(doc)}
+                            className="flex-1 py-2.5 px-4 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs flex items-center justify-center gap-2 shadow-xs transition-all active:scale-95 cursor-pointer"
+                          >
+                            <Video className="w-4 h-4" />
+                            <span>Launch Video Room Now</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedDoctor(doc);
+                              setActiveVideoModalDoc(doc);
+                            }}
+                            className="py-2.5 px-3 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                            title="Doctor Chat"
+                          >
+                            <MessageSquare className="w-3.5 h-3.5" />
+                            <span>Chat</span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Empty State for Active */}
+              {activeUserTokens.length === 0 && (videoAppointments?.filter(v => v.status === 'SCHEDULED').length || 0) === 0 && (
+                <div className="p-8 text-center bg-white rounded-3xl border border-slate-200/80 space-y-3">
+                  <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto">
+                    <CalendarCheck className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-extrabold text-slate-900">No Upcoming Passes</h4>
+                    <p className="text-xs text-slate-500 max-w-xs mx-auto mt-0.5">
+                      You do not have any active appointments for today. Book an in-person OPD pass or schedule a video call.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowNewBookingModal(true)}
+                    className="px-4 py-2 rounded-full bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition-colors cursor-pointer"
+                  >
+                    + Book New Appointment
+                  </button>
+                </div>
+              )}
             </div>
+          )}
 
-            {/* Quick Card 2: Book Video Consultation */}
-            <div
-              onClick={() => {
-                setSelectedDoctor(doctors[0]);
-                handleOpenCheckout(doctors[0], 'VIDEO_CONSULTATION');
-              }}
-              className="p-3.5 rounded-2xl bg-gradient-to-br from-emerald-50 via-white to-emerald-50/40 border border-emerald-200/80 shadow-2xs hover:border-emerald-400 transition-all cursor-pointer flex items-center justify-between group active:scale-[0.99]"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold shadow-xs group-hover:scale-105 transition-transform">
-                  <Video className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-extrabold text-slate-900 group-hover:text-emerald-700 transition-colors">
-                    Book Video Consultation
-                  </h4>
-                  <p className="text-[11px] text-slate-500 mt-0.5">
-                    Connect in ~10 mins • 10 Languages • ₹250
-                  </p>
-                </div>
-              </div>
-              <ArrowRight className="w-4 h-4 text-emerald-600 group-hover:translate-x-1 transition-transform" />
-            </div>
-          </div>
-
-          {/* Segmented Filter Pills */}
-          <div className="bg-slate-100 p-1 rounded-full flex items-center gap-1 select-none overflow-x-auto">
-            <button
-              type="button"
-              onClick={() => setBookingFilter('ALL')}
-              className={`flex-1 py-1.5 px-3 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
-                bookingFilter === 'ALL'
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              All Bookings ({activeUserTokens.length + (videoAppointments?.length || 0)})
-            </button>
-            <button
-              type="button"
-              onClick={() => setBookingFilter('IN_PERSON')}
-              className={`flex-1 py-1.5 px-3 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
-                bookingFilter === 'IN_PERSON'
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              In-Person Visits ({activeUserTokens.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setBookingFilter('VIDEO')}
-              className={`flex-1 py-1.5 px-3 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
-                bookingFilter === 'VIDEO'
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              Video Consults ({videoAppointments?.length || 0})
-            </button>
-          </div>
-
-          {/* SECTION A: IN-PERSON OPD PASSES */}
-          {(bookingFilter === 'ALL' || bookingFilter === 'IN_PERSON') && activeUserTokens.length > 0 && (
+          {/* ============================================================== */}
+          {/* VIEW 2: PAST VISITS & COMPLETED PASSES                         */}
+          {/* ============================================================== */}
+          {bookingScope === 'PAST' && (
             <div className="space-y-3">
               <div className="flex items-center justify-between px-1">
                 <span className="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                  <Ticket className="w-4 h-4 text-blue-600" />
-                  <span>In-Person OPD Passes ({activeUserTokens.length})</span>
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span>Past Consultations & Medical Summary</span>
                 </span>
-                <span className="text-[11px] text-slate-400 font-medium">Live Queue</span>
+                <span className="text-[11px] text-slate-400 font-medium">ABHA Synced</span>
               </div>
 
-              {activeUserTokens.map(token => {
+              {/* Sample Completed Visits with Doctor Prescription Download */}
+              <div className="rounded-[24px] border border-slate-200/90 bg-white p-4 shadow-sm hover:shadow-md transition-all space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-800 font-bold flex items-center justify-center text-xs">
+                      Rx
+                    </div>
+                    <div>
+                      <h4 className="font-extrabold text-xs text-slate-900 leading-tight">
+                        Dr. Ananya Sharma, MD, DM
+                      </h4>
+                      <p className="text-[11px] text-slate-500">
+                        Cardiology • City Care Multi-Specialty Hospital
+                      </p>
+                    </div>
+                  </div>
+
+                  <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold">
+                    Completed
+                  </span>
+                </div>
+
+                <div className="bg-slate-50 p-2.5 rounded-xl text-xs space-y-1">
+                  <div className="text-[11px] text-slate-500">Clinical Diagnosis:</div>
+                  <div className="font-bold text-slate-800">
+                    Essential Hypertension Stage 1 with Mild Exertional Tachycardia
+                  </div>
+                  <div className="text-[10px] text-slate-500">
+                    Slot: Token #01 • 28 Oct 2026 • Follow-up in 30 days
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (prescriptions && prescriptions.length > 0) {
+                        generatePrescriptionPdf(prescriptions[0]);
+                      }
+                    }}
+                    className="flex-1 py-2 px-3 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <FileText className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Download Prescription (PDF)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedDoctor(doctors[0]);
+                      handleOpenCheckout(doctors[0], 'IN_PERSON_OPD');
+                    }}
+                    className="py-2 px-3 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs cursor-pointer"
+                  >
+                    Book Follow-up
+                  </button>
+                </div>
+              </div>
+
+              {completedUserTokens.filter(t => t.id !== 'slot-1').map(token => {
                 const doc = doctors.find(d => d.id === token.doctorId);
                 const hosp = hospitals.find(h => h.id === token.hospitalId) || hospitals[0];
-                const googleMapsUrl = hosp?.googleMapsUrl || `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(hosp?.address || 'Coimbatore')}`;
-
-                const currentServingSlot = slots.find(s => s.status === 'IN_CONSULTATION' && s.doctorId === token.doctorId);
-                const currentServingToken = currentServingSlot?.tokenNumber ?? Math.max(1, token.tokenNumber - 2);
-                const tokensAhead = Math.max(0, token.tokenNumber - currentServingToken);
-                const estWait = tokensAhead * 6;
 
                 return (
                   <div
                     key={token.id}
-                    className="rounded-[24px] border border-slate-200/90 bg-white p-4 shadow-sm hover:shadow-md transition-all space-y-3 relative overflow-hidden"
+                    className="rounded-[24px] border border-slate-200/90 bg-white p-4 shadow-sm space-y-2"
                   >
-                    {/* Header Row: Token # + Status badge */}
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-700 font-extrabold text-sm flex items-center justify-center border border-blue-200/60">
-                          #{token.tokenNumber < 10 ? `0${token.tokenNumber}` : token.tokenNumber}
-                        </div>
-                        <div>
-                          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
-                            OPD Pass
-                          </span>
-                          <h4 className="font-extrabold text-xs text-slate-900 leading-tight">
-                            {doc?.name || 'Attending Specialist'}
-                          </h4>
-                        </div>
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                      <div>
+                        <span className="text-[10px] text-slate-400 font-bold uppercase">OPD Token #{token.tokenNumber}</span>
+                        <h4 className="font-bold text-xs text-slate-900">{doc?.name || 'Attending Specialist'}</h4>
+                        <p className="text-[11px] text-slate-500">{hosp?.name}</p>
                       </div>
-
-                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
-                        token.status === 'IN_CONSULTATION'
-                          ? 'bg-amber-50 text-amber-700 border-amber-300 animate-pulse'
-                          : 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                      }`}>
-                        {token.status === 'IN_CONSULTATION' ? '● In Consultation' : '● Live in Queue'}
+                      <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold">
+                        Completed
                       </span>
                     </div>
-
-                    {/* Metadata: Hospital, Room, Slot Time */}
-                    <div className="text-xs space-y-1.5 text-slate-600">
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-400">Hospital:</span>
-                        <span className="font-bold text-slate-900">{hosp?.name}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-400">Department & Room:</span>
-                        <span className="font-semibold text-slate-800">{doc?.specialty || 'General'} • Room {doc?.roomNumber || '104'}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-400">Slot Time:</span>
-                        <span className="font-bold text-slate-900">{token.time}</span>
-                      </div>
-                    </div>
-
-                    {/* Queue Status Box */}
-                    <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-2.5 space-y-1.5">
-                      <div className="flex items-center justify-between text-[11px]">
-                        <span className="text-slate-600 flex items-center gap-1 font-medium">
-                          <Clock className="w-3.5 h-3.5 text-blue-600" />
-                          <span>Now Serving:</span>
-                          <strong className="text-slate-900 font-bold">#{currentServingToken}</strong>
-                        </span>
-                        <span className="text-blue-700 font-bold">
-                          {tokensAhead === 0 ? 'You are next in line!' : `~${estWait} mins (${tokensAhead} ahead)`}
-                        </span>
-                      </div>
-                      <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden flex">
-                        <div
-                          className="bg-blue-600 h-full rounded-full transition-all duration-500"
-                          style={{ width: `${Math.min(100, Math.max(15, (currentServingToken / token.tokenNumber) * 100))}%` }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Actions: Google Maps Navigation, View Full Pass, WhatsApp */}
-                    <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100">
-                      <button
-                        type="button"
-                        onClick={() => window.open(googleMapsUrl, '_blank')}
-                        className="py-2 px-3 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/80 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                        title="Open Google Maps Route"
-                      >
-                        <MapPin className="w-3.5 h-3.5 text-blue-600" />
-                        <span>Navigate (Maps)</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setShowLivePassModal(true)}
-                        className="py-2 px-3 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                      >
-                        <QrCode className="w-3.5 h-3.5 text-emerald-400" />
-                        <span>View Pass (QR)</span>
-                      </button>
-                    </div>
-
-                    {/* Secondary WhatsApp & Cancel Row */}
-                    <div className="flex items-center justify-between pt-0.5 text-xs">
-                      <button
-                        type="button"
-                        onClick={() => onTriggerWhatsAppToast(
-                          'OP Queue Pass',
-                          `Token #${token.tokenNumber} details shared to your WhatsApp (+91 ${patientProfile.phone})`,
-                          'TOKEN_CONFIRMATION'
-                        )}
-                        className="text-emerald-700 hover:text-emerald-800 font-bold text-[11px] flex items-center gap-1 cursor-pointer"
-                      >
-                        <MessageCircle className="w-3 h-3 text-emerald-600" />
-                        <span>Send to WhatsApp</span>
-                      </button>
-
-                      {onCancelSlot && (
-                        <button
-                          type="button"
-                          onClick={() => onCancelSlot(token.id)}
-                          className="text-slate-400 hover:text-rose-600 text-[11px] font-semibold transition-colors cursor-pointer"
-                        >
-                          Cancel Pass
-                        </button>
-                      )}
+                    <div className="text-[11px] text-slate-500 flex justify-between">
+                      <span>Date & Time:</span>
+                      <span className="font-medium text-slate-800">{token.date} • {token.time}</span>
                     </div>
                   </div>
                 );
               })}
-            </div>
-          )}
-
-          {/* SECTION B: VIDEO CONSULTATIONS */}
-          {(bookingFilter === 'ALL' || bookingFilter === 'VIDEO') && (videoAppointments?.length || 0) > 0 && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between px-1">
-                <span className="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                  <Video className="w-4 h-4 text-emerald-600" />
-                  <span>Video Consultations ({videoAppointments?.length})</span>
-                </span>
-                <span className="text-[11px] text-emerald-700 font-bold">10 Languages</span>
-              </div>
-
-              {videoAppointments?.map(apt => {
-                const doc = doctors.find(d => d.id === apt.doctorId) || doctors[0];
-
-                return (
-                  <div
-                    key={apt.id}
-                    className="rounded-[24px] border border-emerald-200/90 bg-white p-4 shadow-sm hover:shadow-md transition-all space-y-3"
-                  >
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-800 font-extrabold text-xs flex items-center justify-center border border-emerald-200">
-                          <Video className="w-5 h-5 text-emerald-600" />
-                        </div>
-                        <div>
-                          <h4 className="font-extrabold text-xs text-slate-900 leading-tight">
-                            {apt.doctorName || doc.name}
-                          </h4>
-                          <span className="text-[11px] text-slate-500 font-medium">
-                            {apt.doctorSpecialty || doc.specialty} • {apt.hospitalName || doc.hospitalName}
-                          </span>
-                        </div>
-                      </div>
-
-                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        <span>Ready</span>
-                      </span>
-                    </div>
-
-                    <div className="text-xs space-y-1 text-slate-600">
-                      <div className="flex justify-between text-[11px]">
-                        <span className="text-slate-400">Scheduled Time:</span>
-                        <span className="font-bold text-slate-900">{apt.date} • {apt.time}</span>
-                      </div>
-                      <div className="flex justify-between text-[11px]">
-                        <span className="text-slate-400">Consultation Fee:</span>
-                        <span className="font-bold text-emerald-700">₹{apt.feePaid} (Paid via {apt.paymentMethod})</span>
-                      </div>
-                      <div className="flex justify-between text-[11px]">
-                        <span className="text-slate-400">Languages:</span>
-                        <span className="font-semibold text-slate-800">English, Tamil, Hindi</span>
-                      </div>
-                    </div>
-
-                    {/* Join Real Video Call Button */}
-                    <div className="pt-1 flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setActiveVideoModalDoc(doc)}
-                        className="flex-1 py-2.5 px-4 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs flex items-center justify-center gap-2 shadow-xs transition-all active:scale-95 cursor-pointer"
-                      >
-                        <Video className="w-4 h-4" />
-                        <span>Launch Video Room Now</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedDoctor(doc);
-                          setActiveVideoModalDoc(doc);
-                        }}
-                        className="py-2.5 px-3 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-1 transition-colors cursor-pointer"
-                        title="Doctor Chat"
-                      >
-                        <MessageSquare className="w-3.5 h-3.5" />
-                        <span>Chat</span>
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Empty State */}
-          {activeUserTokens.length === 0 && (videoAppointments?.length || 0) === 0 && (
-            <div className="p-8 text-center bg-white rounded-3xl border border-slate-200/80 space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto">
-                <CalendarCheck className="w-6 h-6" />
-              </div>
-              <div>
-                <h4 className="text-sm font-extrabold text-slate-900">No Active Bookings</h4>
-                <p className="text-xs text-slate-500 max-w-xs mx-auto mt-0.5">
-                  Book an in-person hospital OPD token or connect with a specialist doctor on video in ~10 minutes.
-                </p>
-              </div>
-              <div className="flex items-center justify-center gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDirectoryMode('hospitals');
-                    setActiveTab('op_booking');
-                  }}
-                  className="px-4 py-2 rounded-full bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition-colors cursor-pointer"
-                >
-                  Book OPD Pass
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedDoctor(doctors[0]);
-                    handleOpenCheckout(doctors[0], 'VIDEO_CONSULTATION');
-                  }}
-                  className="px-4 py-2 rounded-full bg-emerald-500 text-slate-950 text-xs font-bold hover:bg-emerald-400 transition-colors cursor-pointer"
-                >
-                  Book Video Consult
-                </button>
-              </div>
             </div>
           )}
 
@@ -3042,6 +3121,90 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
           </PhoneModalPortal>
         );
       })()}
+
+      {/* NEW BOOKING SELECTION MODAL */}
+      {showNewBookingModal && (
+        <PhoneModalPortal>
+          <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 40 }}
+              className="relative w-full max-w-sm rounded-t-[32px] sm:rounded-[28px] overflow-hidden shadow-2xl border border-slate-200/90 bg-white text-slate-900 p-5 space-y-4"
+            >
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div>
+                  <h3 className="text-sm font-extrabold text-slate-900">Book New Consultation</h3>
+                  <p className="text-[11px] text-slate-500">Choose in-clinic visit or video consult</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowNewBookingModal(false)}
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {/* Option 1: In-Person Hospital OPD */}
+                <div
+                  onClick={() => {
+                    setShowNewBookingModal(false);
+                    setDirectoryMode('hospitals');
+                    setActiveTab('op_booking');
+                    setTimeout(() => {
+                      const el = document.getElementById('nearby-directory');
+                      el?.scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                  }}
+                  className="p-3.5 rounded-2xl bg-blue-50/60 border border-blue-200 hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer flex items-center justify-between group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-xs">
+                      <Building2 className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-extrabold text-slate-900 group-hover:text-blue-700">
+                        In-Person OPD Pass
+                      </h4>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        Accredited Hospitals • Live Queue • From ₹100
+                      </p>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-blue-600 group-hover:translate-x-1 transition-transform" />
+                </div>
+
+                {/* Option 2: Video Telehealth */}
+                <div
+                  onClick={() => {
+                    setShowNewBookingModal(false);
+                    setSelectedDoctor(doctors[0]);
+                    handleOpenCheckout(doctors[0], 'VIDEO_CONSULTATION');
+                  }}
+                  className="p-3.5 rounded-2xl bg-emerald-50/60 border border-emerald-200 hover:border-emerald-400 hover:bg-emerald-50 transition-all cursor-pointer flex items-center justify-between group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
+                      <Video className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-extrabold text-slate-900 group-hover:text-emerald-700">
+                        Video Consultation
+                      </h4>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        Connect in ~10m • 10 Languages • ₹250
+                      </p>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-emerald-600 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </PhoneModalPortal>
+      )}
     </AnimatePresence>
 
     </div>
