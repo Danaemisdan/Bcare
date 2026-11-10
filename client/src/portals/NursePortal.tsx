@@ -24,7 +24,9 @@ import {
   Wallet,
   ArrowRight,
   TrendingUp,
-  Share2
+  Share2,
+  Scale,
+  FileText
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -490,6 +492,43 @@ export const NursePortal: React.FC<NursePortalProps> = ({
               <div className="flex justify-between">
                 <span className="text-slate-600">Payout Frequency:</span>
                 <span className="font-semibold text-slate-800">Daily UPI Settlement</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Nursing Ethics & Statutory Measures */}
+          <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs space-y-3 text-xs">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold">
+                  <Scale className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-xs text-slate-900 tracking-tight">
+                    Clinical Ethics & Statutory Measures
+                  </h4>
+                  <p className="text-[10px] text-slate-400">
+                    Indian Nursing Council Standards & ABDM Patient Data Handling
+                  </p>
+                </div>
+              </div>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[9.5px] font-bold">
+                INC COMPLIANT
+              </span>
+            </div>
+
+            <div className="space-y-1.5 text-slate-600">
+              <div className="flex items-center justify-between py-1 border-b border-slate-100">
+                <span className="font-medium">Council Registration:</span>
+                <span className="font-bold text-slate-900">INC-TN-44910</span>
+              </div>
+              <div className="flex items-center justify-between py-1 border-b border-slate-100">
+                <span className="font-medium">Vitals Calibration:</span>
+                <span className="font-bold text-emerald-700">Digital Certified</span>
+              </div>
+              <div className="flex items-center justify-between py-1">
+                <span className="font-medium">DPDP Patient Consent:</span>
+                <span className="font-bold text-blue-700">Recorded on Triage</span>
               </div>
             </div>
           </div>

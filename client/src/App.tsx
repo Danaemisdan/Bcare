@@ -46,7 +46,9 @@ import {
   LogOut,
   X,
   Clock,
-  Home
+  Home,
+  CalendarCheck,
+  Calendar
 } from 'lucide-react';
 
 export function App() {
@@ -98,11 +100,11 @@ export function App() {
       setShowSplashScreen(true);
     }
   }, [currentRole]);
-  const [patientTab, setPatientTab] = useState<'op_booking' | 'telehealth' | 'ai_assist' | 'history' | 'profile'>(() => {
+  const [patientTab, setPatientTab] = useState<'op_booking' | 'bookings' | 'ai_assist' | 'hospitals' | 'profile'>(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const t = params.get('tab');
-      if (t === 'profile' || t === 'telehealth' || t === 'ai_assist' || t === 'history' || t === 'op_booking') return t;
+      if (t === 'profile' || t === 'bookings' || t === 'ai_assist' || t === 'hospitals' || t === 'op_booking') return t as any;
     }
     return 'op_booking';
   });
@@ -110,7 +112,7 @@ export function App() {
   const [doctorTab, setDoctorTab] = useState<'queue' | 'rx' | 'completed' | 'profile'>('queue');
   const [franchiseTab, setFranchiseTab] = useState<'territory' | 'hospitals' | 'nurses' | 'profile'>('territory');
   const [showProfileModal, setShowProfileModal] = useState(false);
-  const [previousPatientTab, setPreviousPatientTab] = useState<'op_booking' | 'telehealth' | 'ai_assist' | 'history'>('op_booking');
+  const [previousPatientTab, setPreviousPatientTab] = useState<'op_booking' | 'bookings' | 'ai_assist' | 'hospitals'>('op_booking');
   const [isPatientBookingActive, setIsPatientBookingActive] = useState(false);
 
   const roleDefaultUsers: Record<UserRole, any> = {
@@ -210,7 +212,12 @@ export function App() {
       imageUrl: 'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?w=600',
       emergencyAvailable: true,
       distance: '1.2 km',
-      activeDoctorsCount: 14
+      activeDoctorsCount: 14,
+      latitude: 11.0267,
+      longitude: 77.0089,
+      phone: '+91 422 257 0100',
+      emergencyPhone: '+91 422 257 0108',
+      googleMapsUrl: 'https://www.google.com/maps/dir/?api=1&destination=11.0267,77.0089'
     },
     {
       id: 'hosp-2',
@@ -224,7 +231,12 @@ export function App() {
       imageUrl: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=600',
       emergencyAvailable: true,
       distance: '2.8 km',
-      activeDoctorsCount: 18
+      activeDoctorsCount: 18,
+      latitude: 11.0016,
+      longitude: 77.0253,
+      phone: '+91 422 259 4400',
+      emergencyPhone: '+91 422 259 4499',
+      googleMapsUrl: 'https://www.google.com/maps/dir/?api=1&destination=11.0016,77.0253'
     },
     {
       id: 'hosp-3',
@@ -238,7 +250,12 @@ export function App() {
       imageUrl: 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=600',
       emergencyAvailable: false,
       distance: '6.4 km',
-      activeDoctorsCount: 8
+      activeDoctorsCount: 8,
+      latitude: 10.6609,
+      longitude: 77.0048,
+      phone: '+91 4259 223 300',
+      emergencyPhone: '108',
+      googleMapsUrl: 'https://www.google.com/maps/dir/?api=1&destination=10.6609,77.0048'
     }
   ]);
 
@@ -1140,17 +1157,23 @@ export function App() {
     return { appointment: apt };
   };
 
-  // Nimbus Liquid Glass Nav Items (@gughigug/components/liquid-glass-navbar)
-  const patientNavItems: LiquidNavItem<'op_booking' | 'telehealth' | 'ai_assist' | 'history' | 'profile'>[] = [
+  // Nimbus Liquid Glass Nav Items: Home, Bookings (Visits + Video), AI Health, Hospitals (with Maps), Profile (with Records & Legal)
+  const activeBookingsCount = (
+    slots.filter(s => s.patientPhone === currentUser?.phone && (s.status === 'BOOKED' || s.status === 'IN_CONSULTATION')).length +
+    videoAppointments.filter(v => v.patientPhone === currentUser?.phone && v.status === 'SCHEDULED').length
+  );
+
+  const patientNavItems: LiquidNavItem<'op_booking' | 'bookings' | 'ai_assist' | 'hospitals' | 'profile'>[] = [
     {
       id: 'op_booking',
       label: 'Home',
       icon: Home,
     },
     {
-      id: 'telehealth',
-      label: 'Consult',
-      icon: Video,
+      id: 'bookings',
+      label: 'Bookings',
+      icon: CalendarCheck,
+      badge: activeBookingsCount > 0 ? activeBookingsCount : undefined,
     },
     {
       id: 'ai_assist',
@@ -1159,12 +1182,9 @@ export function App() {
       highlight: true,
     },
     {
-      id: 'history',
-      label: 'History',
-      icon: Clock,
-      badge: (prescriptions.length + (slots.filter(s => s.patientPhone === currentUser?.phone && (s.status === 'BOOKED' || s.status === 'IN_CONSULTATION')).length)) > 0
-        ? (prescriptions.length + (slots.filter(s => s.patientPhone === currentUser?.phone && (s.status === 'BOOKED' || s.status === 'IN_CONSULTATION')).length))
-        : undefined,
+      id: 'hospitals',
+      label: 'Hospitals',
+      icon: Building2,
     },
     {
       id: 'profile',
@@ -1247,6 +1267,7 @@ export function App() {
             doctors={doctors}
             slots={slots}
             prescriptions={prescriptions}
+            videoAppointments={videoAppointments}
             communityPosts={communityPosts}
             splitConfig={splitConfig}
             platformSettings={platformSettings}

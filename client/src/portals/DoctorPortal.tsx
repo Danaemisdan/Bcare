@@ -27,7 +27,10 @@ import {
   Building2,
   Video,
   User,
-  Wallet
+  Wallet,
+  Scale,
+  Lock,
+  Bell
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -626,6 +629,60 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
                 <span className="text-lg font-bold text-emerald-800 tabular-nums">
                   <RollingCounter value={todayEarnings} prefix="₹" height={22} />
                 </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Statutory Legal & Practice Compliance Settings */}
+          <div className="bg-white rounded-3xl p-5 shadow-2xs border border-slate-200/90 space-y-3.5 text-xs">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold">
+                  <Scale className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-xs text-slate-900 tracking-tight">
+                    Practice Regulations & Statutory Compliance
+                  </h4>
+                  <p className="text-[10.5px] text-slate-400">
+                    NMC Telemedicine Guidelines 2020 & DPDP Act 2023 Doctor Obligations
+                  </p>
+                </div>
+              </div>
+              <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[9.5px] font-bold">
+                NMC REGISTERED
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/60 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-900 text-xs">Medical Council Registration</span>
+                  <span className="text-emerald-700 font-bold text-[11px]">VERIFIED (TMC-77492)</span>
+                </div>
+                <p className="text-[11px] text-slate-500">
+                  Affiliated with Tamil Nadu Medical Council & National Medical Commission (NMC).
+                </p>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/60 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-900 text-xs">Digital Signature Certificate (DSC)</span>
+                  <span className="text-emerald-700 font-bold text-[11px]">ACTIVE (Class 3)</span>
+                </div>
+                <p className="text-[11px] text-slate-500">
+                  All PDF prescriptions are cryptographically signed per Information Technology Act, 2000.
+                </p>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/60 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-900 text-xs">DPDP Act 2023 Confidentiality</span>
+                  <span className="text-blue-700 font-bold text-[11px]">ABDM ENCRYPTED</span>
+                </div>
+                <p className="text-[11px] text-slate-500">
+                  Patient medical histories and chat transcripts are strictly protected under doctor-patient privilege.
+                </p>
               </div>
             </div>
           </div>

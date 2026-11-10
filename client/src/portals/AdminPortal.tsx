@@ -25,7 +25,10 @@ import {
   Video,
   Power,
   PhoneCall,
-  AlertTriangle
+  AlertTriangle,
+  Scale,
+  FileText,
+  Lock
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -901,6 +904,35 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                 onChange={(e) => setEmergencyPhone(e.target.value)}
                 className="w-48 px-3 py-1.5 rounded-xl border border-zinc-300 font-semibold text-xs bg-white text-right"
               />
+            </div>
+
+            {/* Statutory Legal & DPDP Act 2023 Platform Controls */}
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-3 text-xs">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold">
+                    <Scale className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-slate-900 block">ABDM & DPDP Act 2023 Statutory Governance</span>
+                    <span className="text-[10.5px] text-slate-500">Ayushman Bharat Sandbox & National Medical Commission Compliance</span>
+                  </div>
+                </div>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[9.5px] font-bold">
+                  ACTIVE GOVERNANCE
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                <div className="p-2.5 rounded-xl bg-white border border-slate-200 space-y-0.5">
+                  <span className="text-slate-400 block font-medium">ABDM Gateway Sandbox:</span>
+                  <span className="font-bold text-emerald-700">M1, M2 & M3 CERTIFIED</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-white border border-slate-200 space-y-0.5">
+                  <span className="text-slate-400 block font-medium">Grievance Redressal SLA:</span>
+                  <span className="font-bold text-slate-900">24h Ack / 15d Resolution</span>
+                </div>
+              </div>
             </div>
 
             <button

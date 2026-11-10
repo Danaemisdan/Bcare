@@ -39,6 +39,11 @@ export interface Hospital {
   emergencyAvailable?: boolean;
   distance?: string;
   activeDoctorsCount?: number;
+  latitude?: number;
+  longitude?: number;
+  phone?: string;
+  emergencyPhone?: string;
+  googleMapsUrl?: string;
 }
 
 export interface DoctorProfile {

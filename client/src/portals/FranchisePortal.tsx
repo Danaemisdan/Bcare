@@ -20,7 +20,9 @@ import {
   LogOut,
   User,
   ShieldCheck,
-  CheckCircle2
+  CheckCircle2,
+  Scale,
+  FileText
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -361,6 +363,50 @@ export const FranchisePortal: React.FC<FranchisePortalProps> = ({
                 <span className="text-lg font-bold text-emerald-800 tabular-nums">
                   <RollingCounter value={totalDistrictFranchiseCut} prefix="₹" height={22} />
                 </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Statutory Legal & Franchise Compliance */}
+          <div className="bg-white rounded-3xl p-5 shadow-2xs border border-slate-200/90 space-y-3 text-xs">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold">
+                  <Scale className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-xs text-slate-900 tracking-tight">
+                    District Franchise Agreement & Legal Compliance
+                  </h4>
+                  <p className="text-[10px] text-slate-400">
+                    Health Facility Registry (HFR) & GST Tax Compliance
+                  </p>
+                </div>
+              </div>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[9.5px] font-bold">
+                ABDM CERTIFIED
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/60 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-900 text-xs">GSTIN Tax Registration</span>
+                  <span className="text-emerald-700 font-bold text-[11px]">33AABCB1234F1Z8</span>
+                </div>
+                <p className="text-[11px] text-slate-500">
+                  Tax invoice splits generated in compliance with Central & State GST rules.
+                </p>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/60 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-900 text-xs">Exclusive District Agreement</span>
+                  <span className="text-blue-700 font-bold text-[11px]">ACTIVE (FY 2026-27)</span>
+                </div>
+                <p className="text-[11px] text-slate-500">
+                  Territory rights secured under Master Franchise Deed #BC-TN-CBE-04.
+                </p>
               </div>
             </div>
           </div>
