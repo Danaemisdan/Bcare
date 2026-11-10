@@ -619,7 +619,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowLocationPickerModal(true)}
-                  className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200/90 text-slate-800 text-xs font-bold transition-all cursor-pointer shrink-0 max-w-[160px] truncate shadow-2xs"
+                  className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200/90 text-slate-800 text-xs font-bold transition-all cursor-pointer shrink-0 truncate shadow-2xs"
                   title="Auto-detect GPS or change location"
                 >
                   <MapPin className="w-3 h-3 text-blue-600 shrink-0" />
@@ -630,12 +630,6 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                     <ChevronDown className="w-2.5 h-2.5 text-slate-400 shrink-0" />
                   )}
                 </button>
-              </div>
-
-              {/* Status Indicator: Peaceful Blue */}
-              <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/70 text-[11px] font-bold shadow-2xs shrink-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                <span>24/7 OPD</span>
               </div>
             </div>
 
@@ -1030,7 +1024,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                   Affordable Specialist Care
                 </h4>
                 <p className="text-[11px] text-blue-100/85 leading-tight pt-0.5">
-                  Instant token passes & live wait tracking in Coimbatore
+                  Instant token passes & live wait tracking {userLocation?.city ? `in ${userLocation.city}` : 'at top hospitals'}
                 </p>
               </div>
               <button
@@ -1355,7 +1349,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
 
                           {/* Hospital Details on Right */}
                           <div className="min-w-0 flex-1 space-y-0.5">
-                            {/* Badges: Distance & 24/7 OPD */}
+                            {/* Badges: Distance & 24/7 Emergency */}
                             <div className="flex items-center gap-1.5 flex-wrap">
                               <button
                                 type="button"
@@ -1371,7 +1365,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                                 <span>{hosp.distance || '1.2 km'} • Maps</span>
                               </button>
                               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200/80 text-[9.5px] font-semibold">
-                                <span>24/7 OPD</span>
+                                <span>24/7 Emergency</span>
                               </span>
                             </div>
 
@@ -1990,7 +1984,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                 <span>Accredited Hospitals & Emergency Care</span>
               </h2>
               <p className="text-[11px] text-slate-500 mt-0.5">
-                GPS turn-by-turn navigation, 24/7 OPD casualty, and immediate token booking
+                GPS turn-by-turn navigation, 24/7 emergency casualty, and immediate token booking
               </p>
             </div>
             
@@ -2084,7 +2078,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                           </button>
                           {hosp.emergencyAvailable && (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200/80 text-[10px] font-bold">
-                              24/7 OPD
+                              24/7 Emergency
                             </span>
                           )}
                         </div>

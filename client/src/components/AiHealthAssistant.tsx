@@ -275,7 +275,7 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
       urgency: 'ROUTINE',
       explanation: 'Biomechanical facet joint strain and muscular paraspinal guarding without acute cauda equina or progressive motor deficits.',
       advice: 'Avoid forward bending and heavy lifting. Apply warm fomentation to ease muscular spasms. An orthopedic consultation will provide targeted anti-inflammatory care.',
-      spokenSummary: "Likely lumbar spondylosis with paraspinal muscle strain. Avoid heavy lifting. Top orthopedic physicians in Coimbatore South are available today."
+      spokenSummary: "Likely lumbar spondylosis with paraspinal muscle strain. Avoid heavy lifting. Top orthopedic physicians nearby are available today."
     }
   },
   {
@@ -310,7 +310,7 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
       urgency: 'PRIORITY',
       explanation: 'Clinical trajectory indicates systemic viral pyrexia. Close clinical monitoring of hydration, complete blood count, and platelet levels is advised.',
       advice: 'Maintain aggressive oral hydration (coconut water, ORS, clear broth). Sponge with lukewarm water if temperature exceeds 101°F. Consult a physician for proper antipyretic dosing.',
-      spokenSummary: "Clinical analysis indicates acute viral pyrexia. Hydration is prioritized. Top general physicians in Coimbatore South are available for walk-in or video booking."
+      spokenSummary: "Clinical analysis indicates acute viral pyrexia. Hydration is prioritized. Top general physicians nearby are available for walk-in or video booking."
     }
   },
   {
@@ -654,7 +654,7 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
       urgency: 'ROUTINE',
       explanation: 'Impaired carbohydrate metabolism and glycemic fluctuation requiring fasting plasma glucose and HbA1c tracking.',
       advice: 'Drink water and avoid refined carbohydrates. If experiencing sweating or shaking, take half a glass of juice or glucose tablet immediately. A physician consult will adjust dosage.',
-      spokenSummary: "Clinical analysis notes glycemic dysregulation. Stay hydrated. General physicians and diabetologists in Coimbatore South are ready for booking."
+      spokenSummary: "Clinical analysis notes glycemic dysregulation. Stay hydrated. General physicians and diabetologists nearby are ready for booking."
     }
   },
   {
@@ -770,7 +770,7 @@ export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
       urgency: 'ROUTINE',
       explanation: 'Symptom trajectory warrants an in-person physical examination or video consultation to establish precise etiology and targeted prescription.',
       advice: 'Stay hydrated, rest, and avoid self-medicating with unprescribed medications. An accredited general physician will conduct a focused examination.',
-      spokenSummary: "I have noted your symptoms and matched top-rated general physicians in Coimbatore South ready for immediate walk-in or video booking."
+      spokenSummary: "I have noted your symptoms and matched top-rated general physicians nearby ready for immediate walk-in or video booking."
     }
   }
 ];
@@ -1879,7 +1879,7 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                     <div className="flex items-center gap-1.5">
                       <h4 className="text-xs font-bold text-slate-900 truncate">{selectedHospital.name}</h4>
                       <span className="px-1.5 py-0.2 rounded text-[8.5px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 shrink-0">
-                        {selectedHospital.emergencyAvailable ? '24/7 OPD' : 'OPD Open'}
+                        {selectedHospital.emergencyAvailable ? '24/7 Emergency' : 'Verified OPD'}
                       </span>
                     </div>
                     <p className="text-[10px] text-slate-500 truncate">
