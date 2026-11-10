@@ -1,3 +1,5 @@
+import { RealMapView } from './RealMapView';
+import { UserLocationData, calculateDistanceKm, getGoogleMapsDirectionsUrl, detectCurrentLocation } from '../services/locationService';
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -786,6 +788,7 @@ interface AiHealthAssistantProps {
   hospitals: Hospital[];
   doctors: DoctorProfile[];
   slots: OpSlot[];
+  userLocation?: UserLocationData | null;
   onOpenCheckout: (doctor: DoctorProfile, consultationType: ConsultationType, explicitSlot?: OpSlot) => void;
   onClose?: () => void;
 }
@@ -802,6 +805,7 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
   hospitals,
   doctors,
   slots,
+  userLocation: propUserLocation,
   onOpenCheckout,
   onClose
 }) => {
@@ -824,45 +828,41 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
   const [mapMode, setMapMode] = useState<'map' | 'satellite'>('map');
   const [mapZoom, setMapZoom] = useState<number>(1);
   const [locationSearchInput, setLocationSearchInput] = useState<string>('');
-  const [userLocation, setUserLocation] = useState<{
-    area: string;
-    landmark: string;
-    lat: number;
-    lng: number;
-    isLiveGps: boolean;
-    accuracyMeters: number;
-    mapX: number;
-    mapY: number;
-  }>({
-    area: 'Peelamedu, Coimbatore',
-    landmark: 'Avinashi Road',
-    lat: 11.0267,
-    lng: 76.9945,
-    isLiveGps: true,
-    accuracyMeters: 10,
-    mapX: 165,
-    mapY: 105
-  });
+  const [userLocation, setUserLocation] = useState<UserLocationData>(
+    propUserLocation || {
+      area: 'Banjara Hills',
+      city: 'Hyderabad',
+      state: 'Telangana',
+      country: 'India',
+      displayName: 'Banjara Hills, Hyderabad',
+      lat: 17.4156,
+      lng: 78.4350,
+      accuracyMeters: 20,
+      isLiveGps: false,
+      timestamp: Date.now()
+    }
+  );
 
-  // Preset Localities for quick location switching
-  const PRESET_LOCALITIES = [
-    { name: 'Peelamedu, Coimbatore', landmark: 'Avinashi Road', lat: 11.0267, lng: 76.9945, mapX: 165, mapY: 105 },
-    { name: 'Coimbatore South', landmark: 'Race Course Ring', lat: 10.9980, lng: 76.9660, mapX: 140, mapY: 115 },
-    { name: 'RS Puram, Coimbatore', landmark: 'DB Road Corridor', lat: 11.0090, lng: 76.9480, mapX: 95, mapY: 85 },
-    { name: 'Gandhipuram, Coimbatore', landmark: 'Cross Cut Road', lat: 11.0180, lng: 76.9680, mapX: 155, mapY: 65 },
-    { name: 'Singanallur, Coimbatore', landmark: 'Trichy Road Area', lat: 11.0020, lng: 77.0250, mapX: 290, mapY: 135 }
-  ];
+  useEffect(() => {
+    if (propUserLocation) {
+      setUserLocation(propUserLocation);
+    } else {
+      detectCurrentLocation().then(loc => setUserLocation(loc));
+    }
+  }, [propUserLocation]);
 
-  const handleSelectLocality = (loc: typeof PRESET_LOCALITIES[0]) => {
+  const handleSelectLocality = (loc: { name: string; city: string; state: string; lat: number; lng: number }) => {
     setUserLocation({
       area: loc.name,
-      landmark: loc.landmark,
+      city: loc.city,
+      state: loc.state,
+      country: 'India',
+      displayName: `${loc.name}, ${loc.city}`,
       lat: loc.lat,
       lng: loc.lng,
       isLiveGps: true,
       accuracyMeters: 15,
-      mapX: loc.mapX,
-      mapY: loc.mapY
+      timestamp: Date.now()
     });
     setShowLocationModal(false);
     if (isVoiceEnabled) {
@@ -870,105 +870,36 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
     }
   };
 
-  const requestUserLocation = () => {
+  const requestUserLocation = async () => {
     setIsDetectingLocation(true);
-    if (typeof navigator !== 'undefined' && 'geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setIsDetectingLocation(false);
-          const { latitude, longitude, accuracy } = pos.coords;
-          setUserLocation({
-            area: 'Peelamedu, Coimbatore (Live GPS)',
-            landmark: 'Avinashi Road',
-            lat: latitude,
-            lng: longitude,
-            isLiveGps: true,
-            accuracyMeters: Math.round(accuracy || 12),
-            mapX: 165,
-            mapY: 105
-          });
-          setShowLocationModal(false);
-          if (isVoiceEnabled) {
-            speakText("Live GPS location confirmed. Found 3 hospitals within 2 kilometers on Google Maps.");
-          }
-        },
-        (err) => {
-          console.warn('Geolocation error or denied:', err);
-          setIsDetectingLocation(false);
-          // Gracefully fallback to detected area
-          setUserLocation({
-            area: 'Coimbatore South (GPS Fallback)',
-            landmark: 'Near Race Course',
-            lat: 10.9980,
-            lng: 76.9660,
-            isLiveGps: true,
-            accuracyMeters: 25,
-            mapX: 140,
-            mapY: 115
-          });
-          setShowLocationModal(false);
-          if (isVoiceEnabled) {
-            speakText("Location set to Coimbatore South. Showing nearest hospitals on Google Maps.");
-          }
-        },
-        { timeout: 6000, maximumAge: 60000, enableHighAccuracy: true }
-      );
-    } else {
+    try {
+      const loc = await detectCurrentLocation(true);
+      setUserLocation(loc);
       setIsDetectingLocation(false);
-      setShowLocationModal(true);
+      setShowLocationModal(false);
+      if (isVoiceEnabled) {
+        speakText(`Live GPS location confirmed for ${loc.displayName}. Showing nearest verified hospital.`);
+      }
+    } catch (e) {
+      setIsDetectingLocation(false);
     }
   };
 
-  // Nearby Hospitals for Google Maps Integration (Proximity sorted)
-  const nearbyHospitals = useMemo(() => {
-    const baseOffset = userLocation.mapX === 165 ? 0 : userLocation.mapX === 140 ? 0.4 : userLocation.mapX === 95 ? 1.4 : userLocation.mapX === 290 ? 1.2 : 0.8;
-    return [
-      {
-        id: 'hosp-1',
-        name: 'City Care Multi-Specialty Hospital',
-        address: '42 Avinashi Road, Peelamedu, Coimbatore',
-        distanceKm: +(0.8 + baseOffset).toFixed(1),
-        driveTime: `${Math.max(2, Math.round(3 + baseOffset * 2))} min drive`,
-        liveWaitMins: 10,
-        tokenReady: 4,
-        rating: 4.9,
-        mapX: 275,
-        mapY: 55,
-        is247: true,
-        googleMapsQuery: 'City Care Multi-Specialty Hospital Avinashi Road Peelamedu Coimbatore'
-      },
-      {
-        id: 'hosp-2',
-        name: 'Kovai Medical & Research Centre',
-        address: '15 Trichy Road, Singanallur, Coimbatore',
-        distanceKm: +(1.9 + (userLocation.mapX === 290 ? -1.0 : baseOffset)).toFixed(1),
-        driveTime: `${Math.max(4, Math.round(7 + baseOffset * 2))} min drive`,
-        liveWaitMins: 18,
-        tokenReady: 8,
-        rating: 4.7,
-        mapX: 325,
-        mapY: 145,
-        is247: true,
-        googleMapsQuery: 'Kovai Medical Center and Hospital Trichy Road Singanallur Coimbatore'
-      },
-      {
-        id: 'hosp-3',
-        name: 'Royal Care Super Specialty Hospital',
-        address: '1/520 L&T Bypass, Neelambur, Coimbatore',
-        distanceKm: +(3.2 + baseOffset).toFixed(1),
-        driveTime: `${Math.max(8, Math.round(11 + baseOffset * 2))} min drive`,
-        liveWaitMins: 25,
-        tokenReady: 12,
-        rating: 4.8,
-        mapX: 80,
-        mapY: 130,
-        is247: false,
-        googleMapsQuery: 'Royal Care Super Speciality Hospital Neelambur Coimbatore'
-      }
-    ];
-  }, [userLocation]);
+  // Proximity sorted verified hospitals from props
+  const sortedHospitals = useMemo(() => {
+    return [...hospitals].sort((a, b) => {
+      const distA = userLocation && a.latitude && a.longitude
+        ? calculateDistanceKm(userLocation.lat, userLocation.lng, a.latitude, a.longitude)
+        : 10;
+      const distB = userLocation && b.latitude && b.longitude
+        ? calculateDistanceKm(userLocation.lat, userLocation.lng, b.latitude, b.longitude)
+        : 10;
+      return distA - distB;
+    });
+  }, [hospitals, userLocation]);
 
-  const selectedHospital = nearbyHospitals[selectedHospitalIndex] || nearbyHospitals[0];
+  const nearbyHospitals = sortedHospitals;
+  const selectedHospital = sortedHospitals[selectedHospitalIndex] || sortedHospitals[0] || hospitals[0];
 
   // Voice Engine State
   const [isVoiceEnabled, setIsVoiceEnabled] = useState<boolean>(true);
@@ -1883,8 +1814,10 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
               <div className="flex items-center justify-between gap-2 p-1.5 px-2.5 rounded-xl bg-slate-50 border border-slate-200/90 shrink-0">
                 <div className="flex items-center gap-1.5 min-w-0">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                  <span className="text-[11px] font-bold text-slate-900 truncate">{userLocation.area}</span>
-                  <span className="text-[9.5px] text-slate-500 font-medium shrink-0">({selectedHospital.distanceKm} km away)</span>
+                  <span className="text-[11px] font-bold text-slate-900 truncate">{userLocation.displayName || userLocation.area}</span>
+                  <span className="text-[9.5px] text-slate-500 font-medium shrink-0">
+                    ({userLocation && selectedHospital.latitude && selectedHospital.longitude ? `${calculateDistanceKm(userLocation.lat, userLocation.lng, selectedHospital.latitude, selectedHospital.longitude)} km away` : (selectedHospital.distance || 'Nearby')})
+                  </span>
                 </div>
                 <button
                   type="button"
@@ -1897,206 +1830,22 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                 </button>
               </div>
 
-              {/* Google Maps Integrated Container */}
-              <div className="relative w-full h-[180px] rounded-2xl overflow-hidden border border-slate-200/90 shadow-2xs shrink-0 select-none bg-[#f1f3f4]">
-                {/* Google Maps Top Bar Badge & Controls */}
-                <div className="absolute top-2 left-2 right-2 flex items-center justify-between z-10 pointer-events-auto">
-                  {/* Google Maps Pill */}
-                  <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/95 backdrop-blur-xs shadow-xs border border-slate-200/80">
-                    <div className="flex items-center -space-x-0.5">
-                      <span className="w-2 h-2 rounded-full bg-[#4285F4]" />
-                      <span className="w-2 h-2 rounded-full bg-[#EA4335]" />
-                      <span className="w-2 h-2 rounded-full bg-[#FBBC05]" />
-                      <span className="w-2 h-2 rounded-full bg-[#34A853]" />
-                    </div>
-                    <span className="text-[10px] font-bold text-slate-800 tracking-tight">Google Maps</span>
-                    <span className="text-[8.5px] text-emerald-600 font-bold">• Live OPD</span>
-                  </div>
-
-                  {/* Mode / Recenter / Directions */}
-                  <div className="flex items-center gap-1 bg-white/95 backdrop-blur-xs p-0.5 rounded-full shadow-xs border border-slate-200/80">
-                    <button
-                      type="button"
-                      onClick={() => setMapMode(mapMode === 'map' ? 'satellite' : 'map')}
-                      className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold transition-all cursor-pointer ${
-                        mapMode === 'satellite' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900'
-                      }`}
-                      title="Toggle Satellite"
-                    >
-                      <Layers className="w-2.5 h-2.5 inline mr-0.5" />
-                      <span>{mapMode === 'map' ? 'Satellite' : 'Map'}</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={requestUserLocation}
-                      className="p-1 rounded-full hover:bg-slate-100 text-slate-700 transition-all cursor-pointer"
-                      title="Recenter GPS"
-                    >
-                      <Crosshair className="w-3 h-3 text-sky-600" />
-                    </button>
-                    <a
-                      href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(selectedHospital.googleMapsQuery)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-sky-50 hover:bg-sky-100 text-sky-700 text-[9px] font-bold transition-all cursor-pointer"
-                      title="Open in Google Maps"
-                    >
-                      <span>Directions</span>
-                      <ExternalLink className="w-2.5 h-2.5" />
-                    </a>
-                  </div>
-                </div>
-
-                {/* SVG Vector Map Rendering */}
-                <svg
-                  viewBox="0 0 400 190"
-                  className="w-full h-full object-cover transition-colors duration-300"
-                >
-                  <defs>
-                    <filter id="mapShadow" x="-20%" y="-20%" width="140%" height="140%">
-                      <feDropShadow dx="0" dy="2" stdDeviation="2" floodColor="#0f172a" floodOpacity="0.25" />
-                    </filter>
-                  </defs>
-
-                  {/* Cartographic Base Layer */}
-                  {mapMode === 'map' ? (
-                    <g>
-                      {/* Soft Grey Terrain */}
-                      <rect width="400" height="190" fill="#f8fafc" />
-                      {/* Water Body (Singanallur Canal) */}
-                      <path d="M 0 160 Q 130 145 230 165 T 400 155 L 400 190 L 0 190 Z" fill="#dbeafe" />
-                      <text x="240" y="180" fill="#93c5fd" fontSize="7" fontWeight="700" letterSpacing="0.8">SINGANALLUR WATERWAY</text>
-                      {/* Green Parks */}
-                      <rect x="25" y="25" width="85" height="42" rx="8" fill="#dcfce7" stroke="#bbf7d0" strokeWidth="0.8" />
-                      <text x="67" y="48" textAnchor="middle" fill="#15803d" fontSize="7.5" fontWeight="700" opacity="0.85">RACE COURSE</text>
-                      <rect x="220" y="95" width="55" height="35" rx="6" fill="#dcfce7" stroke="#bbf7d0" strokeWidth="0.8" />
-                      <text x="247" y="115" textAnchor="middle" fill="#15803d" fontSize="7.5" fontWeight="700" opacity="0.85">VOC PARK</text>
-                      {/* City Block Outlines */}
-                      <rect x="130" y="25" width="60" height="30" rx="3" fill="#ffffff" stroke="#e2e8f0" strokeWidth="0.8" />
-                      <rect x="130" y="65" width="60" height="28" rx="3" fill="#ffffff" stroke="#e2e8f0" strokeWidth="0.8" />
-                      <rect x="300" y="25" width="75" height="40" rx="3" fill="#ffffff" stroke="#e2e8f0" strokeWidth="0.8" />
-                      <rect x="25" y="80" width="85" height="42" rx="3" fill="#ffffff" stroke="#e2e8f0" strokeWidth="0.8" />
-                      {/* Minor Streets */}
-                      <path d="M 120 15 L 120 165 M 210 15 L 210 165 M 285 20 L 285 165 M 20 80 L 190 80 M 200 65 L 380 65" stroke="#e2e8f0" strokeWidth="2.5" strokeLinecap="round" />
-                      {/* Avinashi Road (Major Arterial) */}
-                      <path d="M 0 55 L 400 35" stroke="#cbd5e1" strokeWidth="8" strokeLinecap="round" />
-                      <path d="M 0 55 L 400 35" stroke="#ffffff" strokeWidth="6" strokeLinecap="round" />
-                      <text x="175" y="44" fill="#64748b" fontSize="7" fontWeight="700" letterSpacing="0.4">AVINASHI RD (NH 544)</text>
-                      {/* Trichy Road */}
-                      <path d="M 0 145 L 400 135" stroke="#cbd5e1" strokeWidth="8" strokeLinecap="round" />
-                      <path d="M 0 145 L 400 135" stroke="#ffffff" strokeWidth="6" strokeLinecap="round" />
-                      <text x="150" y="138" fill="#64748b" fontSize="7" fontWeight="700" letterSpacing="0.4">TRICHY ROAD</text>
-                    </g>
-                  ) : (
-                    <g>
-                      {/* Satellite Dark Map */}
-                      <rect width="400" height="190" fill="#0f172a" />
-                      <rect x="25" y="25" width="85" height="42" rx="8" fill="#14532d" opacity="0.6" />
-                      <rect x="220" y="95" width="55" height="35" rx="6" fill="#14532d" opacity="0.6" />
-                      <path d="M 0 160 Q 130 145 230 165 T 400 155 L 400 190 L 0 190 Z" fill="#1e3a8a" opacity="0.7" />
-                      <path d="M 0 55 L 400 35 M 0 145 L 400 135" stroke="#475569" strokeWidth="6" strokeLinecap="round" />
-                      <path d="M 120 15 L 120 165 M 210 15 L 210 165 M 285 20 L 285 165" stroke="#334155" strokeWidth="3" />
-                    </g>
-                  )}
-
-                  {/* Navigation Route Polyline from User to Selected Hospital */}
-                  <g>
-                    {/* White Outer Glow */}
-                    <path
-                      d={`M ${userLocation.mapX} ${userLocation.mapY} Q ${(userLocation.mapX + selectedHospital.mapX) / 2 + 15} ${(userLocation.mapY + selectedHospital.mapY) / 2 - 15} ${selectedHospital.mapX} ${selectedHospital.mapY}`}
-                      fill="none"
-                      stroke="#ffffff"
-                      strokeWidth="5"
-                      strokeLinecap="round"
-                    />
-                    {/* Google Blue Route Line */}
-                    <path
-                      d={`M ${userLocation.mapX} ${userLocation.mapY} Q ${(userLocation.mapX + selectedHospital.mapX) / 2 + 15} ${(userLocation.mapY + selectedHospital.mapY) / 2 - 15} ${selectedHospital.mapX} ${selectedHospital.mapY}`}
-                      fill="none"
-                      stroke="#2563eb"
-                      strokeWidth="3.2"
-                      strokeDasharray="5 3"
-                      strokeLinecap="round"
-                    />
-                    {/* Floating Travel ETA Bubble */}
-                    <g transform={`translate(${((userLocation.mapX + selectedHospital.mapX) / 2) - 36}, ${((userLocation.mapY + selectedHospital.mapY) / 2) - 18})`}>
-                      <rect width="72" height="17" rx="8.5" fill="#ffffff" stroke="#2563eb" strokeWidth="1" filter="url(#mapShadow)" />
-                      <text x="36" y="11.5" textAnchor="middle" fill="#1d4ed8" fontSize="8" fontWeight="700">
-                        🚗 {selectedHospital.distanceKm} km • {selectedHospital.driveTime.split(' ')[0]}m
-                      </text>
-                    </g>
-                  </g>
-
-                  {/* User "You Are Here" GPS Marker */}
-                  <g>
-                    {/* Pulsing Radar Ring */}
-                    <circle cx={userLocation.mapX} cy={userLocation.mapY} r="16" className="animate-ping" fill="#3b82f6" opacity="0.35" />
-                    {/* White Halo */}
-                    <circle cx={userLocation.mapX} cy={userLocation.mapY} r="7" fill="#ffffff" filter="url(#mapShadow)" />
-                    {/* Inner Core */}
-                    <circle cx={userLocation.mapX} cy={userLocation.mapY} r="4.5" fill="#2563eb" />
-                    {/* Floating Label */}
-                    <g transform={`translate(${userLocation.mapX - 28}, ${userLocation.mapY - 22})`}>
-                      <rect width="56" height="13" rx="6.5" fill="#1e293b" opacity="0.9" />
-                      <text x="28" y="9.5" textAnchor="middle" fill="#ffffff" fontSize="7" fontWeight="700">📍 You Are Here</text>
-                    </g>
-                  </g>
-
-                  {/* Hospital Pins */}
-                  {nearbyHospitals.map((hosp, idx) => {
-                    const isSelected = selectedHospitalIndex === idx;
-                    return (
-                      <g
-                        key={hosp.id}
-                        onClick={() => setSelectedHospitalIndex(idx)}
-                        className="cursor-pointer group"
-                      >
-                        {/* Teardrop Pin Marker */}
-                        <path
-                          d={`M ${hosp.mapX} ${hosp.mapY} C ${hosp.mapX - 9} ${hosp.mapY - 12} ${hosp.mapX - 9} ${hosp.mapY - 24} ${hosp.mapX} ${hosp.mapY - 24} C ${hosp.mapX + 9} ${hosp.mapY - 24} ${hosp.mapX + 9} ${hosp.mapY - 12} ${hosp.mapX} ${hosp.mapY} Z`}
-                          fill={isSelected ? "#ea4335" : "#e11d48"}
-                          stroke="#ffffff"
-                          strokeWidth={isSelected ? "2" : "1.2"}
-                          filter="url(#mapShadow)"
-                        />
-                        {/* White Hospital Cross */}
-                        <path
-                          d={`M ${hosp.mapX - 3} ${hosp.mapY - 15} h 6 M ${hosp.mapX} ${hosp.mapY - 18} v 6`}
-                          stroke="#ffffff"
-                          strokeWidth="1.8"
-                          strokeLinecap="round"
-                        />
-
-                        {isSelected ? (
-                          /* Floating Callout for Selected Hospital */
-                          <g transform={`translate(${hosp.mapX - 48}, ${hosp.mapY - 42})`}>
-                            <rect width="96" height="16" rx="8" fill="#ffffff" stroke="#ea4335" strokeWidth="1.2" filter="url(#mapShadow)" />
-                            <text x="48" y="11" textAnchor="middle" fill="#1e293b" fontSize="7.5" fontWeight="700">
-                              {hosp.name.split(' ')[0]} • ~{hosp.liveWaitMins}m wait
-                            </text>
-                          </g>
-                        ) : (
-                          /* Distance Badge for Unselected */
-                          <g transform={`translate(${hosp.mapX - 16}, ${hosp.mapY + 3})`}>
-                            <rect width="32" height="12" rx="6" fill="#ffffff" stroke="#cbd5e1" strokeWidth="0.8" opacity="0.95" />
-                            <text x="16" y="8.5" textAnchor="middle" fill="#475569" fontSize="6.5" fontWeight="700">{hosp.distanceKm}km</text>
-                          </g>
-                        )}
-                      </g>
-                    );
-                  })}
-                </svg>
-
-                {/* Google Maps Attribution */}
-                <div className="absolute bottom-1 right-2 text-[8px] text-slate-400 font-medium bg-white/80 px-1 rounded select-none pointer-events-none">
-                  Google Map Data © 2026
-                </div>
-              </div>
+              {/* Real Interactive Google Maps & GPS View */}
+              <RealMapView
+                hospitals={nearbyHospitals}
+                selectedHospitalIndex={selectedHospitalIndex}
+                onSelectHospital={(idx) => setSelectedHospitalIndex(idx)}
+                userLocation={userLocation}
+                onRefreshGps={requestUserLocation}
+              />
 
               {/* Proximity Hospital Selector Pills */}
-              <div className="grid grid-cols-3 gap-1.5 shrink-0 pt-1">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 shrink-0 pt-1">
                 {nearbyHospitals.map((hosp, idx) => {
                   const isSelected = selectedHospitalIndex === idx;
+                  const dist = userLocation && hosp.latitude && hosp.longitude
+                    ? `${calculateDistanceKm(userLocation.lat, userLocation.lng, hosp.latitude, hosp.longitude)} km`
+                    : (hosp.distance || '1.5 km');
                   return (
                     <button
                       key={hosp.id}
@@ -2104,7 +1853,7 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                       onClick={() => {
                         setSelectedHospitalIndex(idx);
                         if (isVoiceEnabled) {
-                          speakText(`Selected ${hosp.name}. Distance is ${hosp.distanceKm} kilometers with ~${hosp.liveWaitMins} minutes estimated wait.`);
+                          speakText(`Selected ${hosp.name}. Distance is ${dist} with live OPD ready.`);
                         }
                       }}
                       className={`p-2 rounded-2xl border text-left transition-all cursor-pointer ${
@@ -2115,9 +1864,9 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                     >
                       <div className="flex items-center justify-between">
                         <span className={`text-[10px] font-bold truncate ${isSelected ? 'text-white' : 'text-slate-900'}`}>{hosp.name.split(' ')[0]}</span>
-                        <span className={`text-[9px] font-bold ${isSelected ? 'text-emerald-400' : 'text-slate-500'}`}>{hosp.distanceKm}km</span>
+                        <span className={`text-[9px] font-bold ${isSelected ? 'text-emerald-400' : 'text-slate-500'}`}>{dist}</span>
                       </div>
-                      <div className={`text-[8.5px] font-semibold truncate mt-0.5 ${isSelected ? 'text-slate-300' : 'text-emerald-600'}`}>~{hosp.liveWaitMins}m wait</div>
+                      <div className={`text-[8.5px] font-semibold truncate mt-0.5 ${isSelected ? 'text-slate-300' : 'text-emerald-600'}`}>Live OPD Open</div>
                     </button>
                   );
                 })}
@@ -2130,10 +1879,12 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                     <div className="flex items-center gap-1.5">
                       <h4 className="text-xs font-bold text-slate-900 truncate">{selectedHospital.name}</h4>
                       <span className="px-1.5 py-0.2 rounded text-[8.5px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 shrink-0">
-                        {selectedHospital.is247 ? '24/7 OPD' : 'OPD Open'}
+                        {selectedHospital.emergencyAvailable ? '24/7 OPD' : 'OPD Open'}
                       </span>
                     </div>
-                    <p className="text-[10px] text-slate-500 truncate">{selectedHospital.address} • {selectedHospital.driveTime}</p>
+                    <p className="text-[10px] text-slate-500 truncate">
+                      {selectedHospital.address} • {userLocation && selectedHospital.latitude && selectedHospital.longitude ? `${calculateDistanceKm(userLocation.lat, userLocation.lng, selectedHospital.latitude, selectedHospital.longitude)} km away` : (selectedHospital.distance || '1.5 km')}
+                    </p>
                   </div>
                   <span className="text-[10.5px] font-bold text-slate-900 flex items-center gap-1 shrink-0 pl-1">
                     <Star className="w-3 h-3 fill-amber-400 text-amber-500" />
@@ -2149,7 +1900,7 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <h5 className="text-[11.5px] font-bold text-slate-900 truncate">{formatDocName(topDoctor.name)}</h5>
-                      <span className="text-[9.5px] font-bold text-emerald-600">Token #{selectedHospital.tokenReady} Ready</span>
+                      <span className="text-[9.5px] font-bold text-emerald-600">Token #{topDoctor?.nextAvailableToken || 3} Ready</span>
                     </div>
                     <p className="text-[10px] text-slate-500 truncate">{topDoctor.specialty} • {topDoctor.experienceYears} yrs exp</p>
                   </div>
@@ -2203,7 +1954,7 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="absolute inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex flex-col justify-end p-2"
+                className="absolute inset-0 z-[1000] bg-slate-900/60 backdrop-blur-xs flex flex-col justify-end p-2"
               >
                 <motion.div
                   initial={{ y: 80, opacity: 0 }}
@@ -2246,14 +1997,21 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                   {/* Quick Locality Options */}
                   <div className="pb-2">
                     <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-                      Or Select Coimbatore Area:
+                      Or Select Location Hub:
                     </div>
-                    <div className="grid grid-cols-1 gap-1.5">
-                      {PRESET_LOCALITIES.map((loc) => {
-                        const isSelected = userLocation.area.includes(loc.name.split(',')[0]);
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {[
+                        { name: 'Banjara Hills', city: 'Hyderabad', state: 'Telangana', lat: 17.4156, lng: 78.4350 },
+                        { name: 'Peelamedu', city: 'Coimbatore', state: 'Tamil Nadu', lat: 11.0267, lng: 76.9945 },
+                        { name: 'Indiranagar', city: 'Bengaluru', state: 'Karnataka', lat: 12.9716, lng: 77.5946 },
+                        { name: 'Adyar', city: 'Chennai', state: 'Tamil Nadu', lat: 13.0827, lng: 80.2707 },
+                        { name: 'Bandra West', city: 'Mumbai', state: 'Maharashtra', lat: 19.0760, lng: 72.8777 },
+                        { name: 'Connaught Place', city: 'Delhi NCR', state: 'Delhi', lat: 28.6139, lng: 77.2090 }
+                      ].map((loc) => {
+                        const isSelected = userLocation.city === loc.city;
                         return (
                           <button
-                            key={loc.name}
+                            key={loc.city}
                             type="button"
                             onClick={() => handleSelectLocality(loc)}
                             className={`p-2 rounded-xl text-left border flex items-center justify-between transition-all cursor-pointer ${
@@ -2263,8 +2021,8 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                             }`}
                           >
                             <div className="min-w-0">
-                              <div className="text-[11px] font-bold truncate">{loc.name}</div>
-                              <div className="text-[9.5px] text-slate-400 truncate">{loc.landmark}</div>
+                              <div className="text-[11px] font-bold truncate">{loc.city}</div>
+                              <div className="text-[9.5px] text-slate-400 truncate">{loc.name}</div>
                             </div>
                             {isSelected && <Check className="w-3.5 h-3.5 text-sky-600 shrink-0 stroke-[2.5]" />}
                           </button>

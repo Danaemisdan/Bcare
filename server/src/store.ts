@@ -80,6 +80,24 @@ export class AppDataStore {
       createdAt: '2026-01-08T09:00:00Z'
     },
     {
+      id: 'user-franchise-hyd',
+      phone: '9876543218',
+      email: 'ops@apollohealthcity.org',
+      name: 'Apollo Hospital Ops (Hyderabad)',
+      role: 'FRANCHISE_ADMIN',
+      avatarUrl: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=150',
+      createdAt: '2026-01-09T09:00:00Z'
+    },
+    {
+      id: 'user-doctor-hyd',
+      phone: '9876543219',
+      email: 'dr.vikram@apollohyderabad.org',
+      name: 'Dr. Vikram Reddy',
+      role: 'DOCTOR',
+      avatarUrl: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150',
+      createdAt: '2026-01-15T09:00:00Z'
+    },
+    {
       id: 'user-admin-1',
       phone: '9876543214',
       email: 'admin@bcare.in',
@@ -131,6 +149,27 @@ export class AppDataStore {
       phone: '+91 422 257 0108',
       emergencyPhone: '108',
       googleMapsUrl: 'https://www.google.com/maps/dir/?api=1&destination=11.0267,77.0089'
+    },
+    {
+      id: 'hosp-hyd-1',
+      name: 'Apollo Health City & Multi-Specialty Centre',
+      districtId: 'dist-hyderabad-central',
+      districtName: 'Hyderabad Central',
+      address: 'Road No 2, Jubilee Hills / Banjara Hills, Hyderabad',
+      rating: 4.9,
+      specialties: ['Cardiology', 'General Medicine', 'Neurology', 'Orthopedics'],
+      baseOpFee: 100,
+      imageUrl: 'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?w=600',
+      emergencyAvailable: true,
+      distance: '2.4 km',
+      activeDoctorsCount: 1,
+      adminUserId: 'user-franchise-hyd',
+      isAccountVerified: true,
+      latitude: 17.4265,
+      longitude: 78.4118,
+      phone: '+91 40 2360 7777',
+      emergencyPhone: '108',
+      googleMapsUrl: 'https://www.google.com/maps/dir/?api=1&destination=17.4265,78.4118'
     },
     {
       id: 'hosp-2',
@@ -199,6 +238,28 @@ export class AppDataStore {
       estimatedWaitMins: 8,
       videoAvailable: true,
       registrationNumber: 'TMC-66291',
+      isAccountVerified: true
+    },
+    {
+      id: 'doc-hyd-1',
+      userId: 'user-doctor-hyd',
+      name: 'Dr. Vikram Reddy, MD, DM',
+      specialty: 'Cardiology',
+      hospitalId: 'hosp-hyd-1',
+      hospitalName: 'Apollo Health City & Multi-Specialty Centre',
+      experienceYears: 16,
+      opConsultationFee: 100,
+      teleConsultationFee: 250,
+      availableDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+      rating: 4.9,
+      totalConsultations: 1640,
+      status: 'ACTIVE',
+      distance: '2.4 km',
+      nextAvailableToken: 1,
+      roomNumber: '102',
+      estimatedWaitMins: 10,
+      videoAvailable: true,
+      registrationNumber: 'TSMC-48201',
       isAccountVerified: true
     },
     {
@@ -289,25 +350,7 @@ export class AppDataStore {
   };
 
   // Telehealth / Video Consultations
-  videoAppointments: VideoAppointment[] = [
-    {
-      id: 'vid-apt-1',
-      doctorId: 'doc-1',
-      doctorName: 'Dr. Ananya Sharma, MD, DM',
-      doctorSpecialty: 'Cardiology',
-      hospitalName: 'City Care Multi-Specialty Hospital',
-      patientId: 'user-patient-1',
-      patientName: 'Ramesh Kumar',
-      patientPhone: '9876543210',
-      date: new Date().toISOString().split('T')[0],
-      time: '11:30 AM',
-      meetingLink: 'https://meet.bcare.health/room/bc-vid-doc1-rk',
-      feePaid: 250,
-      status: 'SCHEDULED',
-      paymentMethod: 'UPI',
-      createdAt: '2026-11-03T09:00:00Z'
-    }
-  ];
+  videoAppointments: VideoAppointment[] = [];
 
   // OP Slots / Tokens for Today
   opSlots: OpSlot[] = [];
@@ -430,12 +473,12 @@ export class AppDataStore {
       let nurseReferralCode: string | undefined = undefined;
       let bulkReservationBatchId: string | undefined = undefined;
 
-      // Token 1: Completed consultation earlier this morning for Ramesh Kumar
+      // Token 1: Completed consultation earlier this morning for previous patient
       if (tokenNumber === 1) {
         status = 'COMPLETED';
-        patientId = 'user-patient-1';
-        patientName = 'Ramesh Kumar';
-        patientPhone = '9876543210';
+        patientId = 'user-patient-prev';
+        patientName = 'G. Subramanian';
+        patientPhone = '9845011111';
       } 
       // Token 2: In Consultation right now
       else if (tokenNumber === 2) {
@@ -451,13 +494,7 @@ export class AppDataStore {
         bookedByNurseId = 'nurse-1';
         nurseReferralCode = 'NURSE-PRIYA-782';
       }
-      // Token 4: Active live token pass for Ramesh Kumar!
-      else if (tokenNumber === 4) {
-        status = 'BOOKED';
-        patientId = 'user-patient-1';
-        patientName = 'Ramesh Kumar';
-        patientPhone = '9876543210';
-      }
+
       // Tokens 11 to 15: Reserved in BULK by Nurse Priya for rural/walk-in patients!
       else if (tokenNumber >= 11 && tokenNumber <= 15) {
         status = 'RESERVED_BULK';
