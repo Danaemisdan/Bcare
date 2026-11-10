@@ -189,87 +189,63 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
   const [specialtyCategory, setSpecialtyCategory] = useState<'GENERAL' | 'ADVANCED'>('GENERAL');
   const [consultationChoiceModal, setConsultationChoiceModal] = useState<'IN_PERSON' | 'VIDEO' | null>(null);
 
-  // Clean, Neat, Polished Squircle Specialty Badges (8 General Care, 8 Advanced Care)
+  // Exact Practo Specialty Cards (Direct from Screenshot 2026-11-10 at 3.18.43 AM)
   const practoSpecialties = [
-    // General Care (8 specialties)
+    // General Care (8 specialties directly matching Practo Screenshot)
     {
       id: 'General Medicine',
       name: 'General Physician',
-      titleLine1: 'General',
-      titleLine2: 'Physician',
       category: 'GENERAL' as const,
-      icon: Stethoscope,
-      badgeBg: 'bg-blue-50/90 border-blue-200/80 text-blue-600',
+      image: '/practo_specialties/card_gen_physician.png',
       tag: 'Fever, Cold, Viral'
     },
     {
       id: 'Gynecology',
       name: "Women's Health",
-      titleLine1: "Women's",
-      titleLine2: 'Health',
       category: 'GENERAL' as const,
-      icon: HeartPulse,
-      badgeBg: 'bg-rose-50/90 border-rose-200/80 text-rose-600',
+      image: '/practo_specialties/card_womens_health.png',
       tag: 'Periods & Gyn'
     },
     {
       id: 'Dermatology',
       name: 'Skin Specialist',
-      titleLine1: 'Skin',
-      titleLine2: 'Specialist',
       category: 'GENERAL' as const,
-      icon: Sparkles,
-      badgeBg: 'bg-amber-50/90 border-amber-200/80 text-amber-600',
+      image: '/practo_specialties/card_skin_specialist.png',
       tag: 'Acne & Skin Care'
     },
     {
       id: 'Pediatrics',
       name: 'Child Care',
-      titleLine1: 'Child',
-      titleLine2: 'Care',
       category: 'GENERAL' as const,
-      icon: Baby,
-      badgeBg: 'bg-sky-50/90 border-sky-200/80 text-sky-600',
+      image: '/practo_specialties/card_child_care.png',
       tag: 'Infants & Kids'
     },
     {
       id: 'Dentistry',
       name: 'Dentist',
-      titleLine1: 'Dentist',
-      titleLine2: 'Care',
       category: 'GENERAL' as const,
-      icon: Smile,
-      badgeBg: 'bg-teal-50/90 border-teal-200/80 text-teal-600',
+      image: '/practo_specialties/card_dentist.png',
       tag: 'Teeth & Gums'
     },
     {
       id: 'Ophthalmology',
       name: 'Eye Specialist',
-      titleLine1: 'Eye',
-      titleLine2: 'Specialist',
       category: 'GENERAL' as const,
-      icon: Eye,
-      badgeBg: 'bg-indigo-50/90 border-indigo-200/80 text-indigo-600',
+      image: '/practo_specialties/card_eye_specialist.png',
       tag: 'Vision & Retina'
     },
     {
       id: 'ENT',
       name: 'Ear, Nose & Throat',
-      titleLine1: 'Ear, Nose',
-      titleLine2: '& Throat',
       category: 'GENERAL' as const,
-      icon: Ear,
-      badgeBg: 'bg-cyan-50/90 border-cyan-200/80 text-cyan-600',
+      image: '/practo_specialties/card_ent.png',
       tag: 'Sinus & Hearing'
     },
     {
       id: 'Mental Wellness',
       name: 'Mental Wellness',
-      titleLine1: 'Mental',
-      titleLine2: 'Wellness',
       category: 'GENERAL' as const,
-      icon: Brain,
-      badgeBg: 'bg-purple-50/90 border-purple-200/80 text-purple-600',
+      image: '/practo_specialties/card_mental_wellness.png',
       tag: 'Therapy & Mind'
     },
 
@@ -277,81 +253,57 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
     {
       id: 'Orthopedics',
       name: 'Bones & Joints',
-      titleLine1: 'Bones &',
-      titleLine2: 'Joints',
       category: 'ADVANCED' as const,
-      icon: Bone,
-      badgeBg: 'bg-amber-50/90 border-amber-200/80 text-amber-600',
+      image: '/practo_specialties/card_adv_ortho.png',
       tag: 'Knee & Spine'
     },
     {
       id: 'Cardiology',
       name: 'Heart & Chest',
-      titleLine1: 'Heart &',
-      titleLine2: 'Chest',
       category: 'ADVANCED' as const,
-      icon: HeartPulse,
-      badgeBg: 'bg-red-50/90 border-red-200/80 text-red-600',
+      image: '/practo_specialties/card_adv_cardio.png',
       tag: 'ECG, BP & Chest'
     },
     {
       id: 'Neurology',
       name: 'Brain & Nerves',
-      titleLine1: 'Brain &',
-      titleLine2: 'Nerves',
       category: 'ADVANCED' as const,
-      icon: Brain,
-      badgeBg: 'bg-violet-50/90 border-violet-200/80 text-violet-600',
+      image: '/practo_specialties/card_adv_neuro.png',
       tag: 'Migraine & Nerves'
     },
     {
       id: 'Gastroenterology',
       name: 'Digestive Issues',
-      titleLine1: 'Digestive',
-      titleLine2: 'Issues',
       category: 'ADVANCED' as const,
-      icon: Waves,
-      badgeBg: 'bg-orange-50/90 border-orange-200/80 text-orange-600',
+      image: '/practo_specialties/card_adv_gastro.png',
       tag: 'GERD & Acidity'
     },
     {
       id: 'Nephrology',
       name: 'Kidney Issues',
-      titleLine1: 'Kidney',
-      titleLine2: 'Issues',
       category: 'ADVANCED' as const,
-      icon: Droplets,
-      badgeBg: 'bg-sky-50/90 border-sky-200/80 text-sky-600',
-      tag: 'Kidney & Stones'
+      image: '/practo_specialties/card_adv_kidney.png',
+      tag: 'Kidney & Urology'
     },
     {
       id: 'Pulmonology',
       name: 'Lungs & Breathing',
-      titleLine1: 'Lungs &',
-      titleLine2: 'Breathing',
       category: 'ADVANCED' as const,
-      icon: Wind,
-      badgeBg: 'bg-teal-50/90 border-teal-200/80 text-teal-600',
+      image: '/practo_specialties/card_adv_lungs.png',
       tag: 'Asthma & Cough'
     },
     {
       id: 'Diabetology',
       name: 'Diabetes Care',
-      titleLine1: 'Diabetes',
-      titleLine2: 'Care',
       category: 'ADVANCED' as const,
-      icon: Syringe,
-      badgeBg: 'bg-emerald-50/90 border-emerald-200/80 text-emerald-600',
+      image: '/practo_specialties/card_adv_diabetes.png',
       tag: 'Sugar & Thyroid'
     },
     {
       id: 'General Surgery',
       name: 'General Surgery',
-      titleLine1: 'General',
-      titleLine2: 'Surgery',
       category: 'ADVANCED' as const,
-      icon: ShieldPlus,
-      badgeBg: 'bg-blue-50/90 border-blue-200/80 text-blue-600',
+      image: '/practo_specialties/card_adv_surgery.png',
       tag: 'Laparoscopy & Care'
     }
   ];
@@ -1015,93 +967,26 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
             <motion.div
               whileTap={{ scale: 0.98 }}
               onClick={() => setConsultationChoiceModal('IN_PERSON')}
-              className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-50/95 via-sky-50/80 to-blue-100/70 border border-blue-200/90 p-3.5 flex flex-col justify-between min-h-[148px] shadow-xs cursor-pointer group hover:border-blue-400 transition-all select-none"
+              className="relative overflow-hidden rounded-3xl cursor-pointer group shadow-xs hover:shadow-sm transition-all aspect-[525/295] bg-[#eef6fc] border border-blue-200/50"
             >
-              {/* Top: Dedicated text with ZERO OVERLAP */}
-              <div className="z-10">
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100/90 border border-blue-200/80 text-blue-700 font-extrabold text-[9px] uppercase tracking-wide">
-                  <Building2 className="w-2.5 h-2.5" />
-                  <span>In-Clinic Visit</span>
-                </span>
-                <h3 className="font-extrabold text-slate-900 text-[13.5px] leading-snug mt-1.5">
-                  In-Person Visit
-                </h3>
-                <p className="text-[10px] text-slate-500 mt-0.5 font-medium leading-tight">
-                  Hospitals & OPD clinics
-                </p>
-              </div>
-
-              {/* Bottom: Price on Left, Distinct OPD Clinic Ticket on Right */}
-              <div className="z-10 flex items-end justify-between mt-2 pt-1.5 border-t border-blue-200/60">
-                <div className="min-w-0 pr-1">
-                  <span className="text-[8.5px] text-slate-400 font-bold block uppercase tracking-wider">Passes From</span>
-                  <span className="text-[13px] font-black text-blue-700 leading-none">₹100</span>
-                  <span className="text-[9px] text-emerald-600 font-bold block mt-0.5">Live Queue</span>
-                </div>
-
-                {/* Distinct In-Person OPD Pass Ticket Illustration */}
-                <div className="w-[58px] h-[58px] rounded-2xl bg-white border border-blue-200 shadow-2xs flex flex-col items-center justify-between p-1.5 text-center shrink-0 group-hover:scale-105 transition-transform">
-                  <div className="flex items-center gap-0.5 text-blue-600">
-                    <Stethoscope className="w-3 h-3" />
-                    <span className="text-[7.5px] font-extrabold uppercase tracking-tight">OPD Pass</span>
-                  </div>
-                  <div className="bg-blue-50 border border-blue-100 px-1.5 py-0.5 rounded-md">
-                    <span className="text-[11px] font-black text-slate-900 leading-none">#04</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-[7px] font-extrabold text-emerald-600">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span>READY</span>
-                  </div>
-                </div>
-              </div>
+              <img
+                src="/practo_hero/hero_in_person.png"
+                alt="In-Person Consultation"
+                className="w-full h-full object-cover block select-none pointer-events-none group-hover:scale-102 transition-transform duration-300"
+              />
             </motion.div>
 
             {/* Video Consultation Card */}
             <motion.div
               whileTap={{ scale: 0.98 }}
               onClick={() => setConsultationChoiceModal('VIDEO')}
-              className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-50/95 via-purple-50/80 to-indigo-100/70 border border-indigo-200/90 p-3.5 flex flex-col justify-between min-h-[148px] shadow-xs cursor-pointer group hover:border-indigo-400 transition-all select-none"
+              className="relative overflow-hidden rounded-3xl cursor-pointer group shadow-xs hover:shadow-sm transition-all aspect-[525/295] bg-[#eef6fc] border border-blue-200/50"
             >
-              {/* Top: Dedicated text with ZERO OVERLAP */}
-              <div className="z-10">
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-100/90 border border-indigo-200/80 text-indigo-700 font-extrabold text-[9px] uppercase tracking-wide">
-                  <Video className="w-2.5 h-2.5" />
-                  <span>Video Call</span>
-                </span>
-                <h3 className="font-extrabold text-slate-900 text-[13.5px] leading-snug mt-1.5">
-                  Video Consultation
-                </h3>
-                <p className="text-[10px] text-slate-500 mt-0.5 font-medium leading-tight">
-                  Connect in ~10m from home
-                </p>
-              </div>
-
-              {/* Bottom: Price on Left, Distinct Live Smartphone Video Screen on Right */}
-              <div className="z-10 flex items-end justify-between mt-2 pt-1.5 border-t border-indigo-200/60">
-                <div className="min-w-0 pr-1">
-                  <span className="text-[8.5px] text-slate-400 font-bold block uppercase tracking-wider">Starts At</span>
-                  <span className="text-[13px] font-black text-indigo-700 leading-none">₹250</span>
-                  <span className="text-[9px] text-indigo-500 font-bold block mt-0.5">10 Languages</span>
-                </div>
-
-                {/* Distinct Smartphone Video Call Mockup */}
-                <div className="w-[58px] h-[58px] rounded-2xl bg-slate-900 border-2 border-indigo-300/80 shadow-2xs flex flex-col items-center justify-between p-1 text-center shrink-0 group-hover:scale-105 transition-transform overflow-hidden relative">
-                  <img
-                    src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=160&auto=format&fit=crop&q=80"
-                    alt="Video Call Doctor"
-                    className="absolute inset-0 w-full h-full object-cover opacity-85"
-                  />
-                  {/* Top live badge */}
-                  <div className="relative z-10 px-1 py-0.2 rounded bg-black/60 backdrop-blur-xs flex items-center gap-0.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="text-[7px] font-bold text-white uppercase font-mono">LIVE</span>
-                  </div>
-                  {/* Bottom camera indicator */}
-                  <div className="relative z-10 w-4 h-4 rounded-full bg-indigo-600/90 text-white flex items-center justify-center shadow-xs">
-                    <Video className="w-2.5 h-2.5" />
-                  </div>
-                </div>
-              </div>
+              <img
+                src="/practo_hero/hero_video_consult.png"
+                alt="Video Consultation"
+                className="w-full h-full object-cover block select-none pointer-events-none group-hover:scale-102 transition-transform duration-300"
+              />
             </motion.div>
           </div>
 
@@ -1165,48 +1050,34 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
               </button>
             </div>
 
-            {/* 4x2 Specialty Grid: Simple, Neat & Polished Squircle Cards */}
+            {/* 4x2 Specialty Grid: Exact Practo Squircle Cards */}
             <div className="grid grid-cols-4 gap-2 sm:gap-2.5 select-none pt-0.5">
               {practoSpecialties
                 .filter(s => s.category === specialtyCategory)
                 .map(spec => {
                   const isSelected = selectedSpecialty.toLowerCase() === spec.id.toLowerCase();
-                  const IconComponent = spec.icon;
                   return (
                     <motion.div
                       key={spec.id}
-                      whileTap={{ scale: 0.94 }}
+                      whileTap={{ scale: 0.95 }}
                       onClick={() => {
                         setSelectedSpecialty(spec.id);
                         setDirectoryMode('doctors');
                         const el = document.getElementById('nearby-directory');
                         el?.scrollIntoView({ behavior: 'smooth' });
                       }}
-                      className={`relative rounded-2xl p-2 sm:p-2.5 flex flex-col items-center justify-between text-center cursor-pointer transition-all duration-200 shadow-2xs aspect-[1/1.14] ${
+                      className={`relative rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 aspect-[285/360] shadow-2xs border ${
                         isSelected
-                          ? 'bg-blue-50/95 ring-2 ring-blue-600 border border-blue-500 shadow-sm scale-[1.02]'
-                          : 'bg-white border border-slate-200/80 hover:border-blue-300 hover:shadow-xs hover:scale-[1.01]'
+                          ? 'ring-2 ring-blue-600 border-blue-500 shadow-sm scale-[1.02]'
+                          : 'border-slate-200/80 hover:border-blue-300 hover:shadow-xs hover:scale-[1.01]'
                       }`}
                     >
-                      {/* Active indicator dot */}
-                      {isSelected && (
-                        <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-blue-600" />
-                      )}
-
-                      {/* Clean pastel squircle badge with crisp clinical vector icon */}
-                      <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center border shadow-2xs mt-0.5 transition-transform group-hover:scale-105 ${spec.badgeBg}`}>
-                        <IconComponent className="w-5 h-5 stroke-[2.2]" />
-                      </div>
-
-                      {/* Bold, sharp 2-line title */}
-                      <div className="w-full text-center pb-0.5">
-                        <span className="text-[11px] sm:text-[11.5px] font-extrabold text-slate-800 leading-[1.15] block truncate">
-                          {spec.titleLine1}
-                        </span>
-                        <span className="text-[10px] sm:text-[10.5px] font-bold text-slate-500 leading-[1.15] block truncate">
-                          {spec.titleLine2}
-                        </span>
-                      </div>
+                      <img
+                        src={spec.image}
+                        alt={spec.name}
+                        className="w-full h-full object-cover block select-none pointer-events-none"
+                        loading="lazy"
+                      />
                     </motion.div>
                   );
                 })}
