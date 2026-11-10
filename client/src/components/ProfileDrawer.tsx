@@ -125,16 +125,16 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                      <span className="text-[10px] font-bold tracking-wider uppercase text-emerald-400 font-mono">
+                      <span className="text-[10px] font-bold tracking-wider uppercase text-emerald-400">
                         Active Queue Pass
                       </span>
                     </div>
-                    <span className="text-[10px] text-slate-300 font-mono">Room 204</span>
+                    <span className="text-[10px] text-slate-300 font-medium">Room 204</span>
                   </div>
 
                   <div className="mt-2 flex items-center justify-between">
                     <div>
-                      <span className="text-xl font-bold font-mono text-white tracking-tight">
+                      <span className="text-xl font-extrabold text-white tracking-tight">
                         Token #{activeToken.tokenNumber}
                       </span>
                       <p className="text-[11px] text-slate-300 mt-0.5">

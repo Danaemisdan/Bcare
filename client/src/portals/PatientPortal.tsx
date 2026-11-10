@@ -647,7 +647,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                         <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400" />
                       </span>
-                      <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-300 font-mono">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-300">
                         Active OPD Token Pass
                       </span>
                     </div>
@@ -663,15 +663,15 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
 
                   {/* Ticket Body: Pass Badge + Dynamic Doctor & Hospital Details */}
                   <div className="grid grid-cols-[auto_1fr] gap-3.5 items-center">
-                    {/* Left Column: Monospace Token Pass Badge */}
+                    {/* Left Column: Token Pass Badge */}
                     <div className="flex flex-col items-center justify-center px-3.5 py-2.5 rounded-2xl bg-white/5 border border-white/10 text-center min-w-[76px] shadow-inner">
-                      <span className="text-[9px] uppercase tracking-widest font-bold text-emerald-400 font-mono">
+                      <span className="text-[9px] uppercase tracking-wider font-bold text-emerald-400">
                         TOKEN
                       </span>
-                      <span className="text-3xl font-extrabold font-mono tracking-tight text-white my-0.5 tabular-nums">
+                      <span className="text-3xl font-extrabold tracking-tight text-white my-0.5 tabular-nums">
                         #{token.tokenNumber < 10 ? `0${token.tokenNumber}` : token.tokenNumber}
                       </span>
-                      <span className="text-[10px] font-medium text-slate-300 font-mono">
+                      <span className="text-[10px] font-medium text-slate-300">
                         {token.time}
                       </span>
                     </div>
@@ -706,9 +706,9 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                     <div className="flex items-center justify-between text-[11px]">
                       <span className="text-slate-300 flex items-center gap-1 font-medium">
                         <Clock className="w-3 h-3 text-emerald-400" />
-                        Serving: <strong className="text-white font-mono font-bold">#{currentServingToken}</strong>
+                        Serving: <strong className="text-white font-bold">#{currentServingToken}</strong>
                       </span>
-                      <span className="text-emerald-300 font-bold font-mono">
+                      <span className="text-emerald-300 font-semibold">
                         {tokensAhead === 0 ? 'You are next in line!' : `~${estimatedWait} mins (${tokensAhead} ahead)`}
                       </span>
                     </div>
@@ -994,13 +994,13 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white p-3.5 shadow-sm">
             <div className="relative z-10 flex items-center justify-between gap-3">
               <div className="space-y-0.5 min-w-0">
-                <span className="text-[9.5px] font-bold tracking-wider uppercase text-blue-200 font-mono">
+                <span className="text-[10px] font-bold tracking-wider uppercase text-blue-100/90 block">
                   Safe • Private • ABDM Verified
                 </span>
-                <h4 className="text-xs sm:text-sm font-bold text-white leading-tight truncate">
-                  Affordable Care by Specialist Doctors
+                <h4 className="text-sm font-extrabold text-white leading-snug">
+                  Affordable Specialist Care
                 </h4>
-                <p className="text-[10.5px] text-blue-100/90 leading-tight">
+                <p className="text-[11px] text-blue-100/85 leading-tight pt-0.5">
                   Instant token passes & live wait tracking in Coimbatore
                 </p>
               </div>
@@ -1011,7 +1011,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                   const el = document.getElementById('nearby-directory');
                   el?.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className="px-3 py-1.5 rounded-xl bg-white text-blue-700 font-bold text-xs shrink-0 shadow-xs hover:bg-blue-50 transition-colors cursor-pointer active:scale-95"
+                className="px-4 py-2 rounded-full bg-white text-blue-700 font-bold text-xs shrink-0 shadow-xs hover:bg-blue-50 transition-all cursor-pointer active:scale-95"
               >
                 Book Token
               </button>
@@ -1105,14 +1105,14 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
             <div className="flex-1 min-w-0 pr-1">
               <div className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-[9.5px] font-bold text-emerald-400 tracking-wider uppercase font-mono">
+                <span className="text-[10.5px] font-bold text-emerald-400 tracking-wider uppercase">
                   B Care AI Triage
                 </span>
               </div>
-              <h3 className="text-xs sm:text-[13px] font-extrabold text-white tracking-tight leading-tight mt-0.5">
+              <h3 className="text-sm font-extrabold text-white tracking-tight leading-snug mt-0.5">
                 Describe your symptoms
               </h3>
-              <p className="text-[10px] text-slate-300 font-medium leading-tight mt-0.5">
+              <p className="text-[11px] text-slate-300 font-medium leading-tight mt-0.5">
                 Instant doctor triage in 10 languages
               </p>
             </div>
@@ -1121,7 +1121,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
             <div className="shrink-0 flex items-center">
               <button
                 type="button"
-                className="px-3 py-1.5 rounded-xl bg-emerald-400 group-hover:bg-emerald-300 text-slate-950 font-black text-xs flex items-center gap-1.5 shadow-xs transition-all active:scale-95"
+                className="px-3.5 py-1.5 rounded-full bg-emerald-400 group-hover:bg-emerald-300 text-slate-950 font-extrabold text-xs flex items-center gap-1.5 shadow-xs transition-all active:scale-95 cursor-pointer"
               >
                 <Mic className="w-3.5 h-3.5" />
                 <span>Assess</span>
@@ -1683,7 +1683,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                     >
                       <div className="flex items-center justify-between pb-2 border-b border-zinc-100">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-800 font-bold text-xs flex items-center justify-center font-mono">
+                          <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-800 font-extrabold text-xs flex items-center justify-center">
                             #{token.tokenNumber}
                           </div>
                           <div>
@@ -1710,7 +1710,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                         </div>
                         <div className="flex justify-between text-[11px]">
                           <span className="text-zinc-400">Slot Time:</span>
-                          <span className="font-mono font-medium text-zinc-900">{token.time}</span>
+                          <span className="font-semibold text-zinc-900">{token.time}</span>
                         </div>
                       </div>
 
@@ -1895,7 +1895,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
                     </span>
-                    <span className="font-semibold text-[11px] tracking-wider uppercase text-emerald-400 font-mono">
+                    <span className="font-bold text-[11px] tracking-wider uppercase text-emerald-400">
                       ACTIVE LIVE OPD PASS
                     </span>
                   </div>
@@ -1919,7 +1919,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                   <div className="space-y-1 min-w-0">
                     <div className="flex items-baseline gap-2">
                       <span className="text-[11px] uppercase text-slate-400 font-medium tracking-wider">Your Token</span>
-                      <span className="text-3xl font-bold tracking-tight text-white tabular-nums font-mono">
+                      <span className="text-3xl font-extrabold tracking-tight text-white tabular-nums">
                         #{token.tokenNumber < 10 ? `0${token.tokenNumber}` : token.tokenNumber}
                       </span>
                     </div>
@@ -2367,7 +2367,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                 {/* Header */}
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/70 text-[10.5px] font-extrabold uppercase font-mono">
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/70 text-[10.5px] font-extrabold uppercase">
                       {consultationChoiceModal === 'IN_PERSON' ? 'Clinic & Hospital Visit' : 'Instant Video Consult'}
                     </div>
                     <h3 className="text-lg font-black text-slate-900 tracking-tight leading-snug">
@@ -2504,7 +2504,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                 <div className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="font-semibold text-[11px] tracking-wider uppercase text-emerald-400 font-mono">
+                    <span className="font-bold text-[11px] tracking-wider uppercase text-emerald-400">
                       LIVE OPD QUEUE PASS
                     </span>
                   </div>
@@ -2527,7 +2527,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                   <div>
                     <div className="flex items-baseline gap-2">
                       <span className="text-[11px] uppercase text-slate-400 font-medium tracking-wider">Your Token</span>
-                      <span className="text-3xl font-semibold tracking-tight text-white tabular-nums font-mono">
+                      <span className="text-3xl font-extrabold tracking-tight text-white tabular-nums">
                         #{token.tokenNumber < 10 ? `0${token.tokenNumber}` : token.tokenNumber}
                       </span>
                     </div>
@@ -2562,7 +2562,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
 
                 {/* Ticket Perforation Footer */}
                 <div className="pt-3 border-t border-dashed border-white/15 flex items-center justify-between text-xs">
-                  <span className="text-[10px] text-slate-400 font-mono tracking-wider">
+                  <span className="text-[10px] text-slate-400 font-semibold tracking-wider">
                     PASS: BC-TKN-{token.tokenNumber}
                   </span>
                   <button

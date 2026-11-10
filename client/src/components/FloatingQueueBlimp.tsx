@@ -129,7 +129,7 @@ export const FloatingQueueBlimp: React.FC<FloatingQueueBlimpProps> = ({
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
                   </span>
-                  <span className="text-xs font-bold text-white tabular-nums font-mono tracking-tight">
+                  <span className="text-xs font-extrabold text-white tabular-nums tracking-tight">
                     #{token.tokenNumber}
                   </span>
                 </div>
@@ -234,7 +234,7 @@ export const FloatingQueueBlimp: React.FC<FloatingQueueBlimpProps> = ({
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
                     </span>
-                    <span className="font-semibold text-[11px] tracking-wider uppercase text-emerald-400 font-mono">
+                    <span className="font-bold text-[11px] tracking-wider uppercase text-emerald-400">
                       LIVE OPD QUEUE PASS
                     </span>
                   </div>
@@ -292,7 +292,7 @@ export const FloatingQueueBlimp: React.FC<FloatingQueueBlimpProps> = ({
 
                 {/* Perforated Ticket Footer */}
                 <div className="pt-2.5 border-t border-dashed border-white/15 flex items-center justify-between text-xs">
-                  <span className="text-[10px] text-slate-400 font-mono tracking-wider">
+                  <span className="text-[10px] text-slate-400 font-semibold tracking-wider">
                     PASS: BC-TKN-9842
                   </span>
                   <button

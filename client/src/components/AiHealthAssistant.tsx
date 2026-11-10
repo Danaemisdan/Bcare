@@ -1539,11 +1539,11 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                 {/* Real-Time Clinical AI Detection Card */}
                 <div className="p-3 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-950 text-white border border-slate-800 shadow-sm space-y-2">
                   <div className="flex items-center justify-between">
-                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[9.5px] font-bold text-emerald-400 font-mono tracking-wider uppercase">
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[9.5px] font-bold text-emerald-400 tracking-wider uppercase">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                       <span>Live Clinical AI</span>
                     </div>
-                    <span className="text-[10.5px] font-bold text-emerald-400 font-mono">
+                    <span className="text-[10.5px] font-bold text-emerald-400">
                       {activeCategory.diagnosis.confidence}% Precision Match
                     </span>
                   </div>
@@ -1833,7 +1833,7 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                   </div>
 
                   <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                       Specialty: {activeCategory.diagnosis.specialty}
                     </span>
                     <h4 className="text-sm sm:text-base font-extrabold text-white leading-snug mt-0.5">
