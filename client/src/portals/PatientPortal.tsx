@@ -947,45 +947,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
           {/* PRACTO INTEGRATED LUXURY HOME VIEW (Screenshot 2026-11-10 at 3.18.13 AM) */}
           {/* ============================================================== */}
 
-          {/* 1. SEARCH BAR + ASK CARE AI BUTTON */}
-          <div className="flex items-center gap-2 pt-0.5">
-            <div className="relative flex-1 flex items-center bg-white border border-slate-200/90 rounded-2xl shadow-xs px-3.5 py-2.5">
-              <Search className="w-4 h-4 text-blue-600 shrink-0 mr-2" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search clinics, hospitals, doctors..."
-                className="w-full text-xs bg-transparent focus:outline-none text-slate-900 placeholder:text-slate-400 font-medium"
-              />
-              {searchQuery && (
-                <button 
-                  type="button" 
-                  onClick={() => setSearchQuery('')} 
-                  className="text-slate-400 hover:text-slate-600 text-xs p-0.5"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-
-            <button
-              type="button"
-              onClick={() => onTabChange?.('ai_assist')}
-              className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50/80 border border-blue-200/90 text-blue-900 font-bold text-xs shadow-xs hover:border-blue-300 transition-all cursor-pointer shrink-0 active:scale-95"
-              title="Launch Clinical AI Assistant"
-            >
-              <div className="shrink-0">
-                <SiriOrb size={26} state="idle" />
-              </div>
-              <div className="text-left leading-tight">
-                <span className="block text-[11px] font-extrabold text-blue-700">Ask Care AI</span>
-                <span className="block text-[9px] text-blue-500 font-medium">Instant Triage</span>
-              </div>
-            </button>
-          </div>
-
-          {/* 2. THE TWO BIG HERO CONSULTATION CARDS SIDE-BY-SIDE (Practo Signature) */}
+          {/* 1. THE TWO BIG HERO CONSULTATION CARDS SIDE-BY-SIDE (Practo Signature) */}
           <div className="grid grid-cols-2 gap-2.5">
             {/* In-Person Consultation Card */}
             <motion.div
@@ -1196,6 +1158,44 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
               >
                 <Stethoscope className={`w-3.5 h-3.5 ${directoryMode === 'doctors' ? 'text-blue-700' : 'text-slate-400'}`} />
                 <span>Doctors ({allFilteredDoctors.length})</span>
+              </button>
+            </div>
+
+            {/* Search Bar + Ask Care AI Button */}
+            <div className="flex items-center gap-2 pt-0.5">
+              <div className="relative flex-1 min-w-0 flex items-center bg-white border border-slate-200/90 rounded-2xl shadow-xs px-3.5 py-2.5">
+                <Search className="w-4 h-4 text-blue-600 shrink-0 mr-2" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search clinics, hospitals, doctors..."
+                  className="w-full text-xs bg-transparent focus:outline-none text-slate-900 placeholder:text-slate-400 font-medium"
+                />
+                {searchQuery && (
+                  <button 
+                    type="button" 
+                    onClick={() => setSearchQuery('')} 
+                    className="text-slate-400 hover:text-slate-600 text-xs p-0.5 shrink-0"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => onTabChange?.('ai_assist')}
+                className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50/80 border border-blue-200/90 text-blue-900 font-bold text-xs shadow-xs hover:border-blue-300 transition-all cursor-pointer whitespace-nowrap shrink-0 active:scale-95"
+                title="Launch Clinical AI Assistant"
+              >
+                <div className="shrink-0">
+                  <SiriOrb size={26} state="idle" />
+                </div>
+                <div className="text-left leading-tight">
+                  <span className="block text-[11px] font-extrabold text-blue-700">Ask Care AI</span>
+                  <span className="block text-[9px] text-blue-500 font-medium">Instant Triage</span>
+                </div>
               </button>
             </div>
           </div>
