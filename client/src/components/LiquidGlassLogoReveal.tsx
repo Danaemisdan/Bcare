@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck } from 'lucide-react';
 import bcareMarkImg from '../assets/bcare-mark.png';
 import bcareHorizImg from '../assets/bcare-logo-horizontal.png';
 
@@ -855,8 +854,8 @@ export const LiquidGlassLogoReveal: React.FC<LiquidGlassLogoRevealProps> = ({
             />
           </div>
 
-          {/* Bottom Brand Title & Enter App Trigger */}
-          <div className="flex flex-col items-center text-center space-y-3 pb-4 z-20 w-full">
+          {/* Bottom Brand Title */}
+          <div className="flex flex-col items-center text-center pb-8 z-20 w-full">
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -872,28 +871,6 @@ export const LiquidGlassLogoReveal: React.FC<LiquidGlassLogoRevealProps> = ({
                 Decentralized Healthcare & OPD Network
               </p>
             </motion.div>
-
-            {/* Enter App / Skip Pill */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="flex items-center justify-center gap-3 pt-1"
-            >
-              <button
-                onClick={handleSkipOrEnter}
-                className="px-5 py-2 rounded-full bg-[#122cf3] hover:bg-[#0e24cc] text-white font-bold text-xs shadow-md shadow-blue-600/30 transition-all flex items-center gap-2 font-display"
-              >
-                <span>Explore B Care</span>
-                <span>→</span>
-              </button>
-            </motion.div>
-
-            {/* Security Footer */}
-            <div className="flex items-center gap-1.5 text-zinc-400 text-[10px] font-medium pt-1">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#122cf3]" />
-              <span>256-Bit Encrypted • ABDM Ayushman Bharat Certified</span>
-            </div>
           </div>
         </motion.div>
       )}
