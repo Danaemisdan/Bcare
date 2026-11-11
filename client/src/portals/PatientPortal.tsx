@@ -80,7 +80,8 @@ import {
   Plus,
   LocateFixed,
   Home,
-  Mic
+  Mic,
+  Ruler
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { RollingCounter } from '../components/RollingCounter';
@@ -2299,7 +2300,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                     +91 {patientProfile.phone} • Age {patientProfile.age || 48} • {patientProfile.gender || 'Male'}
                   </p>
                   <p className="text-[11px] text-zinc-400 truncate mt-0.5 font-normal">
-                    Coimbatore District • Tamil Nadu
+                    {userLocation?.city ? `${userLocation.area ? `${userLocation.area}, ` : ''}${userLocation.city}${userLocation.state ? ` • ${userLocation.state}` : ''}` : 'Detecting Location...'}
                   </p>
                 </div>
               </div>
@@ -2320,7 +2321,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                 </div>
                 <div>
                   <span className="font-semibold text-zinc-900 text-xs block">Health Record Completeness</span>
-                  <span className="text-[11px] text-zinc-400">Vitals, allergies & emergency data synced with doctors</span>
+                  <span className="text-[11px] text-zinc-400">Height, weight, allergies & emergency data synced</span>
                 </div>
               </div>
               <button
@@ -2393,86 +2394,117 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
             </div>
           </div>
 
-          {/* 3. Apple Health Vitals Bento Grid (Spacious 2x2 Grid with Zero Text Overflow) */}
-          <div>
-            <h3 className="text-sm font-semibold text-slate-900 tracking-tight mb-2 px-0.5">
-              Clinical Vitals & Metrics
-            </h3>
-            <div className={`grid ${isMobile ? 'grid-cols-2 gap-3' : 'grid-cols-2 md:grid-cols-4 gap-3'}`}>
-              
-              {/* Blood Pressure */}
-              <div className="bg-white rounded-2xl border border-slate-200/90 p-3.5 shadow-2xs space-y-2 min-w-0 overflow-hidden">
-                <div className="flex items-center justify-between text-slate-400 gap-1">
-                  <span className="text-xs font-semibold text-slate-600 truncate">Blood Pressure</span>
-                  <Activity className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+          {/* 3. Stable Baseline Health Metrics Bento Grid (Constant Biometrics) */}
+          {(() => {
+            const heightCm = patientProfile.heightCm || 174;
+            const weightKg = patientProfile.weightKg || 72;
+            const totalInches = Math.round(heightCm / 2.54);
+            const feet = Math.floor(totalInches / 12);
+            const inches = totalInches % 12;
+            const bmiRaw = weightKg / Math.pow(heightCm / 100, 2);
+            const bmi = bmiRaw.toFixed(1);
+            const bmiStatus =
+              bmiRaw < 18.5
+                ? { label: 'Underweight', dot: 'bg-amber-500', badge: 'text-amber-700 bg-amber-50 border-amber-200/60' }
+                : bmiRaw < 25
+                ? { label: 'Normal Range', dot: 'bg-emerald-500', badge: 'text-emerald-700 bg-emerald-50 border-emerald-200/60' }
+                : bmiRaw < 30
+                ? { label: 'Overweight', dot: 'bg-amber-500', badge: 'text-amber-700 bg-amber-50 border-amber-200/60' }
+                : { label: 'Obesity Class', dot: 'bg-rose-500', badge: 'text-rose-700 bg-rose-50 border-rose-200/60' };
+            const bloodGrp = patientProfile.bloodGroup || 'B+';
+            const rhLabel = bloodGrp.includes('-') ? 'Rh-' : 'Rh+';
+
+            return (
+              <div>
+                <div className="flex items-center justify-between mb-2 px-0.5">
+                  <h3 className="text-sm font-semibold text-slate-900 tracking-tight">
+                    Baseline Health Metrics
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setProfileModalOpen(true)}
+                    className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 transition-colors cursor-pointer"
+                  >
+                    Update
+                  </button>
                 </div>
-                <div className="flex items-baseline gap-1.5 flex-wrap min-w-0">
-                  <span className="text-xl font-bold text-slate-950 font-sans tracking-tight tabular-nums">128/82</span>
-                  <span className="text-xs text-slate-400 font-medium shrink-0">mmHg</span>
-                </div>
-                <div>
-                  <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md whitespace-nowrap">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                    <span>Optimal Range</span>
-                  </span>
+                <div className={`grid ${isMobile ? 'grid-cols-2 gap-3' : 'grid-cols-2 md:grid-cols-4 gap-3'}`}>
+                  
+                  {/* Height */}
+                  <div className="bg-white rounded-2xl border border-slate-200/90 p-3.5 shadow-2xs space-y-2 min-w-0 overflow-hidden">
+                    <div className="flex items-center justify-between text-slate-400 gap-1">
+                      <span className="text-xs font-semibold text-slate-600 truncate">Height</span>
+                      <Ruler className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                    </div>
+                    <div className="flex items-baseline gap-1.5 flex-wrap min-w-0">
+                      <span className="text-xl font-bold text-slate-950 font-sans tracking-tight tabular-nums">{heightCm}</span>
+                      <span className="text-xs text-slate-400 font-medium shrink-0">cm ({feet}&apos;{inches}&quot;)</span>
+                    </div>
+                    <div>
+                      <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-slate-700 bg-slate-100 border border-slate-200/60 px-2 py-0.5 rounded-md whitespace-nowrap">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                        <span>Recorded Stature</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Weight */}
+                  <div className="bg-white rounded-2xl border border-slate-200/90 p-3.5 shadow-2xs space-y-2 min-w-0 overflow-hidden">
+                    <div className="flex items-center justify-between text-slate-400 gap-1">
+                      <span className="text-xs font-semibold text-slate-600 truncate">Weight</span>
+                      <Scale className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                    </div>
+                    <div className="flex items-baseline gap-1.5 flex-wrap min-w-0">
+                      <span className="text-xl font-bold text-slate-950 font-sans tracking-tight tabular-nums">{weightKg}</span>
+                      <span className="text-xs text-slate-400 font-medium shrink-0">kg</span>
+                    </div>
+                    <div>
+                      <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-slate-700 bg-slate-100 border border-slate-200/60 px-2 py-0.5 rounded-md whitespace-nowrap">
+                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0" />
+                        <span>Dosing Baseline</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Blood Group */}
+                  <div className="bg-white rounded-2xl border border-slate-200/90 p-3.5 shadow-2xs space-y-2 min-w-0 overflow-hidden">
+                    <div className="flex items-center justify-between text-slate-400 gap-1">
+                      <span className="text-xs font-semibold text-slate-600 truncate">Blood Group</span>
+                      <Droplets className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                    </div>
+                    <div className="flex items-baseline gap-1.5 flex-wrap min-w-0">
+                      <span className="text-xl font-bold text-slate-950 font-sans tracking-tight tabular-nums">{bloodGrp}</span>
+                      <span className="text-xs text-slate-400 font-medium shrink-0">{rhLabel}</span>
+                    </div>
+                    <div>
+                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-700 bg-slate-100 border border-slate-200/60 px-2 py-0.5 rounded-md whitespace-nowrap">
+                        <span>Verified Type</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Body Mass Index (BMI) */}
+                  <div className="bg-white rounded-2xl border border-slate-200/90 p-3.5 shadow-2xs space-y-2 min-w-0 overflow-hidden">
+                    <div className="flex items-center justify-between text-slate-400 gap-1">
+                      <span className="text-xs font-semibold text-slate-600 truncate">Body Mass Index</span>
+                      <Activity className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    </div>
+                    <div className="flex items-baseline gap-1.5 flex-wrap min-w-0">
+                      <span className="text-xl font-bold text-slate-950 font-sans tracking-tight tabular-nums">{bmi}</span>
+                      <span className="text-xs text-slate-400 font-medium shrink-0">kg/m²</span>
+                    </div>
+                    <div>
+                      <span className={`inline-flex items-center gap-1.5 text-[10px] font-semibold border px-2 py-0.5 rounded-md whitespace-nowrap ${bmiStatus.badge}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${bmiStatus.dot}`} />
+                        <span>{bmiStatus.label}</span>
+                      </span>
+                    </div>
+                  </div>
+
                 </div>
               </div>
-
-              {/* Heart Rate */}
-              <div className="bg-white rounded-2xl border border-slate-200/90 p-3.5 shadow-2xs space-y-2 min-w-0 overflow-hidden">
-                <div className="flex items-center justify-between text-slate-400 gap-1">
-                  <span className="text-xs font-semibold text-slate-600 truncate">Resting Pulse</span>
-                  <Heart className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                </div>
-                <div className="flex items-baseline gap-1.5 flex-wrap min-w-0">
-                  <span className="text-xl font-bold text-slate-950 font-sans tracking-tight tabular-nums">72</span>
-                  <span className="text-xs text-slate-400 font-medium shrink-0">bpm</span>
-                </div>
-                <div>
-                  <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md whitespace-nowrap">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                    <span>Normal Sinus</span>
-                  </span>
-                </div>
-              </div>
-
-              {/* Blood Group */}
-              <div className="bg-white rounded-2xl border border-slate-200/90 p-3.5 shadow-2xs space-y-2 min-w-0 overflow-hidden">
-                <div className="flex items-center justify-between text-slate-400 gap-1">
-                  <span className="text-xs font-semibold text-slate-600 truncate">Blood Group</span>
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                </div>
-                <div className="flex items-baseline gap-1.5 flex-wrap min-w-0">
-                  <span className="text-xl font-bold text-slate-950 font-sans tracking-tight tabular-nums">{patientProfile.bloodGroup || 'B+'}</span>
-                  <span className="text-xs text-slate-400 font-medium shrink-0">Rh+</span>
-                </div>
-                <div>
-                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-700 bg-slate-100 border border-slate-200/60 px-2 py-0.5 rounded-md whitespace-nowrap">
-                    <span>Donor Matched</span>
-                  </span>
-                </div>
-              </div>
-
-              {/* Fasting Glucose */}
-              <div className="bg-white rounded-2xl border border-slate-200/90 p-3.5 shadow-2xs space-y-2 min-w-0 overflow-hidden">
-                <div className="flex items-center justify-between text-slate-400 gap-1">
-                  <span className="text-xs font-semibold text-slate-600 truncate">Blood Glucose</span>
-                  <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                </div>
-                <div className="flex items-baseline gap-1.5 flex-wrap min-w-0">
-                  <span className="text-xl font-bold text-slate-950 font-sans tracking-tight tabular-nums">108</span>
-                  <span className="text-xs text-slate-400 font-medium shrink-0">mg/dL</span>
-                </div>
-                <div>
-                  <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md whitespace-nowrap">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                    <span>Fasting Control</span>
-                  </span>
-                </div>
-              </div>
-
-            </div>
-          </div>
+            );
+          })()}
 
           {/* 4. Emergency Health Safety & Allergies Card */}
           <div className="bg-white rounded-2xl border border-zinc-200/90 p-4 shadow-subtle space-y-3">

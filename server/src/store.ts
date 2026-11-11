@@ -119,6 +119,8 @@ export class AppDataStore {
       dob: '1978-06-14',
       gender: 'MALE',
       bloodGroup: 'B+',
+      heightCm: 174,
+      weightKg: 72,
       allergies: ['Penicillin'],
       chronicConditions: ['Type 2 Diabetes', 'Hypertension'],
       emergencyContact: '+91 98450 11223 (Wife - Sunita)',

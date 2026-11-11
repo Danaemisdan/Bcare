@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PatientProfile } from '../types';
 import { Check, X, ArrowRight, UserCheck } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { PhoneModalPortal } from './PhoneModalPortal';
 
 interface ProgressiveProfileBannerProps {
   profile: PatientProfile | null;
@@ -28,6 +29,8 @@ export const ProgressiveProfileBanner: React.FC<ProgressiveProfileBannerProps> =
     setInternalModalOpen(open);
   };
   const [bloodGroup, setBloodGroup] = useState(profile?.bloodGroup || 'B+');
+  const [heightCm, setHeightCm] = useState<string>(String(profile?.heightCm || 174));
+  const [weightKg, setWeightKg] = useState<string>(String(profile?.weightKg || 72));
   const [allergies, setAllergies] = useState<string>(profile?.allergies?.join(', ') || 'Penicillin, Dust');
   const [chronicConditions, setChronicConditions] = useState<string>(profile?.chronicConditions?.join(', ') || 'Type 2 Diabetes, Mild Hypertension');
   const [emergencyContact, setEmergencyContact] = useState(profile?.emergencyContact || '+91 98450 11223 (Sunita - Spouse)');
@@ -44,6 +47,8 @@ export const ProgressiveProfileBanner: React.FC<ProgressiveProfileBannerProps> =
     try {
       await onUpdateProfile({
         bloodGroup,
+        heightCm: Number(heightCm) || 174,
+        weightKg: Number(weightKg) || 72,
         allergies: allergies.split(',').map(s => s.trim()).filter(Boolean),
         chronicConditions: chronicConditions.split(',').map(s => s.trim()).filter(Boolean),
         emergencyContact
@@ -95,7 +100,7 @@ export const ProgressiveProfileBanner: React.FC<ProgressiveProfileBannerProps> =
                 </div>
                 <p className="text-[10px] text-zinc-500 truncate mt-0.5">
                   {isComplete 
-                    ? 'Doctors have access to your vitals & allergies' 
+                    ? 'Doctors have access to your biometrics & allergies' 
                     : 'Add blood group & allergies for doctor safety'}
                 </p>
               </div>
@@ -124,21 +129,26 @@ export const ProgressiveProfileBanner: React.FC<ProgressiveProfileBannerProps> =
       )}
 
       {/* Liquid Glass Animated Drawer Modal (@aakashmehra/components/liquid-glass-button inspired) */}
-      <AnimatePresence>
-        {modalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/45 backdrop-blur-[3px]">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.86, y: 24, filter: 'blur(8px)' }}
-              animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
-              exit={{ opacity: 0, scale: 0.88, y: 16, filter: 'blur(6px)' }}
-              transition={{
-                type: 'spring',
-                stiffness: 380,
-                damping: 24,
-                mass: 0.82
-              }}
-              className="bg-white/95 backdrop-blur-2xl backdrop-saturate-150 rounded-[30px] max-w-sm sm:max-w-md w-full border border-white/90 shadow-[0_24px_60px_-10px_rgba(0,0,0,0.35),inset_0_1.5px_2px_rgba(255,255,255,1)] overflow-hidden relative"
+      {modalOpen && (
+        <PhoneModalPortal>
+          <AnimatePresence>
+            <div
+              onClick={() => setModalOpen(false)}
+              className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/50 backdrop-blur-[3px] pointer-events-auto"
             >
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.92, y: 16 }}
+                transition={{
+                  type: 'spring',
+                  stiffness: 380,
+                  damping: 26,
+                  mass: 0.8
+                }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white/95 backdrop-blur-2xl backdrop-saturate-150 rounded-[28px] max-w-sm w-full border border-white/90 shadow-[0_24px_60px_-10px_rgba(0,0,0,0.35)] overflow-hidden relative max-h-[85%] overflow-y-auto"
+              >
               {/* Specular Edge Highlight */}
               <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-white to-transparent pointer-events-none" />
 
@@ -187,6 +197,34 @@ export const ProgressiveProfileBanner: React.FC<ProgressiveProfileBannerProps> =
                 </div>
               </div>
 
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[10px] font-semibold text-zinc-700 mb-1">Height (cm)</label>
+                  <input
+                    type="number"
+                    min="50"
+                    max="250"
+                    value={heightCm}
+                    onChange={(e) => setHeightCm(e.target.value)}
+                    placeholder="174"
+                    className="w-full text-xs p-2 rounded-xl border border-zinc-200 bg-zinc-50/50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-semibold text-zinc-700 mb-1">Weight (kg)</label>
+                  <input
+                    type="number"
+                    min="10"
+                    max="300"
+                    step="0.1"
+                    value={weightKg}
+                    onChange={(e) => setWeightKg(e.target.value)}
+                    placeholder="72"
+                    className="w-full text-xs p-2 rounded-xl border border-zinc-200 bg-zinc-50/50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums"
+                  />
+                </div>
+              </div>
+
               <div>
                 <label className="block text-[10px] font-semibold text-zinc-700 mb-1">
                   Drug & Food Allergies
@@ -230,10 +268,11 @@ export const ProgressiveProfileBanner: React.FC<ProgressiveProfileBannerProps> =
                 </button>
               </div>
             </form>
-          </motion.div>
-        </div>
+              </motion.div>
+            </div>
+          </AnimatePresence>
+        </PhoneModalPortal>
       )}
-    </AnimatePresence>
     </>
   );
 };

@@ -19,6 +19,8 @@ export interface PatientProfile {
   dob: string;
   gender: 'MALE' | 'FEMALE' | 'OTHER';
   bloodGroup?: string;
+  heightCm?: number;
+  weightKg?: number;
   allergies?: string[];
   chronicConditions?: string[];
   emergencyContact?: string;

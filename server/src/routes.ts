@@ -370,13 +370,15 @@ router.get('/patient/profile/:userId', (req: Request, res: Response) => {
 
 // Progressive Profiling: Update Medical History & Details
 router.post('/patient/profile-update', (req: Request, res: Response) => {
-  const { userId, bloodGroup, allergies, chronicConditions, emergencyContact } = req.body;
+  const { userId, bloodGroup, heightCm, weightKg, allergies, chronicConditions, emergencyContact } = req.body;
   const profile = store.patientProfiles.get(userId);
   if (!profile) {
     return res.status(404).json({ error: 'Patient profile not found' });
   }
 
   if (bloodGroup) profile.bloodGroup = bloodGroup;
+  if (heightCm !== undefined) profile.heightCm = Number(heightCm);
+  if (weightKg !== undefined) profile.weightKg = Number(weightKg);
   if (allergies) profile.allergies = Array.isArray(allergies) ? allergies : [allergies];
   if (chronicConditions) profile.chronicConditions = Array.isArray(chronicConditions) ? chronicConditions : [chronicConditions];
   if (emergencyContact) profile.emergencyContact = emergencyContact;
