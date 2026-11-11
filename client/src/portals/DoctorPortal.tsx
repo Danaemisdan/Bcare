@@ -182,7 +182,7 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
               <h1 className="text-base font-semibold text-slate-900 tracking-tight truncate">{doctor.name}</h1>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/70">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/70 whitespace-nowrap shrink-0">
                 {doctor.specialty}
               </span>
             </div>
@@ -221,12 +221,12 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
             theme="dark"
             className="p-4 sm:p-5 rounded-2xl relative overflow-hidden border border-slate-800 shadow-[0_12px_36px_-6px_rgba(0,0,0,0.5)] bg-gradient-to-br from-slate-950 via-slate-900 to-[#071713]"
           >
-            <div className="flex items-center justify-between pb-2.5 border-b border-white/10">
-              <span className="flex items-center gap-1.5 text-xs font-semibold text-white">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                Current In Consultation
+            <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-white/10">
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-white min-w-0 flex-1">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                <span className="truncate">Current In Consultation</span>
               </span>
-              <span className="font-semibold text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+              <span className="font-semibold text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 whitespace-nowrap shrink-0">
                 Token #{activeTokenNumber}
               </span>
             </div>
@@ -236,8 +236,8 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
                 <h3 className="font-semibold text-base text-white">{activePatientName}</h3>
                 <p className="text-xs text-slate-400">Age 48 • Male • +91 9876543210</p>
                 <div className="pt-1.5 flex items-center gap-2 flex-wrap">
-                  <span className="px-2 py-0.5 rounded-md bg-white/10 text-slate-200 text-xs font-medium">Blood: B+</span>
-                  <span className="px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300 border border-rose-400/30 text-xs font-medium">Allergy: Penicillin</span>
+                  <span className="px-2 py-0.5 rounded-md bg-white/10 text-slate-200 text-xs font-medium whitespace-nowrap shrink-0">Blood: B+</span>
+                  <span className="px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300 border border-rose-400/30 text-xs font-medium whitespace-nowrap shrink-0">Allergy: Penicillin</span>
                 </div>
               </div>
 
@@ -254,12 +254,12 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
 
           {/* Waiting Tokens Queue */}
           <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <div className="flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-slate-500" />
-                <h3 className="font-semibold text-xs text-slate-900">Waiting OPD Queue</h3>
+            <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-100">
+              <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                <Clock className="w-4 h-4 text-slate-500 shrink-0" />
+                <h3 className="font-semibold text-xs text-slate-900 truncate">Waiting OPD Queue</h3>
               </div>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-semibold tabular-nums">
+              <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-semibold tabular-nums whitespace-nowrap shrink-0 inline-flex items-center">
                 <RollingCounter value={upcomingQueue.length} suffix=" Patients" height={14} />
               </span>
             </div>
@@ -273,21 +273,21 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
                 </div>
               ) : (
                 upcomingQueue.map(q => (
-                  <div key={q.id} className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center justify-between text-xs">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-slate-950 tabular-nums">#{q.tokenNumber}</span>
-                        <span className="font-medium text-slate-900">{q.patientName || 'Walk-in Patient'}</span>
+                  <div key={q.id} className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center justify-between gap-2 text-xs">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="font-bold text-slate-950 tabular-nums shrink-0">#{q.tokenNumber}</span>
+                        <span className="font-medium text-slate-900 truncate">{q.patientName || 'Walk-in Patient'}</span>
                       </div>
                       <span className="text-[11px] text-slate-400 tabular-nums">{q.time}</span>
                     </div>
 
                     {q.bookedByNurseId ? (
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/60">
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/60 whitespace-nowrap shrink-0">
                         Nurse Ref
                       </span>
                     ) : (
-                      <span className="text-xs text-slate-400 font-medium">Direct App</span>
+                      <span className="text-xs text-slate-400 font-medium whitespace-nowrap shrink-0">Direct App</span>
                     )}
                   </div>
                 ))
@@ -602,7 +602,7 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h2 className="text-base font-semibold text-slate-950 tracking-tight truncate">{doctor.name}</h2>
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10px] font-semibold">
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10px] font-semibold whitespace-nowrap shrink-0">
                       Verified Specialist
                     </span>
                   </div>
@@ -635,12 +635,12 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
 
           {/* Statutory Legal & Practice Compliance Settings */}
           <div className="bg-white rounded-3xl p-5 shadow-2xs border border-slate-200/90 space-y-3.5 text-xs">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold">
+            <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold shrink-0">
                   <Scale className="w-4 h-4" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <h4 className="font-extrabold text-xs text-slate-900 tracking-tight">
                     Practice Regulations & Statutory Compliance
                   </h4>
@@ -649,7 +649,7 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
                   </p>
                 </div>
               </div>
-              <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[9.5px] font-bold">
+              <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[9.5px] font-bold whitespace-nowrap shrink-0">
                 NMC REGISTERED
               </span>
             </div>

@@ -1533,7 +1533,7 @@ export function App() {
                         ) : (
                           <button
                             onClick={() => setIsAuthOpen(true)}
-                            className="px-2.5 py-1 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-all shadow-xs"
+                            className="px-2.5 py-1 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-all shadow-xs whitespace-nowrap shrink-0"
                           >
                             Sign In
                           </button>
@@ -1630,7 +1630,7 @@ export function App() {
               <div className="inline-flex items-center p-0.5 rounded-full bg-zinc-100 border border-zinc-200/80 text-[11px] font-medium shadow-xs">
                 <button
                   onClick={() => setFrameStyle('minimal')}
-                  className={`px-3 py-1 rounded-full transition-all ${
+                  className={`px-3 py-1 rounded-full transition-all whitespace-nowrap ${
                     frameStyle === 'minimal'
                       ? 'bg-white text-zinc-950 shadow-xs font-semibold'
                       : 'text-zinc-500 hover:text-zinc-900'
@@ -1641,7 +1641,7 @@ export function App() {
                 </button>
                 <button
                   onClick={() => setFrameStyle('chassis')}
-                  className={`px-3 py-1 rounded-full transition-all ${
+                  className={`px-3 py-1 rounded-full transition-all whitespace-nowrap ${
                     frameStyle === 'chassis'
                       ? 'bg-white text-zinc-950 shadow-xs font-semibold'
                       : 'text-zinc-500 hover:text-zinc-900'
@@ -1723,7 +1723,7 @@ export function App() {
                         ) : (
                           <button
                             onClick={() => setIsAuthOpen(true)}
-                            className="px-2.5 py-1 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-all shadow-xs"
+                            className="px-2.5 py-1 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-all shadow-xs whitespace-nowrap shrink-0"
                           >
                             Sign In
                           </button>

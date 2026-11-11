@@ -341,7 +341,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
               </p>
             </div>
 
-            <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium self-start sm:self-center tabular-nums ${
+            <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium self-start sm:self-center tabular-nums whitespace-nowrap shrink-0 ${
               isBalanced 
                 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/70' 
                 : 'bg-rose-50 text-rose-700 border border-rose-200/70'
@@ -507,17 +507,17 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
               return (
                 <div key={doc.id} className="p-4 rounded-2xl border border-zinc-200/80 bg-zinc-50/50 space-y-3">
                   <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
                       <div className="w-10 h-10 rounded-xl bg-zinc-950 text-white flex items-center justify-center font-bold text-sm shrink-0">
                         {doc.name.replace('Dr. ', '').split(' ')[0][0]}
                       </div>
-                      <div>
-                        <h4 className="font-semibold text-xs text-zinc-950">{doc.name}</h4>
-                        <p className="text-[11px] text-zinc-500">{doc.specialty} • {doc.hospitalName}</p>
+                      <div className="min-w-0 flex-1">
+                        <h4 className="font-semibold text-xs text-zinc-950 truncate">{doc.name}</h4>
+                        <p className="text-[11px] text-zinc-500 truncate">{doc.specialty} • {doc.hospitalName}</p>
                       </div>
                     </div>
 
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap shrink-0 ${
                       doc.status === 'ACTIVE'
                         ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/70'
                         : 'bg-amber-50 text-amber-700 border border-amber-200/70'
@@ -647,7 +647,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                   <div className="h-28 rounded-xl overflow-hidden bg-zinc-200 relative">
                     <img src={hosp.imageUrl} alt={hosp.name} className="w-full h-full object-cover" />
                     {hosp.emergencyAvailable && (
-                      <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-rose-600 text-white text-[10px] font-bold shadow-xs">
+                      <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-rose-600 text-white text-[10px] font-bold shadow-xs whitespace-nowrap shrink-0">
                         24/7 Trauma
                       </span>
                     )}
@@ -908,17 +908,17 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
 
             {/* Statutory Legal & DPDP Act 2023 Platform Controls */}
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-3 text-xs">
-              <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold">
+              <div className="flex items-center justify-between gap-2 border-b border-slate-200 pb-2">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold shrink-0">
                     <Scale className="w-4 h-4" />
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <span className="font-bold text-slate-900 block">ABDM & DPDP Act 2023 Statutory Governance</span>
                     <span className="text-[10.5px] text-slate-500">Ayushman Bharat Sandbox & National Medical Commission Compliance</span>
                   </div>
                 </div>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[9.5px] font-bold">
+                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[9.5px] font-bold whitespace-nowrap shrink-0">
                   ACTIVE GOVERNANCE
                 </span>
               </div>

@@ -571,12 +571,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     else if (signUpStep === 'OTP') setSignUpStep('MOBILE');
                     else { setView('SIGNIN'); setErrorMessage(null); }
                   }}
-                  className="text-xs text-zinc-500 hover:text-zinc-900 font-semibold flex items-center gap-1 cursor-pointer transition-colors"
+                  className="text-xs text-zinc-500 hover:text-zinc-900 font-semibold flex items-center gap-1 cursor-pointer transition-colors whitespace-nowrap shrink-0"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="w-4 h-4 shrink-0" />
                   {signUpStep === 'MOBILE' ? 'Back to Sign In' : 'Back'}
                 </button>
-                <span className="text-[10px] text-blue-700 bg-blue-50 border border-blue-200/80 px-2.5 py-0.5 rounded-full font-bold">
+                <span className="text-[10px] text-blue-700 bg-blue-50 border border-blue-200/80 px-2.5 py-0.5 rounded-full font-bold whitespace-nowrap shrink-0">
                   {signUpStep === 'MOBILE' && 'Step 1 of 3: Mobile'}
                   {signUpStep === 'OTP' && 'Step 2 of 3: OTP'}
                   {signUpStep === 'DETAILS' && 'Step 3 of 3: Profile'}

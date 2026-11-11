@@ -192,12 +192,12 @@ export const FloatingQueueBlimp: React.FC<FloatingQueueBlimpProps> = ({
                       onClick={action.onClick}
                       className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold 
                                  border border-white/35 shadow-[0_4px_16px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.45)] 
-                                 backdrop-blur-xl cursor-pointer overflow-hidden ${action.accent}`}
+                                 backdrop-blur-xl cursor-pointer overflow-hidden whitespace-nowrap shrink-0 ${action.accent}`}
                       title={action.label}
                     >
                       {/* Specular Liquid Glaze Rim */}
                       <span className="absolute inset-x-2 top-0 h-[1px] bg-white/50 pointer-events-none" />
-                      <Icon className="w-3.5 h-3.5" />
+                      <Icon className="w-3.5 h-3.5 shrink-0" />
                       <span>{action.label}</span>
                     </motion.button>
                   );
@@ -228,25 +228,25 @@ export const FloatingQueueBlimp: React.FC<FloatingQueueBlimpProps> = ({
                 <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-emerald-400/50 to-transparent pointer-events-none" />
 
                 {/* Header: Title, Live Status & Minimize */}
-                <div className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-1.5">
-                    <span className="relative flex h-2 w-2">
+                <div className="flex items-center justify-between gap-2 text-xs">
+                  <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                    <span className="relative flex h-2 w-2 shrink-0">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
                     </span>
-                    <span className="font-bold text-[11px] tracking-wider uppercase text-emerald-400">
+                    <span className="font-bold text-[11px] tracking-wider uppercase text-emerald-400 truncate">
                       LIVE OPD QUEUE PASS
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-1.5">
-                    <span className="px-2 py-0.5 rounded-full bg-white/10 border border-white/10 text-emerald-300 text-[10px] font-medium tracking-wide backdrop-blur-md">
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="px-2 py-0.5 rounded-full bg-white/10 border border-white/10 text-emerald-300 text-[10px] font-medium tracking-wide backdrop-blur-md whitespace-nowrap shrink-0">
                       {token.status === 'IN_CONSULTATION' ? '● In Consultation' : 'Confirmed'}
                     </span>
                     <button
                       type="button"
                       onClick={() => setIsExpanded(false)}
-                      className="p-1 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                      className="p-1 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer shrink-0"
                       title="Minimize"
                     >
                       <ChevronDown className="w-4 h-4" />

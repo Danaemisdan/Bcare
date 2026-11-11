@@ -159,24 +159,24 @@ export const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({
             <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-white to-transparent pointer-events-none" />
 
             {/* Sheet Header */}
-            <div className="px-5 pb-3 border-b border-slate-100/90 flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-2">
-                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-tight shadow-xs ${
+            <div className="px-5 pb-3 border-b border-slate-100/90 flex items-center justify-between gap-2 shrink-0">
+              <div className="flex items-center gap-2 min-w-0 flex-1 flex-wrap">
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-tight shadow-xs whitespace-nowrap shrink-0 ${
                   isVideo 
                     ? 'bg-sky-50 text-sky-700 border border-sky-200/80' 
                     : 'bg-emerald-50 text-emerald-800 border border-emerald-200/80'
                 }`}>
-                  {isVideo ? <Video className="w-3.5 h-3.5 text-sky-600 stroke-[2.5]" /> : <Building2 className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />}
+                  {isVideo ? <Video className="w-3.5 h-3.5 text-sky-600 stroke-[2.5] shrink-0" /> : <Building2 className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5] shrink-0" />}
                   <span>{isVideo ? 'HD Video Consultation' : 'In-Person OPD Token'}</span>
                 </span>
-                <span className="text-[10px] text-slate-400 font-medium">B care Checkout</span>
+                <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap">B care Checkout</span>
               </div>
 
               <button
                 type="button"
                 onClick={onClose}
                 disabled={isProcessing}
-                className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors cursor-pointer"
+                className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors cursor-pointer shrink-0"
                 title="Close"
               >
                 <X className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -270,12 +270,12 @@ export const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({
                   </div>
 
                   {/* Complimentary ABDM Cloud Sync */}
-                  <div className="flex justify-between items-center pt-1.5 pb-1.5 text-slate-500">
-                    <span className="flex items-center gap-1.5 text-[11px]">
-                      <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>ABDM Digital Cloud Sync</span>
+                  <div className="flex justify-between items-center gap-2 pt-1.5 pb-1.5 text-slate-500">
+                    <span className="flex items-center gap-1.5 text-[11px] min-w-0 flex-1">
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span className="truncate">ABDM Digital Cloud Sync</span>
                     </span>
-                    <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
+                    <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60 whitespace-nowrap shrink-0">
                       Complimentary
                     </span>
                   </div>
@@ -302,14 +302,14 @@ export const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({
                       <button
                         type="button"
                         onClick={() => handleApplyCode('AYUSHMAN')}
-                        className="px-2 py-0.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] font-semibold shrink-0 transition-colors"
+                        className="px-2 py-0.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] font-semibold whitespace-nowrap shrink-0 transition-colors"
                       >
                         ⚡ AYUSHMAN (-₹20)
                       </button>
                       <button
                         type="button"
                         onClick={() => handleApplyCode('PRIYA15')}
-                        className="px-2 py-0.5 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 text-[10px] font-semibold shrink-0 transition-colors"
+                        className="px-2 py-0.5 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 text-[10px] font-semibold whitespace-nowrap shrink-0 transition-colors"
                       >
                         🏷️ PRIYA15 (-₹15)
                       </button>

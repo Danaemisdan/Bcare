@@ -225,12 +225,12 @@ export const RealMapView: React.FC<RealMapViewProps> = ({
                 setMapViewMode('leaflet');
               }
             }}
-            className={`px-2 py-0.5 rounded-full text-[9px] font-bold transition-all cursor-pointer ${
+            className={`px-2 py-0.5 rounded-full text-[9px] font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               mapViewMode === 'google_embed' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
             title="Toggle between Leaflet GPS Map and Google Maps Embed"
           >
-            <Layers className="w-2.5 h-2.5 inline mr-1" />
+            <Layers className="w-2.5 h-2.5 inline mr-1 shrink-0" />
             <span>{mapViewMode === 'google_embed' ? 'Google' : 'Interactive'}</span>
           </button>
 
@@ -238,7 +238,7 @@ export const RealMapView: React.FC<RealMapViewProps> = ({
             <button
               type="button"
               onClick={() => setGoogleMode(googleMode === 'roadmap' ? 'satellite' : 'roadmap')}
-              className="px-1.5 py-0.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-[8.5px] font-bold transition-all cursor-pointer"
+              className="px-1.5 py-0.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-[8.5px] font-bold transition-all cursor-pointer whitespace-nowrap shrink-0"
             >
               {googleMode === 'satellite' ? 'Street' : 'Satellite'}
             </button>
@@ -247,7 +247,7 @@ export const RealMapView: React.FC<RealMapViewProps> = ({
           <button
             type="button"
             onClick={onRefreshGps}
-            className="p-1 rounded-full hover:bg-slate-100 text-slate-700 transition-all cursor-pointer"
+            className="p-1 rounded-full hover:bg-slate-100 text-slate-700 transition-all cursor-pointer shrink-0"
             title="Recenter GPS Location"
           >
             <Crosshair className="w-3.5 h-3.5 text-blue-600" />
@@ -257,12 +257,12 @@ export const RealMapView: React.FC<RealMapViewProps> = ({
             href={directionsUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-700 text-[9px] font-extrabold transition-all cursor-pointer"
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-700 text-[9px] font-extrabold transition-all cursor-pointer whitespace-nowrap shrink-0"
             title="Open Turn-by-Turn Navigation in Google Maps"
           >
-            <Navigation className="w-2.5 h-2.5 fill-blue-600 text-blue-600" />
+            <Navigation className="w-2.5 h-2.5 fill-blue-600 text-blue-600 shrink-0" />
             <span>Directions</span>
-            <ExternalLink className="w-2.5 h-2.5" />
+            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
           </a>
         </div>
       </div>
@@ -282,10 +282,10 @@ export const RealMapView: React.FC<RealMapViewProps> = ({
 
       {/* Floating Bottom Card: Distance & ETA to Selected Hospital */}
       {selectedHospital && (
-        <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-md shadow-md border border-slate-200/90 z-[400] text-xs">
-          <div className="flex items-center gap-1.5 min-w-0">
+        <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-md shadow-md border border-slate-200/90 z-[400] text-xs">
+          <div className="flex items-center gap-1.5 min-w-0 flex-1">
             <MapPin className="w-3.5 h-3.5 text-red-600 shrink-0" />
-            <div className="truncate">
+            <div className="min-w-0 flex-1">
               <span className="font-extrabold text-slate-900 text-[11px] truncate block">
                 {selectedHospital.name}
               </span>
@@ -296,7 +296,7 @@ export const RealMapView: React.FC<RealMapViewProps> = ({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-extrabold text-[10px] border border-emerald-200">
+            <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-extrabold text-[10px] border border-emerald-200 whitespace-nowrap shrink-0">
               {userLocation && selectedHospital?.latitude && selectedHospital?.longitude
                 ? `${calculateDistanceKm(userLat, userLng, selectedHospital.latitude, selectedHospital.longitude)} km`
                 : (selectedHospital?.distance || '1.5 km')}
@@ -305,10 +305,10 @@ export const RealMapView: React.FC<RealMapViewProps> = ({
               href={directionsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-[10px] shadow-xs flex items-center gap-1 cursor-pointer transition-all active:scale-95"
+              className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-[10px] shadow-xs flex items-center gap-1 cursor-pointer transition-all active:scale-95 whitespace-nowrap shrink-0"
             >
               <span>Go</span>
-              <ExternalLink className="w-2.5 h-2.5" />
+              <ExternalLink className="w-2.5 h-2.5 shrink-0" />
             </a>
           </div>
         </div>

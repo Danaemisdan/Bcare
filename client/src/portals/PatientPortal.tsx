@@ -665,18 +665,18 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                   <div className="absolute -top-10 -right-10 w-36 h-36 bg-emerald-500/15 rounded-full blur-2xl pointer-events-none" />
 
                   {/* Header Row: Live Queue Indicator & Status Chip */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="relative flex h-2.5 w-2.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <span className="relative flex h-2.5 w-2.5 shrink-0">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                         <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400" />
                       </span>
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-300">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-300 truncate">
                         Active OPD Token Pass
                       </span>
                     </div>
 
-                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${
+                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold border whitespace-nowrap shrink-0 ${
                       token.status === 'IN_CONSULTATION'
                         ? 'bg-amber-500/20 text-amber-300 border-amber-400/40 animate-pulse'
                         : 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30'
@@ -785,8 +785,8 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
         <div className="space-y-4">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-[10px] font-medium text-emerald-800 mb-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-[10px] font-medium text-emerald-800 mb-1.5 whitespace-nowrap shrink-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
                 Verified Patient ID: #BC-9842
               </div>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-zinc-950 tracking-tight">
@@ -798,16 +798,16 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
             </div>
 
             <div className="flex items-center gap-2.5">
-              <div className="bg-white border border-zinc-200/80 px-3 py-1.5 rounded-xl shadow-subtle flex items-center gap-2">
+              <div className="bg-white border border-zinc-200/80 px-3 py-1.5 rounded-xl shadow-subtle flex items-center gap-2 whitespace-nowrap shrink-0">
                 <span className="text-[10px] text-zinc-400 font-medium uppercase tracking-wider">Status</span>
                 <span className="text-xs font-semibold text-emerald-600 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
                   Active
                 </span>
               </div>
-              <div className="bg-white border border-zinc-200/80 px-3 py-1.5 rounded-xl shadow-subtle flex items-center gap-2">
+              <div className="bg-white border border-zinc-200/80 px-3 py-1.5 rounded-xl shadow-subtle flex items-center gap-2 whitespace-nowrap shrink-0">
                 <span className="text-[10px] text-zinc-400 font-medium uppercase tracking-wider">Rx Archive</span>
-                <span className="text-xs font-semibold text-zinc-900">{prescriptions.length} Records</span>
+                <span className="text-xs font-semibold text-zinc-900">{prescriptions.length} {prescriptions.length === 1 ? 'Record' : 'Records'}</span>
               </div>
             </div>
           </div>
@@ -1035,7 +1035,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                   const el = document.getElementById('nearby-directory');
                   el?.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className="px-4 py-2 rounded-full bg-white text-blue-700 font-bold text-xs shrink-0 shadow-xs hover:bg-blue-50 transition-all cursor-pointer active:scale-95"
+                className="px-4 py-2 rounded-full bg-white text-blue-700 font-bold text-xs whitespace-nowrap shrink-0 shadow-xs hover:bg-blue-50 transition-all cursor-pointer active:scale-95"
               >
                 Book Token
               </button>
@@ -1053,7 +1053,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
               <button
                 type="button"
                 onClick={() => setSpecialtyCategory('GENERAL')}
-                className={`flex-1 py-2 text-center text-xs font-bold rounded-full transition-all cursor-pointer ${
+                className={`flex-1 py-2 text-center text-xs font-bold rounded-full whitespace-nowrap transition-all cursor-pointer ${
                   specialtyCategory === 'GENERAL'
                     ? 'bg-white text-slate-900 shadow-xs'
                     : 'text-slate-500 hover:text-slate-800'
@@ -1064,7 +1064,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
               <button
                 type="button"
                 onClick={() => setSpecialtyCategory('ADVANCED')}
-                className={`flex-1 py-2 text-center text-xs font-bold rounded-full transition-all cursor-pointer ${
+                className={`flex-1 py-2 text-center text-xs font-bold rounded-full whitespace-nowrap transition-all cursor-pointer ${
                   specialtyCategory === 'ADVANCED'
                     ? 'bg-white text-slate-900 shadow-xs'
                     : 'text-slate-500 hover:text-slate-800'
@@ -1145,11 +1145,11 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
             <div className="shrink-0 flex items-center">
               <button
                 type="button"
-                className="px-3.5 py-1.5 rounded-full bg-emerald-400 group-hover:bg-emerald-300 text-slate-950 font-extrabold text-xs flex items-center gap-1.5 shadow-xs transition-all active:scale-95 cursor-pointer"
+                className="px-3.5 py-1.5 rounded-full bg-emerald-400 group-hover:bg-emerald-300 text-slate-950 font-extrabold text-xs flex items-center gap-1.5 whitespace-nowrap shrink-0 shadow-xs transition-all active:scale-95 cursor-pointer"
               >
-                <Mic className="w-3.5 h-3.5" />
+                <Mic className="w-3.5 h-3.5 shrink-0" />
                 <span>Assess</span>
-                <ArrowRight className="w-3 h-3 stroke-[2.5]" />
+                <ArrowRight className="w-3 h-3 stroke-[2.5] shrink-0" />
               </button>
             </div>
           </motion.div>
@@ -1359,13 +1359,13 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                                   const mapUrl = hosp.googleMapsUrl || `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(hosp.address)}`;
                                   window.open(mapUrl, '_blank');
                                 }}
-                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/80 text-[9.5px] font-bold cursor-pointer transition-colors"
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/80 text-[9.5px] font-bold whitespace-nowrap shrink-0 cursor-pointer transition-colors"
                                 title="Open route in Google Maps"
                               >
-                                <MapPin className="w-2.5 h-2.5 text-blue-600" />
+                                <MapPin className="w-2.5 h-2.5 text-blue-600 shrink-0" />
                                 <span>{hosp.distance || '1.2 km'} • Maps</span>
                               </button>
-                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200/80 text-[9.5px] font-semibold">
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200/80 text-[9.5px] font-semibold whitespace-nowrap shrink-0">
                                 <span>24/7 Emergency</span>
                               </span>
                             </div>
@@ -1381,8 +1381,8 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                             </p>
 
                             {/* Live Token Status */}
-                            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50/80 border border-emerald-200/70 text-[10px] font-medium text-emerald-800">
-                              <span className="relative flex h-1.5 w-1.5">
+                            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50/80 border border-emerald-200/70 text-[10px] font-medium text-emerald-800 whitespace-nowrap">
+                              <span className="relative flex h-1.5 w-1.5 shrink-0">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
                               </span>
@@ -1482,23 +1482,23 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
           className="space-y-4 pb-32"
         >
           {/* Header & Quick Booking Action */}
-          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-            <div>
+          <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-100">
+            <div className="min-w-0 flex-1 pr-1">
               <h2 className="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-                <CalendarCheck className="w-5 h-5 text-blue-600" />
-                <span>My Bookings</span>
+                <CalendarCheck className="w-5 h-5 text-blue-600 shrink-0" />
+                <span className="truncate">My Bookings</span>
               </h2>
-              <p className="text-[11px] text-slate-500 mt-0.5">
-                Real-time hospital queue passes & scheduled teleconsultations
+              <p className="text-[11px] text-slate-500 mt-0.5 truncate">
+                Real-time hospital queue passes & teleconsultations
               </p>
             </div>
             
             <button
               type="button"
               onClick={() => setShowNewBookingModal(true)}
-              className="px-3.5 py-1.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all active:scale-95 cursor-pointer"
+              className="px-3.5 py-1.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all active:scale-95 cursor-pointer whitespace-nowrap shrink-0"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="w-3.5 h-3.5 shrink-0" />
               <span>Book New</span>
             </button>
           </div>
@@ -1508,7 +1508,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
             <button
               type="button"
               onClick={() => setBookingScope('ACTIVE')}
-              className={`flex-1 py-1.5 px-3 rounded-full text-xs font-bold transition-all text-center cursor-pointer ${
+              className={`flex-1 py-1.5 px-3 rounded-full text-xs font-bold transition-all text-center whitespace-nowrap cursor-pointer ${
                 bookingScope === 'ACTIVE'
                   ? 'bg-white text-slate-900 shadow-xs'
                   : 'text-slate-500 hover:text-slate-800'
@@ -1519,7 +1519,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
             <button
               type="button"
               onClick={() => setBookingScope('PAST')}
-              className={`flex-1 py-1.5 px-3 rounded-full text-xs font-bold transition-all text-center cursor-pointer ${
+              className={`flex-1 py-1.5 px-3 rounded-full text-xs font-bold transition-all text-center whitespace-nowrap cursor-pointer ${
                 bookingScope === 'PAST'
                   ? 'bg-white text-slate-900 shadow-xs'
                   : 'text-slate-500 hover:text-slate-800'
@@ -1600,27 +1600,27 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                         className="rounded-[24px] border border-blue-200/90 bg-white p-4 shadow-sm hover:shadow-md transition-all space-y-3 relative overflow-hidden"
                       >
                         {/* Header Row: Token # + Status badge */}
-                        <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white font-black text-sm flex items-center justify-center shadow-xs">
+                        <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+                          <div className="flex items-center gap-2.5 min-w-0 flex-1 pr-1">
+                            <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white font-black text-sm flex items-center justify-center shadow-xs shrink-0">
                               #{token.tokenNumber < 10 ? `0${token.tokenNumber}` : token.tokenNumber}
                             </div>
-                            <div>
+                            <div className="min-w-0">
                               <span className="text-[10px] text-blue-600 font-bold uppercase tracking-wider block">
                                 Hospital OPD Token
                               </span>
-                              <h4 className="font-extrabold text-xs text-slate-900 leading-tight">
+                              <h4 className="font-extrabold text-xs text-slate-900 leading-tight truncate">
                                 {doc?.name || token.doctorName || 'Attending Specialist'}
                               </h4>
                             </div>
                           </div>
 
-                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1 ${
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1 whitespace-nowrap shrink-0 ${
                             token.status === 'IN_CONSULTATION'
                               ? 'bg-amber-50 text-amber-700 border-amber-300 animate-pulse'
                               : 'bg-emerald-50 text-emerald-700 border-emerald-300'
                           }`}>
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
                             <span>{token.status === 'IN_CONSULTATION' ? 'In Consultation' : 'Live in Queue'}</span>
                           </span>
                         </div>
@@ -1666,19 +1666,19 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                           <button
                             type="button"
                             onClick={() => window.open(googleMapsUrl, '_blank')}
-                            className="py-2 px-3 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/80 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                            className="py-2 px-3 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/80 font-bold text-xs flex items-center justify-center gap-1.5 whitespace-nowrap transition-colors cursor-pointer"
                             title="Open Google Maps Route"
                           >
-                            <MapPin className="w-3.5 h-3.5 text-blue-600" />
+                            <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                             <span>Navigate (Maps)</span>
                           </button>
 
                           <button
                             type="button"
                             onClick={() => setShowLivePassModal(true)}
-                            className="py-2 px-3 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                            className="py-2 px-3 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 whitespace-nowrap transition-colors cursor-pointer"
                           >
-                            <QrCode className="w-3.5 h-3.5 text-emerald-400" />
+                            <QrCode className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                             <span>View Pass (QR)</span>
                           </button>
                         </div>
@@ -1733,26 +1733,26 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                         key={apt.id}
                         className="rounded-[24px] border border-emerald-200/90 bg-white p-4 shadow-sm hover:shadow-md transition-all space-y-3"
                       >
-                        <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center shadow-xs">
+                        <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+                          <div className="flex items-center gap-2.5 min-w-0 flex-1 pr-1">
+                            <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center shadow-xs shrink-0">
                               <Video className="w-5 h-5 text-white" />
                             </div>
-                            <div>
+                            <div className="min-w-0">
                               <span className="text-[10px] text-emerald-700 font-bold uppercase tracking-wider block">
                                 Video Telehealth
                               </span>
-                              <h4 className="font-extrabold text-xs text-slate-900 leading-tight">
+                              <h4 className="font-extrabold text-xs text-slate-900 leading-tight truncate">
                                 {apt.doctorName || doc.name}
                               </h4>
-                              <span className="text-[11px] text-slate-500 font-medium">
+                              <span className="text-[11px] text-slate-500 font-medium truncate block">
                                 {apt.doctorSpecialty || doc.specialty} • {apt.hospitalName || doc.hospitalName}
                               </span>
                             </div>
                           </div>
 
-                          <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold flex items-center gap-1 whitespace-nowrap shrink-0">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
                             <span>Ready</span>
                           </span>
                         </div>
@@ -1777,9 +1777,9 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                           <button
                             type="button"
                             onClick={() => setActiveVideoModalDoc(doc)}
-                            className="flex-1 py-2.5 px-4 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs flex items-center justify-center gap-2 shadow-xs transition-all active:scale-95 cursor-pointer"
+                            className="flex-1 py-2.5 px-4 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs flex items-center justify-center gap-2 whitespace-nowrap shadow-xs transition-all active:scale-95 cursor-pointer"
                           >
-                            <Video className="w-4 h-4" />
+                            <Video className="w-4 h-4 shrink-0" />
                             <span>Launch Video Room Now</span>
                           </button>
 
@@ -1789,10 +1789,10 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                               setSelectedDoctor(doc);
                               setActiveVideoModalDoc(doc);
                             }}
-                            className="py-2.5 px-3 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                            className="py-2.5 px-3 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-1 whitespace-nowrap shrink-0 transition-colors cursor-pointer"
                             title="Doctor Chat"
                           >
-                            <MessageSquare className="w-3.5 h-3.5" />
+                            <MessageSquare className="w-3.5 h-3.5 shrink-0" />
                             <span>Chat</span>
                           </button>
                         </div>
@@ -1817,7 +1817,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                   <button
                     type="button"
                     onClick={() => setShowNewBookingModal(true)}
-                    className="px-4 py-2 rounded-full bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition-colors cursor-pointer"
+                    className="px-4 py-2 rounded-full bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition-colors cursor-pointer whitespace-nowrap"
                   >
                     + Book New Appointment
                   </button>
@@ -1831,32 +1831,32 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
           {/* ============================================================== */}
           {bookingScope === 'PAST' && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between px-1">
-                <span className="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  <span>Past Consultations & Medical Summary</span>
+              <div className="flex items-center justify-between gap-2 px-1">
+                <span className="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5 min-w-0 truncate">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span className="truncate">Past Consultations & Summary</span>
                 </span>
-                <span className="text-[11px] text-slate-400 font-medium">ABHA Synced</span>
+                <span className="text-[11px] text-slate-400 font-medium whitespace-nowrap shrink-0">ABHA Synced</span>
               </div>
 
               {/* Sample Completed Visits with Doctor Prescription Download */}
               <div className="rounded-[24px] border border-slate-200/90 bg-white p-4 shadow-sm hover:shadow-md transition-all space-y-3">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-800 font-bold flex items-center justify-center text-xs">
+                <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1 pr-1">
+                    <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-800 font-bold flex items-center justify-center text-xs shrink-0">
                       Rx
                     </div>
-                    <div>
-                      <h4 className="font-extrabold text-xs text-slate-900 leading-tight">
+                    <div className="min-w-0">
+                      <h4 className="font-extrabold text-xs text-slate-900 leading-tight truncate">
                         Dr. Ananya Sharma, MD, DM
                       </h4>
-                      <p className="text-[11px] text-slate-500">
+                      <p className="text-[11px] text-slate-500 truncate">
                         Cardiology • City Care Multi-Specialty Hospital
                       </p>
                     </div>
                   </div>
 
-                  <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold">
+                  <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold whitespace-nowrap shrink-0">
                     Completed
                   </span>
                 </div>
@@ -1879,10 +1879,10 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                         generatePrescriptionPdf(prescriptions[0]);
                       }
                     }}
-                    className="flex-1 py-2 px-3 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="flex-1 py-2 px-3 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer"
                   >
-                    <FileText className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Download Prescription (PDF)</span>
+                    <FileText className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    <span>Download Rx (PDF)</span>
                   </button>
 
                   <button
@@ -1891,9 +1891,9 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                       setSelectedDoctor(doctors[0]);
                       handleOpenCheckout(doctors[0], 'IN_PERSON_OPD');
                     }}
-                    className="py-2 px-3 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs cursor-pointer"
+                    className="py-2 px-3 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs whitespace-nowrap shrink-0 cursor-pointer"
                   >
-                    Book Follow-up
+                    Follow-up
                   </button>
                 </div>
               </div>
@@ -1907,13 +1907,13 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                     key={token.id}
                     className="rounded-[24px] border border-slate-200/90 bg-white p-4 shadow-sm space-y-2"
                   >
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                      <div>
+                    <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
+                      <div className="min-w-0 flex-1 pr-1">
                         <span className="text-[10px] text-slate-400 font-bold uppercase">OPD Token #{token.tokenNumber}</span>
-                        <h4 className="font-bold text-xs text-slate-900">{doc?.name || 'Attending Specialist'}</h4>
-                        <p className="text-[11px] text-slate-500">{hosp?.name}</p>
+                        <h4 className="font-bold text-xs text-slate-900 truncate">{doc?.name || 'Attending Specialist'}</h4>
+                        <p className="text-[11px] text-slate-500 truncate">{hosp?.name}</p>
                       </div>
-                      <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold">
+                      <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold whitespace-nowrap shrink-0">
                         Completed
                       </span>
                     </div>
@@ -1978,10 +1978,10 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
           className="space-y-4 pb-32"
         >
           {/* Header */}
-          <div className="flex items-center justify-between pb-1 border-b border-slate-100">
-            <div>
+          <div className="flex items-center justify-between gap-2 pb-1 border-b border-slate-100">
+            <div className="min-w-0 flex-1">
               <h2 className="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-blue-600" />
+                <Building2 className="w-5 h-5 text-blue-600 shrink-0" />
                 <span>Accredited Hospitals & Emergency Care</span>
               </h2>
               <p className="text-[11px] text-slate-500 mt-0.5">
@@ -1989,18 +1989,18 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
               </p>
             </div>
             
-            <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/70 text-[11px] font-bold">
-              {hospitals.length} Network Centres
+            <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/70 text-[11px] font-bold whitespace-nowrap shrink-0">
+              {hospitals.length} Network {hospitals.length === 1 ? 'Centre' : 'Centres'}
             </span>
           </div>
 
           {/* 24/7 Emergency SOS Hotline Banner */}
-          <div className="p-3.5 rounded-2xl bg-gradient-to-r from-rose-950 via-slate-900 to-rose-950 border border-rose-500/30 text-white flex items-center justify-between shadow-sm">
-            <div className="flex items-center gap-3">
+          <div className="p-3.5 rounded-2xl bg-gradient-to-r from-rose-950 via-slate-900 to-rose-950 border border-rose-500/30 text-white flex items-center justify-between gap-2.5 shadow-sm">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
               <div className="w-10 h-10 rounded-xl bg-rose-600/30 border border-rose-500/40 flex items-center justify-center text-rose-400 shrink-0">
                 <AlertTriangle className="w-5 h-5 animate-pulse" />
               </div>
-              <div>
+              <div className="min-w-0 flex-1">
                 <span className="text-[10px] font-extrabold text-rose-400 uppercase tracking-wider block">
                   24/7 Emergency Casualty
                 </span>
@@ -2008,27 +2008,27 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                   Immediate Ambulance & Trauma Hotline
                 </h4>
                 <p className="text-[10.5px] text-slate-300">
-                  National: 108 • Coimbatore OPD: +91 422 257 0108
+                  National: 108 • Emergency Helpline: +91 422 257 0108
                 </p>
               </div>
             </div>
             <a
               href="tel:108"
-              className="px-3.5 py-2 rounded-full bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-sm active:scale-95 transition-all"
+              className="px-3.5 py-2 rounded-full bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-sm active:scale-95 transition-all whitespace-nowrap shrink-0"
             >
-              <PhoneCall className="w-3.5 h-3.5" />
+              <PhoneCall className="w-3.5 h-3.5 shrink-0" />
               <span>Call 108</span>
             </a>
           </div>
 
           {/* District Filter Pills */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none no-scrollbar">
-            {['All', 'Coimbatore South', 'Coimbatore Central', 'Pollachi Rural'].map(area => (
+            {['All', ...Array.from(new Set(hospitals.map(h => h.districtName).filter(Boolean)))].map(area => (
               <button
                 key={area}
                 type="button"
                 onClick={() => setSelectedArea(area)}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
                   selectedArea === area
                     ? 'bg-slate-900 text-white shadow-xs'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -2042,7 +2042,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
           {/* Hospital Cards */}
           <div className="grid grid-cols-1 gap-3.5">
             {hospitals
-              .filter(h => selectedArea === 'All' || h.districtName.toLowerCase().includes(selectedArea.toLowerCase()))
+              .filter(h => selectedArea === 'All' || (h.districtName || '').toLowerCase().includes(selectedArea.toLowerCase()))
               .map(hosp => {
                 const hospDoctors = doctors.filter(d => d.hospitalId === hosp.id);
                 const primaryDoc = hospDoctors[0] || doctors[0];
@@ -2060,8 +2060,8 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                           alt={hosp.name}
                           className="w-full h-full object-cover"
                         />
-                        <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-lg bg-black/60 text-white text-[10px] font-bold flex items-center gap-0.5">
-                          <Star className="w-2.5 h-2.5 text-amber-400 fill-amber-400" />
+                        <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-lg bg-black/60 text-white text-[10px] font-bold flex items-center gap-0.5 whitespace-nowrap">
+                          <Star className="w-2.5 h-2.5 text-amber-400 fill-amber-400 shrink-0" />
                           <span>{hosp.rating}</span>
                         </div>
                       </div>
@@ -2071,14 +2071,14 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                           <button
                             type="button"
                             onClick={() => window.open(googleMapsUrl, '_blank')}
-                            className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/80 text-[10px] font-bold cursor-pointer transition-colors"
+                            className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/80 text-[10px] font-bold cursor-pointer transition-colors whitespace-nowrap shrink-0"
                             title="Open Google Maps Route"
                           >
-                            <MapPin className="w-3 h-3 text-blue-600" />
+                            <MapPin className="w-3 h-3 text-blue-600 shrink-0" />
                             <span>{hosp.distance || '1.2 km'} away • Maps</span>
                           </button>
                           {hosp.emergencyAvailable && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200/80 text-[10px] font-bold">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200/80 text-[10px] font-bold whitespace-nowrap shrink-0">
                               24/7 Emergency
                             </span>
                           )}
@@ -2101,17 +2101,17 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                       <button
                         type="button"
                         onClick={() => window.open(googleMapsUrl, '_blank')}
-                        className="py-2 px-2.5 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center gap-1 border border-blue-200/80 transition-colors cursor-pointer"
+                        className="py-2 px-2.5 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center gap-1 border border-blue-200/80 transition-colors cursor-pointer whitespace-nowrap"
                       >
-                        <MapPin className="w-3.5 h-3.5 text-blue-600" />
+                        <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                         <span>Directions</span>
                       </button>
 
                       <a
                         href={`tel:${hosp.phone || '+914222570100'}`}
-                        className="py-2 px-2.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                        className="py-2 px-2.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-1 transition-colors cursor-pointer whitespace-nowrap"
                       >
-                        <PhoneCall className="w-3.5 h-3.5 text-slate-600" />
+                        <PhoneCall className="w-3.5 h-3.5 text-slate-600 shrink-0" />
                         <span>Call</span>
                       </a>
 
@@ -2122,9 +2122,9 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                           setSelectedDoctor(primaryDoc);
                           handleOpenCheckout(primaryDoc, 'IN_PERSON_OPD');
                         }}
-                        className="py-2 px-2.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-1 shadow-xs transition-colors cursor-pointer"
+                        className="py-2 px-2.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-1 shadow-xs transition-colors cursor-pointer whitespace-nowrap"
                       >
-                        <Ticket className="w-3.5 h-3.5" />
+                        <Ticket className="w-3.5 h-3.5 shrink-0" />
                         <span>Book • ₹{hosp.baseOpFee}</span>
                       </button>
                     </div>
@@ -2292,7 +2292,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h2 className="text-base sm:text-lg font-semibold text-zinc-950 tracking-tight truncate">{patientProfile.name}</h2>
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10px] font-semibold">
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10px] font-semibold whitespace-nowrap shrink-0">
                       ABDM Verified
                     </span>
                   </div>
@@ -2336,17 +2336,17 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
 
           {/* 2. Official ABHA Digital Health Card (Ayushman Bharat / NHA) */}
           <div className="bg-white rounded-2xl border border-zinc-200/90 p-4 shadow-subtle relative overflow-hidden space-y-3">
-            <div className="flex items-center justify-between border-b border-zinc-100 pb-2.5">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200/60 flex items-center justify-center">
+            <div className="flex items-center justify-between gap-2 border-b border-zinc-100 pb-2.5">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200/60 flex items-center justify-center shrink-0">
                   <ShieldCheck className="w-4 h-4" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <h4 className="text-xs font-semibold text-zinc-950 tracking-tight">Ayushman Bharat Digital Health Card</h4>
                   <p className="text-[11px] text-zinc-400">National Health Authority (ABDM) • Government of India</p>
                 </div>
               </div>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-semibold">
+              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-semibold whitespace-nowrap shrink-0">
                 ACTIVE
               </span>
             </div>
@@ -2560,22 +2560,25 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
 
           {/* 5. UNIFIED MEDICAL HISTORY & PRESCRIPTIONS ARCHIVE (Integrated directly into Profile) */}
           <div className="bg-white rounded-[24px] border border-slate-200/90 p-4 shadow-sm space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center font-bold">
+            <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center font-bold shrink-0">
                   <FileText className="w-4 h-4" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <h4 className="text-xs font-extrabold text-slate-900 tracking-tight">
                     Medical History & Verified Prescriptions
                   </h4>
                   <p className="text-[10px] text-slate-400">
-                    Digitally signed digital prescriptions & outpatient consultation archives
+                    Digitally signed prescriptions & outpatient consultation archives
                   </p>
                 </div>
               </div>
-              <span className="text-xs font-bold text-slate-800 bg-slate-100 px-2.5 py-0.5 rounded-full">
-                {prescriptions.length + activeUserTokens.length} Records
+              <span className="text-xs font-bold text-slate-800 bg-slate-100 px-2.5 py-0.5 rounded-full whitespace-nowrap shrink-0">
+                {(() => {
+                  const total = prescriptions.length + activeUserTokens.length;
+                  return `${total} ${total === 1 ? 'Record' : 'Records'}`;
+                })()}
               </span>
             </div>
 
@@ -2641,7 +2644,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                       </span>
                     </div>
                   </div>
-                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold whitespace-nowrap shrink-0">
                     ACTIVE PASS
                   </span>
                 </div>
@@ -2657,12 +2660,12 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
 
           {/* 6. SETTINGS & STATUTORY LEGAL MEASURES (DPDP ACT 2023, NMC & ABDM) */}
           <div className="bg-white rounded-[24px] border border-slate-200/90 p-4 shadow-sm space-y-3 text-xs">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold">
+            <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold shrink-0">
                   <Scale className="w-4 h-4" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <h4 className="text-xs font-extrabold text-slate-900 tracking-tight">
                     Settings & Statutory Legal Measures
                   </h4>
@@ -2671,7 +2674,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                   </p>
                 </div>
               </div>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[9.5px] font-bold">
+              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[9.5px] font-bold whitespace-nowrap shrink-0">
                 COMPLIANT
               </span>
             </div>
@@ -2785,22 +2788,22 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
 
             {/* Session Info & Sign Out */}
             {onLogout && (
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                <span className="text-slate-500 text-[11px]">Active Session: {patientProfile.name}</span>
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                <span className="text-slate-500 text-[11px] truncate min-w-0">Active Session: {patientProfile.name}</span>
                 <button
                   type="button"
                   onClick={onLogout}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-rose-600 border border-slate-200 transition-colors font-bold text-[11px] cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-rose-600 border border-slate-200 transition-colors font-bold text-[11px] cursor-pointer whitespace-nowrap shrink-0"
                 >
-                  <LogOut className="w-3.5 h-3.5" />
+                  <LogOut className="w-3.5 h-3.5 shrink-0" />
                   <span>Sign Out</span>
                 </button>
               </div>
             )}
 
-            <div className="pt-1 flex items-center justify-between text-slate-400 text-[10.5px] font-medium">
-              <span>B Care Ayushman Bharat Certified v2.5</span>
-              <span>Statutory Support: 1800-419-BCARE</span>
+            <div className="pt-1 flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5 text-slate-400 text-[10px] font-medium">
+              <span className="whitespace-nowrap">B Care ABDM Certified v2.5</span>
+              <span className="whitespace-nowrap">Support: 1800-419-BCARE</span>
             </div>
           </div>
 
@@ -2942,7 +2945,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                 {/* Header */}
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/70 text-[10.5px] font-extrabold uppercase">
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/70 text-[10.5px] font-extrabold uppercase whitespace-nowrap">
                       {consultationChoiceModal === 'IN_PERSON' ? 'Clinic & Hospital Visit' : 'Instant Video Consult'}
                     </div>
                     <h3 className="text-lg font-black text-slate-900 tracking-tight leading-snug">
@@ -3014,16 +3017,16 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                     <SiriOrb size={38} state="listening" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5 min-w-0 flex-1 flex-wrap">
                         <h4 className="text-[13.5px] font-extrabold text-blue-950">
                           Not sure? Ask B Care AI
                         </h4>
-                        <span className="px-1.5 py-0.5 rounded-full bg-blue-600 text-white text-[9px] font-extrabold tracking-wide uppercase">
+                        <span className="px-1.5 py-0.5 rounded-full bg-blue-600 text-white text-[9px] font-extrabold tracking-wide uppercase whitespace-nowrap shrink-0">
                           Fast
                         </span>
                       </div>
-                      <Sparkles className="w-4 h-4 text-blue-600 animate-pulse" />
+                      <Sparkles className="w-4 h-4 text-blue-600 animate-pulse shrink-0" />
                     </div>
                     <p className="text-[11px] text-blue-900/80 mt-1 leading-snug">
                       Describe your symptoms, pain or discomfort in everyday words or voice. Our AI will triage and match you to the right specialist.
@@ -3076,21 +3079,21 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                 {/* Specular Edge Hairline */}
                 <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-emerald-400/50 to-transparent pointer-events-none" />
                 {/* Top Meta Row */}
-                <div className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="font-bold text-[11px] tracking-wider uppercase text-emerald-400">
+                <div className="flex items-center justify-between gap-2 text-xs">
+                  <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                    <span className="font-bold text-[11px] tracking-wider uppercase text-emerald-400 truncate">
                       LIVE OPD QUEUE PASS
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-0.5 rounded-full bg-white/10 border border-white/10 text-emerald-300 text-[10px] font-medium tracking-wide backdrop-blur-md">
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="px-2.5 py-0.5 rounded-full bg-white/10 border border-white/10 text-emerald-300 text-[10px] font-medium tracking-wide backdrop-blur-md whitespace-nowrap shrink-0">
                       {token.status === 'IN_CONSULTATION' ? '● In Consultation' : 'Confirmed'}
                     </span>
                     <button
                       type="button"
                       onClick={() => setShowLivePassModal(false)}
-                      className="p-1 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                      className="p-1 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer shrink-0"
                     >
                       <X className="w-4 h-4" />
                     </button>

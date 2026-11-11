@@ -239,17 +239,17 @@ export const TeleconsultRoomModal: React.FC<TeleconsultRoomModalProps> = ({
           className="bg-slate-950 rounded-t-[32px] sm:rounded-[32px] w-full h-[94%] sm:h-[90%] border border-white/15 shadow-2xl overflow-hidden flex flex-col relative text-white"
         >
           {/* Top Header */}
-          <div className="px-4 py-3 border-b border-slate-800 flex items-center justify-between bg-slate-900/90 backdrop-blur-md shrink-0">
-            <div className="flex items-center gap-2.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-              <div>
-                <div className="flex items-center gap-2">
+          <div className="px-4 py-3 border-b border-slate-800 flex items-center justify-between gap-2 bg-slate-900/90 backdrop-blur-md shrink-0">
+            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-extrabold text-xs text-white">Live Teleconsultation</span>
-                  <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-500/30 px-1.5 py-0.2 rounded-full tabular-nums">
+                  <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-500/30 px-1.5 py-0.2 rounded-full tabular-nums whitespace-nowrap shrink-0">
                     {formatDuration(callDuration)}
                   </span>
                   {patientLanguages && patientLanguages.length > 0 && (
-                    <span className="text-[10px] text-blue-300 bg-blue-950/80 border border-blue-500/40 px-2 py-0.2 rounded-full font-medium">
+                    <span className="text-[10px] text-blue-300 bg-blue-950/80 border border-blue-500/40 px-2 py-0.2 rounded-full font-medium whitespace-nowrap shrink-0">
                       🗣️ {patientLanguages.join(', ')}
                     </span>
                   )}
@@ -262,7 +262,7 @@ export const TeleconsultRoomModal: React.FC<TeleconsultRoomModalProps> = ({
 
             <button
               onClick={onClose}
-              className="p-1.5 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+              className="p-1.5 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
             >
               <X className="w-4 h-4" />
             </button>
@@ -383,9 +383,9 @@ export const TeleconsultRoomModal: React.FC<TeleconsultRoomModalProps> = ({
                   <button
                     type="button"
                     onClick={handleEndCall}
-                    className="px-4 py-2 rounded-full bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold flex items-center gap-1.5 shadow-lg transition-all active:scale-95 cursor-pointer"
+                    className="px-4 py-2 rounded-full bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold flex items-center gap-1.5 shadow-lg transition-all active:scale-95 cursor-pointer whitespace-nowrap shrink-0"
                   >
-                    <PhoneOff className="w-3.5 h-3.5" />
+                    <PhoneOff className="w-3.5 h-3.5 shrink-0" />
                     <span>End Consult</span>
                   </button>
                 </div>
@@ -393,12 +393,12 @@ export const TeleconsultRoomModal: React.FC<TeleconsultRoomModalProps> = ({
 
               {/* Side Consultation Chat */}
               <div className="bg-slate-900 border-t lg:border-t-0 lg:border-l border-slate-800 flex flex-col min-h-0 text-xs">
-                <div className="p-3 bg-slate-950 border-b border-slate-800 flex items-center justify-between text-xs font-bold text-slate-300">
-                  <div className="flex items-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>In-Call Clinical Chat</span>
+                <div className="p-3 bg-slate-950 border-b border-slate-800 flex items-center justify-between gap-2 text-xs font-bold text-slate-300">
+                  <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    <span className="truncate">In-Call Clinical Chat</span>
                   </div>
-                  <span className="text-[10px] text-emerald-400 font-semibold bg-emerald-950/80 px-2 py-0.5 rounded-full">
+                  <span className="text-[10px] text-emerald-400 font-semibold bg-emerald-950/80 px-2 py-0.5 rounded-full whitespace-nowrap shrink-0">
                     ABDM Encrypted
                   </span>
                 </div>

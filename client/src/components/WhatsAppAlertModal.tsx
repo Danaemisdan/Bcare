@@ -59,7 +59,7 @@ export const WhatsAppAlertModal: React.FC<WhatsAppAlertModalProps> = ({
         {/* Message Feed */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#fcfcfc]">
           <div className="text-center my-1">
-            <span className="px-2.5 py-0.5 bg-zinc-100 rounded-full text-[10px] font-medium text-zinc-500 border border-zinc-200/60 uppercase tracking-wider">
+            <span className="inline-block max-w-full truncate px-2.5 py-0.5 bg-zinc-100 rounded-full text-[10px] font-medium text-zinc-500 border border-zinc-200/60 uppercase tracking-wider whitespace-nowrap">
               End-to-End Encrypted SMS / WhatsApp Dispatch
             </span>
           </div>

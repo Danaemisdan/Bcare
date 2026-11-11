@@ -438,7 +438,7 @@ export function QuestionTool({ part, onReset }: QuestionToolProps) {
         </div>
 
         {showNavigation && (
-          <div className="inline-flex items-center gap-1 text-[11px] text-slate-500 font-semibold">
+          <div className="inline-flex items-center gap-1 text-[11px] text-slate-500 font-semibold shrink-0">
             <button
               type="button"
               onClick={goPrev}
@@ -448,7 +448,7 @@ export function QuestionTool({ part, onReset }: QuestionToolProps) {
             >
               <ChevronUp className="w-3.5 h-3.5" />
             </button>
-            <span className="px-1.5 py-0.5 rounded-full bg-white border border-slate-200/80 text-[10px] font-bold text-slate-700">
+            <span className="px-1.5 py-0.5 rounded-full bg-white border border-slate-200/80 text-[10px] font-bold text-slate-700 whitespace-nowrap shrink-0">
               {clampedIndex} of {totalQuestions}
             </span>
             <button

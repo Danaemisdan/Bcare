@@ -91,7 +91,7 @@ export const FranchisePortal: React.FC<FranchisePortalProps> = ({
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
               <h1 className="text-base font-semibold text-slate-900 tracking-tight truncate">{franchise.agencyName}</h1>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/70">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/70 whitespace-nowrap shrink-0">
                 District Partner
               </span>
             </div>
@@ -253,17 +253,17 @@ export const FranchisePortal: React.FC<FranchisePortalProps> = ({
               <h3 className="font-semibold text-xs text-slate-900 tracking-tight">
                 Hospital Centers ({districtHospitals.length})
               </h3>
-              <span className="text-[11px] text-slate-400">Coimbatore District</span>
+              <span className="text-[11px] text-slate-400 whitespace-nowrap shrink-0">{franchise.districtName || 'Coimbatore District'}</span>
             </div>
 
             <div className="space-y-2">
               {districtHospitals.map(h => (
-                <div key={h.id} className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center justify-between text-xs">
-                  <div>
-                    <h4 className="font-semibold text-slate-900 text-xs">{h.name}</h4>
-                    <p className="text-[11px] text-slate-400">{h.address}</p>
+                <div key={h.id} className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center justify-between gap-2 text-xs">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-semibold text-slate-900 text-xs truncate">{h.name}</h4>
+                    <p className="text-[11px] text-slate-400 truncate">{h.address}</p>
                   </div>
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60 whitespace-nowrap shrink-0">
                     Active OPD
                   </span>
                 </div>
@@ -340,7 +340,7 @@ export const FranchisePortal: React.FC<FranchisePortalProps> = ({
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h2 className="text-base font-semibold text-slate-900 tracking-tight truncate">{franchise.agencyName}</h2>
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10px] font-semibold">
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10px] font-semibold whitespace-nowrap shrink-0">
                       Exclusive District Franchise
                     </span>
                   </div>
@@ -369,12 +369,12 @@ export const FranchisePortal: React.FC<FranchisePortalProps> = ({
 
           {/* Statutory Legal & Franchise Compliance */}
           <div className="bg-white rounded-3xl p-5 shadow-2xs border border-slate-200/90 space-y-3 text-xs">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold">
+            <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold shrink-0">
                   <Scale className="w-4 h-4" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <h4 className="font-extrabold text-xs text-slate-900 tracking-tight">
                     District Franchise Agreement & Legal Compliance
                   </h4>
@@ -383,7 +383,7 @@ export const FranchisePortal: React.FC<FranchisePortalProps> = ({
                   </p>
                 </div>
               </div>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[9.5px] font-bold">
+              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[9.5px] font-bold whitespace-nowrap shrink-0">
                 ABDM CERTIFIED
               </span>
             </div>

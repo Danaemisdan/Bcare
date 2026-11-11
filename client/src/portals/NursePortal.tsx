@@ -150,7 +150,7 @@ export const NursePortal: React.FC<NursePortalProps> = ({
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <h1 className="text-base font-semibold text-slate-900 tracking-tight truncate">{nurse.name}</h1>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/70">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/70 whitespace-nowrap shrink-0">
                     Community Nurse
                   </span>
                 </div>
@@ -178,14 +178,14 @@ export const NursePortal: React.FC<NursePortalProps> = ({
           >
             <div className="space-y-3 relative z-10">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-xs text-blue-100 font-medium">Your Dedicated OPD Referral Code</span>
-                <span className="px-2.5 py-0.5 rounded-full bg-white/20 text-white text-[10px] font-semibold border border-white/20 whitespace-nowrap">
+                <span className="text-xs text-blue-100 font-medium min-w-0 flex-1">Your Dedicated OPD Referral Code</span>
+                <span className="px-2.5 py-0.5 rounded-full bg-white/20 text-white text-[10px] font-semibold border border-white/20 whitespace-nowrap shrink-0">
                   ₹{splitConfig.nurseReferralCommission} / Patient
                 </span>
               </div>
 
               <div className="flex items-center justify-between gap-2 pt-0.5">
-                <span className="font-mono text-xl font-bold text-white tracking-wider bg-white/10 px-3 py-1.5 rounded-xl border border-white/20">
+                <span className="text-sm sm:text-base font-extrabold text-white tracking-wide bg-white/10 px-3 py-2 rounded-xl border border-white/20 whitespace-nowrap truncate min-w-0">
                   {nurse.referralCode}
                 </span>
 
@@ -380,7 +380,7 @@ export const NursePortal: React.FC<NursePortalProps> = ({
                   <p className="text-[11px] text-slate-400">Assign open slots to walk-in patients</p>
                 </div>
               </div>
-              <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 font-semibold tabular-nums inline-flex items-center gap-1">
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 font-semibold tabular-nums inline-flex items-center gap-1 whitespace-nowrap shrink-0">
                 <RollingCounter value={activeBulkReservations.length} height={14} />
                 <span>Open</span>
               </span>
@@ -450,7 +450,7 @@ export const NursePortal: React.FC<NursePortalProps> = ({
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h2 className="text-base font-semibold text-slate-950 tracking-tight truncate">{nurse.name}</h2>
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10px] font-semibold">
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10px] font-semibold whitespace-nowrap shrink-0">
                       ABDM Certified
                     </span>
                   </div>
@@ -498,12 +498,12 @@ export const NursePortal: React.FC<NursePortalProps> = ({
 
           {/* Nursing Ethics & Statutory Measures */}
           <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs space-y-3 text-xs">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold">
+            <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold shrink-0">
                   <Scale className="w-3.5 h-3.5" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <h4 className="font-extrabold text-xs text-slate-900 tracking-tight">
                     Clinical Ethics & Statutory Measures
                   </h4>
@@ -512,7 +512,7 @@ export const NursePortal: React.FC<NursePortalProps> = ({
                   </p>
                 </div>
               </div>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[9.5px] font-bold">
+              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[9.5px] font-bold whitespace-nowrap shrink-0">
                 INC COMPLIANT
               </span>
             </div>
