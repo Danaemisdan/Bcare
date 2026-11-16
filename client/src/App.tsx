@@ -1312,6 +1312,7 @@ export function App() {
           <DoctorPortal
             doctor={doctors[0]}
             slots={slots}
+            videoAppointments={videoAppointments}
             splitConfig={splitConfig}
             isMobile={isMobile}
             activeTab={doctorTab}
@@ -1329,6 +1330,7 @@ export function App() {
             nurse={nurses[0]}
             slots={slots}
             doctors={doctors}
+            hospitals={hospitals}
             splitConfig={splitConfig}
             isMobile={isMobile}
             activeTab={nurseTab}

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { 
   RevenueSplitConfig, 
   OpSlot, 
@@ -9,6 +10,7 @@ import {
 } from '../types';
 import { RollingCounter } from '../components/RollingCounter';
 import { CountUp } from '../components/CountUp';
+import { PhoneModalPortal } from '../components/PhoneModalPortal';
 import { 
   Sliders, 
   Save, 
@@ -28,7 +30,13 @@ import {
   AlertTriangle,
   Scale,
   FileText,
-  Lock
+  Lock,
+  ChevronRight,
+  X,
+  MessageSquare,
+  CheckCircle2,
+  Activity,
+  Send
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -65,6 +73,9 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
 }) => {
   // Active Admin Sub-panel Tab
   const [activePanel, setActivePanel] = useState<'pricing' | 'doctors' | 'hospitals' | 'controls' | 'ledger'>('pricing');
+
+  // Statutory Compliance & Audit Modal
+  const [activeComplianceModal, setActiveComplianceModal] = useState<'ABDM_SANDBOX' | 'DPDP_AUDIT' | 'EMERGENCY_PROTOCOL' | null>(null);
 
   // Revenue Split State
   const [baseFee, setBaseFee] = useState<number>(splitConfig.baseOpFee);
@@ -924,14 +935,28 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
-                <div className="p-2.5 rounded-xl bg-white border border-slate-200 space-y-0.5">
-                  <span className="text-slate-400 block font-medium">ABDM Gateway Sandbox:</span>
-                  <span className="font-bold text-emerald-700">M1, M2 & M3 CERTIFIED</span>
-                </div>
-                <div className="p-2.5 rounded-xl bg-white border border-slate-200 space-y-0.5">
-                  <span className="text-slate-400 block font-medium">Grievance Redressal SLA:</span>
-                  <span className="font-bold text-slate-900">24h Ack / 15d Resolution</span>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveComplianceModal('ABDM_SANDBOX')}
+                  className="text-left p-2.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 space-y-0.5 transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400 block font-medium">ABDM Gateway Sandbox:</span>
+                    <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                  </div>
+                  <span className="font-bold text-emerald-700 block">M1, M2 & M3 CERTIFIED</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveComplianceModal('DPDP_AUDIT')}
+                  className="text-left p-2.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 space-y-0.5 transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400 block font-medium">Grievance Redressal SLA:</span>
+                    <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                  </div>
+                  <span className="font-bold text-slate-900 block">24h Ack / 15d Resolution</span>
+                </button>
               </div>
             </div>
 
@@ -1034,6 +1059,80 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Platform Broadcasts & Automated Dispatch Monitor */}
+          <div className="pt-3 border-t border-zinc-100 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Radio className="w-4 h-4 text-emerald-600 animate-pulse" />
+                <h4 className="font-semibold text-xs text-zinc-900">Live Gateway Dispatch & WhatsApp Audit Stream</h4>
+              </div>
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                Gupshup / Meta Cloud API Active
+              </span>
+            </div>
+
+            <div className="space-y-2 text-xs">
+              {[
+                {
+                  id: 'd-1',
+                  type: 'OPD Token Pass',
+                  recipient: '+91 98421 *****',
+                  detail: 'Token #4 OPD Pass with QR Code dispatched to patient',
+                  time: '2 mins ago',
+                  status: 'DELIVERED'
+                },
+                {
+                  id: 'd-2',
+                  type: 'Digital Rx Issued',
+                  recipient: '+91 98765 *****',
+                  detail: 'Signed Prescription #RX-9942 PDF link delivered with Class 3 DSC hash',
+                  time: '14 mins ago',
+                  status: 'READ'
+                },
+                {
+                  id: 'd-3',
+                  type: 'Teleconsult Room',
+                  recipient: '+91 98421 *****',
+                  detail: 'Encrypted WebRTC Room meet.bcare.health/room/bc-vid-0401 dispatched',
+                  time: '32 mins ago',
+                  status: 'DELIVERED'
+                },
+                {
+                  id: 'd-4',
+                  type: '108 Emergency Hook',
+                  recipient: 'State ERS Gateway',
+                  detail: 'Coimbatore District 108 Emergency trauma dispatch link active & healthy',
+                  time: 'Realtime',
+                  status: 'MONITORING'
+                }
+              ].map(d => (
+                <div
+                  key={d.id}
+                  className="p-3 rounded-2xl bg-zinc-50 border border-zinc-200/70 flex items-center justify-between gap-2"
+                >
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-zinc-900 text-xs">{d.type}</span>
+                      <span className="text-zinc-400 font-mono text-[10.5px]">{d.recipient}</span>
+                    </div>
+                    <p className="text-[11px] text-zinc-500 mt-0.5 truncate">{d.detail}</p>
+                    <span className="text-[10px] text-zinc-400 tabular-nums">{d.time}</span>
+                  </div>
+
+                  <span className={`text-[9.5px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 ${
+                    d.status === 'READ'
+                      ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                      : d.status === 'DELIVERED'
+                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      : 'bg-zinc-200/70 text-zinc-700'
+                  }`}>
+                    {d.status}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -1163,6 +1262,95 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
             </form>
           </div>
         </div>
+      )}
+
+      {/* Statutory Governance & Platform Compliance Modal */}
+      {activeComplianceModal && (
+        <PhoneModalPortal>
+          <div 
+            className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs pointer-events-auto"
+            onClick={() => setActiveComplianceModal(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-[28px] max-w-sm w-full p-5 space-y-3.5 shadow-2xl border border-slate-200 text-slate-900"
+            >
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <Scale className="w-5 h-5 text-indigo-600" />
+                  <h3 className="font-extrabold text-sm text-slate-900">
+                    {activeComplianceModal === 'ABDM_SANDBOX' && 'ABDM Gateway Sandbox Certification'}
+                    {activeComplianceModal === 'DPDP_AUDIT' && 'DPDP Act 2023 Statutory Audits & SLA'}
+                    {activeComplianceModal === 'EMERGENCY_PROTOCOL' && '108 Emergency Casualty Protocols'}
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveComplianceModal(null)}
+                  className="p-1 rounded-full text-slate-400 hover:text-slate-700"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="text-xs text-slate-600 leading-relaxed space-y-2.5 max-h-[60vh] overflow-y-auto pr-1">
+                {activeComplianceModal === 'ABDM_SANDBOX' && (
+                  <>
+                    <p>
+                      <strong>Ayushman Bharat Digital Mission (ABDM) Sandbox:</strong>
+                    </p>
+                    <p>
+                      The B Care core architecture is certified across Milestone 1, 2, and 3 by the National Health Authority (NHA):
+                    </p>
+                    <ul className="list-disc pl-4 space-y-1 text-slate-700">
+                      <li><strong>M1 (ABHA Creation):</strong> 14-digit Ayushman Bharat Health Account generation with Aadhaar OTP and demographic deduplication.</li>
+                      <li><strong>M2 (Health Facility & Professional Registry):</strong> HFR and HPR gateway integration verifying hospital licenses and doctor registrations.</li>
+                      <li><strong>M3 (Health Information Exchange):</strong> HIP/HIU consent manager interoperability for FHIR/JSON diagnostic bundles.</li>
+                    </ul>
+                  </>
+                )}
+
+                {activeComplianceModal === 'DPDP_AUDIT' && (
+                  <>
+                    <p>
+                      <strong>Digital Personal Data Protection Act, 2023 Governance:</strong>
+                    </p>
+                    <p>
+                      The Super Admin Portal enforces mandatory compliance standards across all participating district franchises:
+                    </p>
+                    <ul className="list-disc pl-4 space-y-1 text-slate-700">
+                      <li><strong>Data Protection Officer (DPO):</strong> Statutory grievance escalation officer appointed with 24-hour acknowledgement SLA.</li>
+                      <li><strong>Breach Notification Protocol:</strong> Automated notification hook to the Data Protection Board of India (DPBI) within 72 hours of any security event.</li>
+                      <li><strong>Log Anonymization:</strong> Audit trails store cryptographically salted phone identifiers to protect patient anonymity.</li>
+                    </ul>
+                  </>
+                )}
+
+                {activeComplianceModal === 'EMERGENCY_PROTOCOL' && (
+                  <>
+                    <p>
+                      <strong>Tamil Nadu Emergency Response Service (108):</strong>
+                    </p>
+                    <p>
+                      Platform-wide emergency casualty triage connects directly to the state ambulance dispatch network and trauma casualty reception units.
+                    </p>
+                  </>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setActiveComplianceModal(null)}
+                className="w-full py-2.5 rounded-xl bg-slate-900 text-white font-semibold text-xs cursor-pointer"
+              >
+                Close Statutory Panel
+              </button>
+            </motion.div>
+          </div>
+        </PhoneModalPortal>
       )}
 
     </div>
