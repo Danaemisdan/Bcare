@@ -223,7 +223,10 @@ export function App() {
       emergencyPhone: '108',
       googleMapsUrl: 'https://www.google.com/maps/dir/?api=1&destination=17.4265,78.4118',
       adminUserId: 'user-franchise-hyd',
-      isAccountVerified: true
+      isAccountVerified: true,
+      featured: true,
+      status: 'ACTIVE',
+      onboardingSource: 'Hyderabad Central Master Franchise'
     },
     {
       id: 'hosp-1',
@@ -244,7 +247,10 @@ export function App() {
       emergencyPhone: '+91 422 257 0108',
       googleMapsUrl: 'https://www.google.com/maps/dir/?api=1&destination=11.0267,77.0089',
       adminUserId: 'user-franchise-1',
-      isAccountVerified: true
+      isAccountVerified: true,
+      featured: true,
+      status: 'ACTIVE',
+      onboardingSource: 'Apex Health District Franchise'
     },
     {
       id: 'hosp-2',
@@ -265,7 +271,10 @@ export function App() {
       emergencyPhone: '+91 422 259 4499',
       googleMapsUrl: 'https://www.google.com/maps/dir/?api=1&destination=11.0016,77.0253',
       adminUserId: 'user-franchise-2',
-      isAccountVerified: true
+      isAccountVerified: true,
+      featured: false,
+      status: 'ACTIVE',
+      onboardingSource: 'Apex Health District Franchise'
     }
   ]);
 
@@ -290,7 +299,10 @@ export function App() {
       estimatedWaitMins: 12,
       videoAvailable: true,
       registrationNumber: 'TMC-77492',
-      isAccountVerified: true
+      isAccountVerified: true,
+      featured: true,
+      onboardingSource: 'Apex Health District Franchise (Coimbatore South)',
+      franchiseName: 'Apex Health District Franchise'
     },
     {
       id: 'doc-2',
@@ -312,7 +324,10 @@ export function App() {
       estimatedWaitMins: 8,
       videoAvailable: true,
       registrationNumber: 'TMC-66291',
-      isAccountVerified: true
+      isAccountVerified: true,
+      featured: false,
+      onboardingSource: 'Apex Health District Franchise (Coimbatore South)',
+      franchiseName: 'Apex Health District Franchise'
     },
     {
       id: 'doc-hyd-1',
@@ -334,7 +349,10 @@ export function App() {
       estimatedWaitMins: 10,
       videoAvailable: true,
       registrationNumber: 'TSMC-48201',
-      isAccountVerified: true
+      isAccountVerified: true,
+      featured: true,
+      onboardingSource: 'Hyderabad Central Master Franchise',
+      franchiseName: 'Hyderabad Central Franchise'
     },
     {
       id: 'doc-3',
@@ -356,7 +374,10 @@ export function App() {
       estimatedWaitMins: 15,
       videoAvailable: true,
       registrationNumber: 'TMC-88102',
-      isAccountVerified: true
+      isAccountVerified: true,
+      featured: false,
+      onboardingSource: 'Direct HQ Onboarding',
+      franchiseName: 'Direct HQ'
     }
   ]);
 
@@ -1364,6 +1385,8 @@ export function App() {
             hospitals={hospitals}
             franchises={[franchise]}
             doctors={doctors}
+            nurses={nurses}
+            patientProfile={patientProfile}
             platformSettings={platformSettings}
             isMobile={isMobile}
             onUpdateSplitConfig={handleUpdateSplitConfig}
@@ -1372,6 +1395,7 @@ export function App() {
             onUpdateHospital={handleUpdateHospital}
             onAddHospital={handleAddHospital}
             onUpdatePlatformSettings={handleUpdatePlatformSettings}
+            onTriggerWhatsAppToast={triggerWhatsAppToast}
           />
         );
       default:

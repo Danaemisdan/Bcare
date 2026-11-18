@@ -25,6 +25,8 @@ export interface PatientProfile {
   chronicConditions?: string[];
   emergencyContact?: string;
   languages?: string[];
+  abhaId?: string;
+  city?: string;
   profileCompletionPct: number;
 }
 
@@ -48,6 +50,9 @@ export interface Hospital {
   googleMapsUrl?: string;
   adminUserId?: string;
   isAccountVerified?: boolean;
+  status?: 'ACTIVE' | 'BLOCKED' | 'PENDING_APPROVAL';
+  featured?: boolean;
+  onboardingSource?: string;
 }
 
 export interface DoctorProfile {
@@ -63,7 +68,7 @@ export interface DoctorProfile {
   availableDays: string[];
   rating: number;
   totalConsultations: number;
-  status?: 'ACTIVE' | 'ON_LEAVE' | 'OFFLINE';
+  status?: 'ACTIVE' | 'ON_LEAVE' | 'OFFLINE' | 'PENDING_APPROVAL' | 'BLOCKED';
   distance?: string;
   nextAvailableToken?: number;
   estimatedWaitMins?: number;
@@ -71,6 +76,9 @@ export interface DoctorProfile {
   roomNumber?: string;
   registrationNumber?: string;
   isAccountVerified?: boolean;
+  featured?: boolean;
+  onboardingSource?: string;
+  franchiseName?: string;
 }
 
 export interface NurseProfile {
@@ -85,6 +93,8 @@ export interface NurseProfile {
   totalReferrals: number;
   walletBalance: number;
   totalEarnings: number;
+  status?: 'ACTIVE' | 'BLOCKED' | 'PENDING_APPROVAL';
+  isAccountVerified?: boolean;
 }
 
 export interface FranchiseTerritory {
