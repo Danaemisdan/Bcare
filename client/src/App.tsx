@@ -871,12 +871,12 @@ export function App() {
   };
 
   // 6. Nurse Action: Bulk Reserve
-  const handleBulkReserve = async (nurseId: string, doctorId: string, startToken: number, endToken: number) => {
+  const handleBulkReserve = async (nurseId: string, doctorId: string, startToken: number, endToken: number, date?: string, time?: string) => {
     try {
       const res = await fetch('/api/nurse/bulk-reserve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nurseId, doctorId, startToken, endToken })
+        body: JSON.stringify({ nurseId, doctorId, startToken, endToken, date, time })
       });
       if (res.ok) {
         const sRes = await fetch('/api/op/slots');
@@ -892,6 +892,8 @@ export function App() {
           status: 'RESERVED_BULK',
           bookedByNurseId: nurseId,
           nurseReferralCode: 'NURSE-PRIYA-782',
+          date: date || s.date,
+          time: time || s.time,
           bulkReservationBatchId: `BATCH-LOCAL-${Date.now().toString().slice(-4)}`
         };
       }
@@ -1352,6 +1354,8 @@ export function App() {
             slots={slots}
             doctors={doctors}
             hospitals={hospitals}
+            videoAppointments={videoAppointments}
+            onBookVideoConsultation={handleBookVideoConsultation}
             splitConfig={splitConfig}
             isMobile={isMobile}
             activeTab={nurseTab}

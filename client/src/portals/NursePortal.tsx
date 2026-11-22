@@ -5,12 +5,14 @@ import {
   OpSlot, 
   DoctorProfile, 
   Hospital,
-  RevenueSplitConfig 
+  RevenueSplitConfig,
+  VideoAppointment
 } from '../types';
 import { RollingCounter } from '../components/RollingCounter';
 import { CountUp } from '../components/CountUp';
 import { SlapBlock } from '../components/SlapBlock';
 import { PhoneModalPortal } from '../components/PhoneModalPortal';
+import { TeleconsultRoomModal } from '../components/TeleconsultRoomModal';
 import { 
   Copy, 
   Check, 
@@ -33,7 +35,13 @@ import {
   Stethoscope,
   MapPin,
   CheckCircle2,
-  Sparkles
+  Sparkles,
+  Search,
+  SlidersHorizontal,
+  ArrowUpDown,
+  UserCheck,
+  Calendar,
+  Video
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -42,11 +50,13 @@ interface NursePortalProps {
   slots: OpSlot[];
   doctors: DoctorProfile[];
   hospitals?: Hospital[];
+  videoAppointments?: VideoAppointment[];
+  onBookVideoConsultation?: (bookingData: any) => Promise<any>;
   splitConfig: RevenueSplitConfig;
   isMobile?: boolean;
   activeTab?: 'referrals' | 'bulk' | 'walkin' | 'profile';
   onTabChange?: (tab: 'referrals' | 'bulk' | 'walkin' | 'profile') => void;
-  onBulkReserve: (nurseId: string, doctorId: string, startToken: number, endToken: number) => Promise<any>;
+  onBulkReserve: (nurseId: string, doctorId: string, startToken: number, endToken: number, date?: string, time?: string) => Promise<any>;
   onAssignBulkSlot: (slotId: string, patientName: string, patientPhone: string, nurseId: string) => Promise<any>;
   onTriggerWhatsAppToast: (title: string, message: string, type: 'TOKEN_CONFIRMATION' | 'PRESCRIPTION_READY' | 'TELECONSULT_LINK') => void;
   onLogout?: () => void;
@@ -57,6 +67,8 @@ export const NursePortal: React.FC<NursePortalProps> = ({
   slots,
   doctors,
   hospitals = [],
+  videoAppointments = [],
+  onBookVideoConsultation,
   splitConfig,
   isMobile = false,
   activeTab = 'referrals',
@@ -71,6 +83,10 @@ export const NursePortal: React.FC<NursePortalProps> = ({
   const [startToken, setStartToken] = useState<number>(11);
   const [endToken, setEndToken] = useState<number>(15);
   const [reserving, setReserving] = useState(false);
+  const [appointmentDate, setAppointmentDate] = useState<string>(
+    () => new Date().toISOString().split('T')[0]
+  );
+  const [appointmentTime, setAppointmentTime] = useState<string>('10:00 AM');
 
   // Walk-in modal
   const [assigningSlot, setAssigningSlot] = useState<OpSlot | null>(null);
@@ -81,9 +97,95 @@ export const NursePortal: React.FC<NursePortalProps> = ({
   // Statutory Legal Modals
   const [activeLegalModal, setActiveLegalModal] = useState<'INC' | 'ABDM' | 'COMMISSION' | null>(null);
 
+  // Search & Filter state for Walk-In tokens
+  const [tokenSearch, setTokenSearch] = useState('');
+  const [tokenStatusFilter, setTokenStatusFilter] = useState<'open' | 'all' | 'assigned' | 'video'>('open');
+  const [tokenTimeFilter, setTokenTimeFilter] = useState<'all' | 'morning' | 'afternoon'>('all');
+  const [tokenDoctorFilter, setTokenDoctorFilter] = useState<string>('all');
+  const [tokenSortOrder, setTokenSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [showFilterDrawer, setShowFilterDrawer] = useState(false);
+
+  // Video Call Reservation state for Walk-in patients
+  const [localVideoAppointments, setLocalVideoAppointments] = useState<VideoAppointment[]>([]);
+  const [isVideoReserveModalOpen, setIsVideoReserveModalOpen] = useState(false);
+  const [videoPatientName, setVideoPatientName] = useState('');
+  const [videoPatientPhone, setVideoPatientPhone] = useState('');
+  const [videoDoctorId, setVideoDoctorId] = useState<string>(doctors[0]?.id || 'doc-1');
+  const [videoDate, setVideoDate] = useState<string>(() => new Date().toISOString().split('T')[0]);
+  const [videoTime, setVideoTime] = useState<string>('Instant (Now)');
+  const [videoBookingLoading, setVideoBookingLoading] = useState(false);
+  const [activeTeleconsultDoctor, setActiveTeleconsultDoctor] = useState<{
+    doctorName: string;
+    specialty: string;
+    patientName: string;
+  } | null>(null);
+
+  const allNurseVideoAppointments = [
+    ...localVideoAppointments,
+    ...(videoAppointments || []).filter(v => v.patientPhone === nurse.phone || (v as any).bookedByNurseId === nurse.id || (v as any).nurseId === nurse.id)
+  ];
+
   const nurseSlots = slots.filter(s => s.bookedByNurseId === nurse.id);
   const activeBulkReservations = nurseSlots.filter(s => s.status === 'RESERVED_BULK');
   const bookedOrCompletedByNurse = nurseSlots.filter(s => s.status === 'BOOKED' || s.status === 'COMPLETED' || s.status === 'IN_CONSULTATION');
+
+  const openTokensCount = activeBulkReservations.length;
+  const assignedTokensCount = bookedOrCompletedByNurse.length;
+  const totalNurseTokensCount = nurseSlots.length;
+  const batchDoctors = Array.from(new Set(nurseSlots.map(s => s.doctorName)));
+
+  // Filtered Walk-in tokens
+  const filteredWalkinTokens = nurseSlots.filter(token => {
+    // 1. Status Filter
+    if (tokenStatusFilter === 'open' && token.status !== 'RESERVED_BULK') return false;
+    if (tokenStatusFilter === 'assigned' && token.status === 'RESERVED_BULK') return false;
+
+    // 2. Doctor Filter
+    if (tokenDoctorFilter !== 'all' && token.doctorName !== tokenDoctorFilter) return false;
+
+    // 3. Time Filter
+    if (tokenTimeFilter === 'morning') {
+      const isMorning = token.time.toUpperCase().includes('AM');
+      if (!isMorning) return false;
+    } else if (tokenTimeFilter === 'afternoon') {
+      const isAfternoon = token.time.toUpperCase().includes('PM');
+      if (!isAfternoon) return false;
+    }
+
+    // 4. Search Query Filter
+    if (tokenSearch.trim()) {
+      const cleanSearch = tokenSearch.trim().toLowerCase().replace(/^#/, '');
+      const tokenNumStr = token.tokenNumber.toString();
+      const tokenFullStr = `token #${tokenNumStr}`.toLowerCase();
+      const docMatch = token.doctorName?.toLowerCase().includes(cleanSearch);
+      const timeMatch = token.time?.toLowerCase().includes(cleanSearch);
+      const tokenMatch = tokenNumStr.includes(cleanSearch) || tokenFullStr.includes(cleanSearch);
+      const patientMatch = token.patientName?.toLowerCase().includes(cleanSearch);
+      const phoneMatch = token.patientPhone?.includes(cleanSearch);
+      const hospMatch = token.hospitalName?.toLowerCase().includes(cleanSearch);
+
+      if (!tokenMatch && !docMatch && !timeMatch && !patientMatch && !phoneMatch && !hospMatch) {
+        return false;
+      }
+    }
+
+    return true;
+  }).sort((a, b) => {
+    if (tokenSortOrder === 'desc') {
+      return b.tokenNumber - a.tokenNumber;
+    }
+    return a.tokenNumber - b.tokenNumber;
+  });
+
+  const hasActiveFilters = tokenSearch.trim() !== '' || 
+    tokenStatusFilter !== 'open' || 
+    tokenTimeFilter !== 'all' || 
+    tokenDoctorFilter !== 'all' || 
+    tokenSortOrder !== 'asc';
+
+  const activeFilterCount = (tokenTimeFilter !== 'all' ? 1 : 0) + 
+    (tokenDoctorFilter !== 'all' ? 1 : 0) + 
+    (tokenSortOrder !== 'asc' ? 1 : 0);
 
   const selectedDoctor = doctors.find(d => d.id === selectedDoctorId) || doctors[0];
 
@@ -97,7 +199,7 @@ export const NursePortal: React.FC<NursePortalProps> = ({
     e.preventDefault();
     setReserving(true);
     try {
-      await onBulkReserve(nurse.id, selectedDoctorId, startToken, endToken);
+      await onBulkReserve(nurse.id, selectedDoctorId, startToken, endToken, appointmentDate, appointmentTime);
       confetti({
         particleCount: 50,
         spread: 40,
@@ -106,11 +208,11 @@ export const NursePortal: React.FC<NursePortalProps> = ({
 
       onTriggerWhatsAppToast(
         'Bulk Slots Reserved',
-        `Sister Priya reserved Tokens #${startToken} to #${endToken} for ${selectedDoctor?.name || 'Physician'}. WhatsApp dispatch active.`,
+        `Sister Priya reserved Tokens #${startToken} to #${endToken} for ${selectedDoctor?.name || 'Physician'} on ${appointmentDate} at ${appointmentTime}. WhatsApp dispatch active.`,
         'TOKEN_CONFIRMATION'
       );
 
-      alert(`Reserved tokens ${startToken} to ${endToken} in bulk for your clinic!`);
+      alert(`Reserved tokens ${startToken} to ${endToken} in bulk for ${appointmentDate} (${appointmentTime})!`);
     } catch (err: any) {
       alert(err.message || 'Failed to reserve batch');
     } finally {
@@ -143,6 +245,71 @@ export const NursePortal: React.FC<NursePortalProps> = ({
       alert(err.message || 'Failed to assign token');
     } finally {
       setAssigningLoading(false);
+    }
+  };
+
+  const handleVideoReserveSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!videoPatientName || !videoPatientPhone) return;
+    setVideoBookingLoading(true);
+
+    const doc = doctors.find(d => d.id === videoDoctorId) || doctors[0];
+    const newVideoApt: VideoAppointment = {
+      id: `vid-nurse-${Date.now()}`,
+      doctorId: doc.id,
+      doctorName: doc.name,
+      doctorSpecialty: doc.specialty,
+      hospitalName: doc.hospitalName,
+      patientId: `walkin-${Date.now().toString().slice(-4)}`,
+      patientName: videoPatientName,
+      patientPhone: videoPatientPhone,
+      date: videoDate,
+      time: videoTime === 'Instant (Now)' ? '11:00 AM' : videoTime,
+      meetingLink: `https://meet.bcare.health/room/bc-tele-${doc.id.slice(-4)}`,
+      feePaid: doc.teleConsultationFee || 200,
+      status: 'SCHEDULED',
+      paymentMethod: 'UPI',
+      createdAt: new Date().toISOString()
+    };
+
+    try {
+      if (onBookVideoConsultation) {
+        await onBookVideoConsultation({
+          ...newVideoApt,
+          nurseId: nurse.id
+        });
+      }
+    } catch (err) {}
+
+    setLocalVideoAppointments(prev => [newVideoApt, ...prev]);
+
+    confetti({
+      particleCount: 50,
+      spread: 45,
+      origin: { y: 0.6 }
+    });
+
+    onTriggerWhatsAppToast(
+      'Video Call Reserved',
+      `Sister Priya reserved Video Teleconsultation with ${doc.name} for walk-in patient ${videoPatientName}. Link dispatched to ${videoPatientPhone}.`,
+      'TELECONSULT_LINK'
+    );
+
+    const savedPatientName = videoPatientName;
+    setIsVideoReserveModalOpen(false);
+    setVideoBookingLoading(false);
+    setVideoPatientName('');
+    setVideoPatientPhone('');
+
+    const launchNow = window.confirm(
+      `Video Teleconsultation reserved for ${savedPatientName} with ${doc.name}!\n\nWould you like to launch the HD Video Room right now on your screen?`
+    );
+    if (launchNow) {
+      setActiveTeleconsultDoctor({
+        doctorName: doc.name,
+        specialty: doc.specialty,
+        patientName: savedPatientName
+      });
     }
   };
 
@@ -304,6 +471,56 @@ export const NursePortal: React.FC<NursePortalProps> = ({
                   </select>
                 </div>
 
+                {/* Date and Time of Appointment */}
+                <div className="grid grid-cols-2 gap-2.5 text-xs">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1 flex items-center gap-1">
+                      <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                      <span>Date of Appointment</span>
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={appointmentDate}
+                      min={new Date().toISOString().split('T')[0]}
+                      onChange={(e) => setAppointmentDate(e.target.value)}
+                      className="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 cursor-pointer"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1 flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5 text-slate-400" />
+                      <span>Time of Appointment</span>
+                    </label>
+                    <select
+                      value={appointmentTime}
+                      onChange={(e) => setAppointmentTime(e.target.value)}
+                      className="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 cursor-pointer"
+                    >
+                      <option value="08:30 AM">08:30 AM (Morning)</option>
+                      <option value="09:00 AM">09:00 AM (Morning)</option>
+                      <option value="09:30 AM">09:30 AM (Morning)</option>
+                      <option value="10:00 AM">10:00 AM (Morning)</option>
+                      <option value="10:30 AM">10:30 AM (Morning)</option>
+                      <option value="11:00 AM">11:00 AM (Morning)</option>
+                      <option value="11:30 AM">11:30 AM (Morning)</option>
+                      <option value="12:00 PM">12:00 PM (Noon)</option>
+                      <option value="12:30 PM">12:30 PM (Noon)</option>
+                      <option value="01:00 PM">01:00 PM (Afternoon)</option>
+                      <option value="02:00 PM">02:00 PM (Afternoon)</option>
+                      <option value="02:30 PM">02:30 PM (Afternoon)</option>
+                      <option value="03:00 PM">03:00 PM (Afternoon)</option>
+                      <option value="03:30 PM">03:30 PM (Afternoon)</option>
+                      <option value="04:00 PM">04:00 PM (Evening)</option>
+                      <option value="04:30 PM">04:30 PM (Evening)</option>
+                      <option value="05:00 PM">05:00 PM (Evening)</option>
+                      <option value="05:30 PM">05:30 PM (Evening)</option>
+                      <option value="06:00 PM">06:00 PM (Evening)</option>
+                    </select>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-2 gap-2.5 text-xs">
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-600 mb-1">Start Token #</label>
@@ -330,6 +547,10 @@ export const NursePortal: React.FC<NursePortalProps> = ({
                 </div>
 
                 <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1.5 text-xs">
+                  <div className="flex justify-between text-slate-700">
+                    <span>Scheduled Slot:</span>
+                    <span className="font-semibold text-slate-900">{appointmentDate} • {appointmentTime}</span>
+                  </div>
                   <div className="flex justify-between text-slate-700">
                     <span>Batch Reservation Size:</span>
                     <span className="font-semibold text-slate-900 tabular-nums">{Math.max(0, endToken - startToken + 1)} Tokens</span>
@@ -450,8 +671,321 @@ export const NursePortal: React.FC<NursePortalProps> = ({
                 </span>
               </div>
 
+              {/* Search Bar & Filters for Tokens */}
+              <div className="space-y-2.5 pt-0.5">
+                {/* Search Bar */}
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="text"
+                      placeholder="Search token #, doctor, time..."
+                      value={tokenSearch}
+                      onChange={(e) => setTokenSearch(e.target.value)}
+                      className="w-full pl-9 pr-8 py-2 rounded-xl border border-slate-200 bg-slate-50/80 focus:bg-white text-xs text-slate-900 placeholder:text-slate-400 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all shadow-2xs"
+                    />
+                    {tokenSearch && (
+                      <button
+                        type="button"
+                        onClick={() => setTokenSearch('')}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600 rounded-md transition-colors cursor-pointer"
+                        title="Clear search"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Toggle Advanced Filters Button */}
+                  <button
+                    type="button"
+                    onClick={() => setShowFilterDrawer(prev => !prev)}
+                    className={`px-2.5 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 ${
+                      showFilterDrawer || activeFilterCount > 0
+                        ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
+                        : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-800'
+                    }`}
+                    title="Toggle extra filters"
+                  >
+                    <SlidersHorizontal className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Filter</span>
+                    {activeFilterCount > 0 && (
+                      <span className="w-4 h-4 rounded-full bg-emerald-600 text-white text-[10px] font-bold flex items-center justify-center">
+                        {activeFilterCount}
+                      </span>
+                    )}
+                  </button>
+                </div>
+
+                {/* Filter Pills & Reset */}
+                <div className="flex items-center justify-between gap-1 flex-wrap">
+                  <div className="flex items-center gap-1.5 overflow-x-auto py-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setTokenStatusFilter('open')}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                        tokenStatusFilter === 'open'
+                          ? 'bg-emerald-600 text-white shadow-2xs'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      <span className={`w-1.5 h-1.5 rounded-full ${tokenStatusFilter === 'open' ? 'bg-white' : 'bg-emerald-500'}`} />
+                      <span>Open</span>
+                      <span className={`text-[10px] px-1.5 py-0.2 rounded-full tabular-nums ${
+                        tokenStatusFilter === 'open' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+                      }`}>
+                        {openTokensCount}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setTokenStatusFilter('all')}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                        tokenStatusFilter === 'all'
+                          ? 'bg-slate-900 text-white shadow-2xs'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      <span>All</span>
+                      <span className={`text-[10px] px-1.5 py-0.2 rounded-full tabular-nums ${
+                        tokenStatusFilter === 'all' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+                      }`}>
+                        {totalNurseTokensCount}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setTokenStatusFilter('assigned')}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                        tokenStatusFilter === 'assigned'
+                          ? 'bg-blue-600 text-white shadow-2xs'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      <span>Assigned</span>
+                      <span className={`text-[10px] px-1.5 py-0.2 rounded-full tabular-nums ${
+                        tokenStatusFilter === 'assigned' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+                      }`}>
+                        {assignedTokensCount}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setTokenStatusFilter('video')}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                        tokenStatusFilter === 'video'
+                          ? 'bg-sky-600 text-white shadow-2xs'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      <Video className="w-3 h-3" />
+                      <span>Video</span>
+                      <span className={`text-[10px] px-1.5 py-0.2 rounded-full tabular-nums ${
+                        tokenStatusFilter === 'video' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+                      }`}>
+                        {allNurseVideoAppointments.length}
+                      </span>
+                    </button>
+                  </div>
+
+                  {hasActiveFilters && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTokenSearch('');
+                        setTokenStatusFilter('open');
+                        setTokenTimeFilter('all');
+                        setTokenDoctorFilter('all');
+                        setTokenSortOrder('asc');
+                        setShowFilterDrawer(false);
+                      }}
+                      className="text-[11px] font-semibold text-slate-500 hover:text-emerald-700 transition-colors cursor-pointer py-0.5 px-1.5"
+                    >
+                      Reset
+                    </button>
+                  )}
+                </div>
+
+                {/* Advanced Filter Drawer */}
+                {showFilterDrawer && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="p-3 rounded-xl bg-slate-50 border border-slate-200/90 space-y-2 text-xs overflow-hidden"
+                  >
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                          Doctor
+                        </label>
+                        <select
+                          value={tokenDoctorFilter}
+                          onChange={(e) => setTokenDoctorFilter(e.target.value)}
+                          className="w-full p-1.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                        >
+                          <option value="all">All Doctors</option>
+                          {batchDoctors.map(doc => (
+                            <option key={doc} value={doc}>{doc}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                          Time of Day
+                        </label>
+                        <select
+                          value={tokenTimeFilter}
+                          onChange={(e) => setTokenTimeFilter(e.target.value as any)}
+                          className="w-full p-1.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                        >
+                          <option value="all">All Times</option>
+                          <option value="morning">Morning (AM)</option>
+                          <option value="afternoon">Afternoon (PM)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1 border-t border-slate-200/60 text-[11px]">
+                      <div className="flex items-center gap-1.5 text-slate-500">
+                        <ArrowUpDown className="w-3.5 h-3.5 text-slate-400" />
+                        <span>Sort:</span>
+                        <button
+                          type="button"
+                          onClick={() => setTokenSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+                          className="font-semibold text-slate-800 hover:text-emerald-700 underline underline-offset-2 cursor-pointer"
+                        >
+                          {tokenSortOrder === 'asc' ? 'Token # (Ascending)' : 'Token # (Descending)'}
+                        </button>
+                      </div>
+
+                      <span className="text-[10px] text-slate-400 font-medium">
+                        {filteredWalkinTokens.length} tokens
+                      </span>
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+
+              {/* Video Call Reservation Option */}
+              <div className="p-3 sm:p-3.5 rounded-2xl bg-gradient-to-br from-sky-50/90 via-indigo-50/30 to-emerald-50/30 border border-sky-200/90 shadow-2xs space-y-2.5">
+                <div className="flex items-center justify-between gap-2.5">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-8 h-8 rounded-xl bg-sky-600 text-white flex items-center justify-center shadow-xs shrink-0 relative">
+                      <Video className="w-4 h-4" />
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 absolute -top-0.5 -right-0.5 ring-2 ring-white animate-pulse" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <h4 className="font-bold text-xs text-slate-900 tracking-tight">Video Call Reservation</h4>
+                        <span className="px-1.5 py-0.2 rounded-full bg-sky-100 text-sky-800 text-[10px] font-bold">
+                          Telehealth
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 truncate">Book or launch instant video consult for walk-in patient</p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsVideoReserveModalOpen(true)}
+                    className="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer shrink-0"
+                  >
+                    <Video className="w-3.5 h-3.5" />
+                    <span>Reserve Video Call</span>
+                  </button>
+                </div>
+
+                {/* Active / Scheduled Video Consultations Preview */}
+                {allNurseVideoAppointments.length > 0 && (
+                  <div className="pt-2 border-t border-sky-100/90 space-y-1.5">
+                    <div className="flex items-center justify-between text-[10.5px] text-slate-500 font-semibold">
+                      <span>Active Video Telehealth ({allNurseVideoAppointments.length})</span>
+                      <span className="text-sky-700 font-bold">₹{allNurseVideoAppointments.length * splitConfig.nurseReferralCommission} Commission</span>
+                    </div>
+                    {allNurseVideoAppointments.map((vApt) => (
+                      <div key={vApt.id} className="p-2 rounded-xl bg-white/90 border border-sky-100 flex items-center justify-between gap-2 text-xs">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-bold text-slate-900 truncate">{vApt.patientName}</span>
+                            <span className="text-[10px] text-slate-400">• {vApt.time}</span>
+                          </div>
+                          <p className="text-[10.5px] text-slate-500 truncate">{vApt.doctorName} ({vApt.doctorSpecialty})</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setActiveTeleconsultDoctor({
+                            doctorName: vApt.doctorName,
+                            specialty: vApt.doctorSpecialty,
+                            patientName: vApt.patientName
+                          })}
+                          className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-[11px] flex items-center gap-1 shadow-2xs shrink-0 cursor-pointer"
+                        >
+                          <Video className="w-3 h-3" />
+                          <span>Launch Call</span>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div className="space-y-2">
-                {activeBulkReservations.length === 0 ? (
+                {tokenStatusFilter === 'video' ? (
+                  allNurseVideoAppointments.length === 0 ? (
+                    <div className="p-8 text-center text-slate-400 text-xs bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                      <Video className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                      <p className="font-semibold text-slate-700">No active video call reservations yet.</p>
+                      <p className="text-[11px] text-slate-400 mt-1">Use the "Reserve Video Call" button above to book an instant teleconsultation.</p>
+                      <button
+                        type="button"
+                        onClick={() => setIsVideoReserveModalOpen(true)}
+                        className="mt-3 px-3.5 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold cursor-pointer"
+                      >
+                        + Reserve Video Call
+                      </button>
+                    </div>
+                  ) : (
+                    allNurseVideoAppointments.map((vApt) => (
+                      <div 
+                        key={vApt.id} 
+                        className="p-3 rounded-xl bg-sky-50/30 border border-sky-100 hover:border-sky-200 transition-all flex items-center justify-between text-xs gap-2"
+                      >
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-slate-950 truncate">{vApt.patientName}</span>
+                            <span className="text-slate-500 tabular-nums">• {vApt.time}</span>
+                            <span className="px-1.5 py-0.2 rounded-md bg-sky-50 text-sky-700 border border-sky-200/80 text-[10px] font-semibold flex items-center gap-1">
+                              <Video className="w-2.5 h-2.5" />
+                              Video Consult
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-700 font-medium mt-0.5 truncate">
+                            {vApt.doctorName} • <span className="text-slate-500">{vApt.doctorSpecialty}</span>
+                          </p>
+                          <p className="text-[10px] text-slate-400 truncate">Phone: {vApt.patientPhone} • Fee: ₹{vApt.feePaid}</p>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => setActiveTeleconsultDoctor({
+                            doctorName: vApt.doctorName,
+                            specialty: vApt.doctorSpecialty,
+                            patientName: vApt.patientName
+                          })}
+                          className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-1 shadow-xs transition-colors cursor-pointer shrink-0"
+                        >
+                          <Video className="w-3.5 h-3.5" />
+                          <span>Launch</span>
+                        </button>
+                      </div>
+                    ))
+                  )
+                ) : activeBulkReservations.length === 0 ? (
                   <div className="p-8 text-center text-slate-400 text-xs">
                     <Layers className="w-8 h-8 text-slate-300 mx-auto mb-2" />
                     <p className="font-semibold text-slate-700">No active bulk reservations.</p>
@@ -464,27 +998,87 @@ export const NursePortal: React.FC<NursePortalProps> = ({
                       Go to Bulk Slots →
                     </button>
                   </div>
+                ) : filteredWalkinTokens.length === 0 ? (
+                  <div className="p-6 text-center text-slate-400 text-xs bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                    <Search className="w-6 h-6 text-slate-300 mx-auto mb-1.5" />
+                    <p className="font-semibold text-slate-700">No tokens match your search or filter.</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Try searching a different token number or reset the filters.</p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTokenSearch('');
+                        setTokenStatusFilter('open');
+                        setTokenTimeFilter('all');
+                        setTokenDoctorFilter('all');
+                        setTokenSortOrder('asc');
+                        setShowFilterDrawer(false);
+                      }}
+                      className="mt-2.5 px-3 py-1.5 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-semibold cursor-pointer transition-colors"
+                    >
+                      Reset Filters
+                    </button>
+                  </div>
                 ) : (
-                  activeBulkReservations.map(token => (
-                    <div key={token.id} className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center justify-between text-xs">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-slate-950 tabular-nums">Token #{token.tokenNumber}</span>
-                          <span className="text-slate-500 tabular-nums">• {token.time}</span>
-                        </div>
-                        <p className="text-[11px] text-slate-500 mt-0.5">{token.doctorName}</p>
-                      </div>
+                  filteredWalkinTokens.map(token => {
+                    const isOpen = token.status === 'RESERVED_BULK';
 
-                      <button
-                        type="button"
-                        onClick={() => setAssigningSlot(token)}
-                        className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-1 shadow-xs transition-colors cursor-pointer"
+                    return (
+                      <div 
+                        key={token.id} 
+                        className={`p-3 rounded-xl border transition-all flex items-center justify-between text-xs gap-2 ${
+                          isOpen 
+                            ? 'bg-slate-50 border-slate-200/70 hover:border-slate-300' 
+                            : 'bg-emerald-50/20 border-emerald-100 hover:border-emerald-200'
+                        }`}
                       >
-                        <UserPlus className="w-3.5 h-3.5" />
-                        <span>Assign</span>
-                      </button>
-                    </div>
-                  ))
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-slate-950 tabular-nums">Token #{token.tokenNumber}</span>
+                            <span className="text-slate-500 tabular-nums">• {token.time}</span>
+                            {isOpen ? (
+                              <span className="px-1.5 py-0.2 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10px] font-semibold">
+                                Open
+                              </span>
+                            ) : (
+                              <span className="px-1.5 py-0.2 rounded-md bg-blue-50 text-blue-700 border border-blue-200/80 text-[10px] font-semibold flex items-center gap-1">
+                                <CheckCircle2 className="w-2.5 h-2.5" />
+                                Assigned
+                              </span>
+                            )}
+                          </div>
+                          
+                          {isOpen ? (
+                            <p className="text-[11px] text-slate-500 mt-0.5 truncate">{token.doctorName}</p>
+                          ) : (
+                            <div className="mt-0.5 space-y-0.5">
+                              <p className="text-[11px] text-slate-700 font-medium truncate">
+                                Patient: <span className="font-semibold text-slate-950">{token.patientName || 'Assigned Walk-in'}</span>
+                              </p>
+                              <p className="text-[10px] text-slate-400 truncate">{token.doctorName}</p>
+                            </div>
+                          )}
+                        </div>
+
+                        {isOpen ? (
+                          <button
+                            type="button"
+                            onClick={() => setAssigningSlot(token)}
+                            className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-1 shadow-xs transition-colors cursor-pointer shrink-0"
+                          >
+                            <UserPlus className="w-3.5 h-3.5" />
+                            <span>Assign</span>
+                          </button>
+                        ) : (
+                          <div className="text-right shrink-0">
+                            <span className="px-2 py-1 rounded-lg bg-slate-100 text-slate-700 font-semibold text-[11px] inline-flex items-center gap-1">
+                              <UserCheck className="w-3 h-3 text-emerald-600" />
+                              <span className="tabular-nums">{token.patientPhone || 'Assigned'}</span>
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
                 )}
               </div>
             </div>
@@ -825,6 +1419,158 @@ export const NursePortal: React.FC<NursePortalProps> = ({
             </motion.div>
           </div>
         </PhoneModalPortal>
+      )}
+
+      {/* Video Call Reservation Modal */}
+      {isVideoReserveModalOpen && (
+        <PhoneModalPortal>
+          <div 
+            className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs pointer-events-auto"
+            onClick={() => setIsVideoReserveModalOpen(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-3xl max-w-sm w-full p-5 space-y-4 shadow-2xl border border-slate-200 text-slate-900"
+            >
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-sky-600 text-white flex items-center justify-center shadow-xs">
+                    <Video className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm text-slate-900">Video Call Reservation</h3>
+                    <p className="text-[11px] text-slate-400">Teleconsultation for walk-in patient</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsVideoReserveModalOpen(false)}
+                  className="p-1 rounded-full text-slate-400 hover:text-slate-700 cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <form onSubmit={handleVideoReserveSubmit} className="space-y-3 text-xs">
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-700 block mb-1">Select Specialist Physician</label>
+                  <select
+                    value={videoDoctorId}
+                    onChange={(e) => setVideoDoctorId(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-xs font-semibold text-slate-900 cursor-pointer"
+                  >
+                    {doctors.map(d => (
+                      <option key={d.id} value={d.id}>
+                        {d.name} ({d.specialty}) • ₹{d.teleConsultationFee || 200}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-700 block mb-1">Walk-in Patient Name</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Murugan K."
+                    value={videoPatientName}
+                    onChange={(e) => setVideoPatientName(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-xs font-semibold text-slate-900"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-700 block mb-1">Patient Mobile (for Video Call Link)</label>
+                  <input
+                    type="tel"
+                    required
+                    placeholder="e.g. 9842100000"
+                    value={videoPatientPhone}
+                    onChange={(e) => setVideoPatientPhone(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-xs font-semibold tabular-nums text-slate-900"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-700 block mb-1 flex items-center gap-1">
+                      <Calendar className="w-3 h-3 text-slate-400" />
+                      <span>Date</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={videoDate}
+                      min={new Date().toISOString().split('T')[0]}
+                      onChange={(e) => setVideoDate(e.target.value)}
+                      className="w-full p-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-xs font-medium text-slate-900 cursor-pointer"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-700 block mb-1 flex items-center gap-1">
+                      <Clock className="w-3 h-3 text-slate-400" />
+                      <span>Time</span>
+                    </label>
+                    <select
+                      value={videoTime}
+                      onChange={(e) => setVideoTime(e.target.value)}
+                      className="w-full p-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-xs font-medium text-slate-900 cursor-pointer"
+                    >
+                      <option value="Instant (Now)">Instant (Now)</option>
+                      <option value="11:30 AM">11:30 AM</option>
+                      <option value="12:00 PM">12:00 PM</option>
+                      <option value="12:30 PM">12:30 PM</option>
+                      <option value="02:30 PM">02:30 PM</option>
+                      <option value="03:30 PM">03:30 PM</option>
+                      <option value="04:30 PM">04:30 PM</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-xl bg-sky-50/80 border border-sky-200/80 text-[11px] text-sky-950 space-y-1">
+                  <div className="flex justify-between font-bold">
+                    <span>Nurse Facilitation Commission:</span>
+                    <span className="text-emerald-700">₹{splitConfig.nurseReferralCommission}</span>
+                  </div>
+                  <p className="text-[10px] text-sky-700">
+                    Patient receives an end-to-end encrypted WebRTC room link on WhatsApp. You can also launch the video room directly from this desk.
+                  </p>
+                </div>
+
+                <div className="flex gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setIsVideoReserveModalOpen(false)}
+                    className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={videoBookingLoading}
+                    className="flex-1 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                  >
+                    <Video className="w-3.5 h-3.5" />
+                    <span>{videoBookingLoading ? 'Reserving...' : 'Confirm Video Call'}</span>
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        </PhoneModalPortal>
+      )}
+
+      {/* Live Telehealth Video Room Modal */}
+      {activeTeleconsultDoctor && (
+        <TeleconsultRoomModal
+          isOpen={!!activeTeleconsultDoctor}
+          onClose={() => setActiveTeleconsultDoctor(null)}
+          patientName={activeTeleconsultDoctor.patientName}
+          doctorName={activeTeleconsultDoctor.doctorName}
+          specialty={activeTeleconsultDoctor.specialty}
+        />
       )}
 
     </div>

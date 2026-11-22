@@ -519,7 +519,7 @@ router.post('/op/cancel', (req: Request, res: Response) => {
 
 // Nurse Portal: Bulk Slot Reservation (e.g. slots 11–15)
 router.post('/nurse/bulk-reserve', (req: Request, res: Response) => {
-  const { nurseId, startToken, endToken, doctorId } = req.body;
+  const { nurseId, startToken, endToken, doctorId, date, time } = req.body;
   const nurse = store.nurses.find(n => n.id === nurseId);
   if (!nurse) {
     return res.status(404).json({ error: 'Nurse not found' });
@@ -539,6 +539,8 @@ router.post('/nurse/bulk-reserve', (req: Request, res: Response) => {
       slot.bookedByNurseId = nurse.id;
       slot.nurseReferralCode = nurse.referralCode;
       slot.bulkReservationBatchId = batchId;
+      if (date) slot.date = date;
+      if (time) slot.time = time;
       reservedCount++;
     }
   });
