@@ -200,7 +200,84 @@ export function App() {
     }
   });
 
-  const [videoAppointments, setVideoAppointments] = useState<VideoAppointment[]>([]);
+  const [videoAppointments, setVideoAppointments] = useState<VideoAppointment[]>([
+    {
+      id: 'vid-demo-1',
+      doctorId: 'doc-1',
+      doctorName: 'Dr. Ananya Sharma, MD, DM',
+      doctorSpecialty: 'Cardiology',
+      hospitalName: 'City Care Multi-Specialty Hospital',
+      patientId: 'patient-vid-1',
+      patientName: 'K. Sangeetha',
+      patientPhone: '9845022334',
+      date: new Date().toISOString().split('T')[0],
+      time: '11:15 AM',
+      meetingLink: 'https://meet.bcare.health/room/bc-tele-doc-1',
+      feePaid: 250,
+      status: 'IN_ROOM',
+      paymentMethod: 'UPI',
+      createdAt: new Date().toISOString(),
+      bookedByNurseId: 'nurse-1',
+      nurseId: 'nurse-1'
+    },
+    {
+      id: 'vid-demo-2',
+      doctorId: 'doc-1',
+      doctorName: 'Dr. Ananya Sharma, MD, DM',
+      doctorSpecialty: 'Cardiology',
+      hospitalName: 'City Care Multi-Specialty Hospital',
+      patientId: 'patient-vid-2',
+      patientName: 'V. Muruganathan',
+      patientPhone: '9845033445',
+      date: new Date().toISOString().split('T')[0],
+      time: '11:45 AM',
+      meetingLink: 'https://meet.bcare.health/room/bc-tele-doc-1',
+      feePaid: 250,
+      status: 'SCHEDULED',
+      paymentMethod: 'ABDM Ayushman',
+      createdAt: new Date().toISOString(),
+      bookedByNurseId: 'nurse-1',
+      nurseId: 'nurse-1'
+    },
+    {
+      id: 'vid-demo-3',
+      doctorId: 'doc-2',
+      doctorName: 'Dr. Rajesh Verma, MS (Ortho)',
+      doctorSpecialty: 'Orthopedics',
+      hospitalName: 'City Care Multi-Specialty Hospital',
+      patientId: 'patient-vid-3',
+      patientName: 'Radha Krishnamoorthy',
+      patientPhone: '9845044556',
+      date: new Date().toISOString().split('T')[0],
+      time: '10:30 AM',
+      meetingLink: 'https://meet.bcare.health/room/bc-tele-doc-2',
+      feePaid: 200,
+      status: 'COMPLETED',
+      paymentMethod: 'UPI',
+      createdAt: new Date().toISOString(),
+      bookedByNurseId: 'nurse-1',
+      nurseId: 'nurse-1'
+    },
+    {
+      id: 'vid-demo-4',
+      doctorId: 'doc-1',
+      doctorName: 'Dr. Ananya Sharma, MD, DM',
+      doctorSpecialty: 'Cardiology',
+      hospitalName: 'City Care Multi-Specialty Hospital',
+      patientId: 'patient-vid-4',
+      patientName: 'D. Arunkumar',
+      patientPhone: '9845055667',
+      date: new Date().toISOString().split('T')[0],
+      time: '02:00 PM',
+      meetingLink: 'https://meet.bcare.health/room/bc-tele-doc-1',
+      feePaid: 250,
+      status: 'SCHEDULED',
+      paymentMethod: 'UPI',
+      createdAt: new Date().toISOString(),
+      bookedByNurseId: 'nurse-1',
+      nurseId: 'nurse-1'
+    }
+  ]);
   const [userLocation, setUserLocation] = useState<UserLocationData | null>(null);
 
   const [hospitals, setHospitals] = useState<Hospital[]>([
@@ -584,13 +661,41 @@ export function App() {
 
   const generateLocalSlots = () => {
     const times = [
-      '09:00 AM', '09:15 AM', '09:30 AM', '09:45 AM',
-      '10:00 AM', '10:15 AM', '10:30 AM', '10:45 AM',
-      '11:00 AM', '11:15 AM', '11:30 AM', '11:45 AM',
-      '12:00 PM', '12:15 PM', '12:30 PM', '12:45 PM',
-      '02:00 PM', '02:15 PM', '02:30 PM', '02:45 PM',
-      '03:00 PM', '03:15 PM', '03:30 PM', '03:45 PM',
-      '04:00 PM'
+      '08:30 AM', '08:40 AM', '08:50 AM', '09:00 AM', '09:10 AM',
+      '09:20 AM', '09:30 AM', '09:40 AM', '09:50 AM', '10:00 AM',
+      '10:10 AM', '10:20 AM', '10:30 AM', '10:40 AM', '10:50 AM',
+      '11:00 AM', '11:10 AM', '11:20 AM', '11:30 AM', '11:40 AM',
+      '11:50 AM', '12:00 PM', '12:15 PM', '12:30 PM', '12:45 PM',
+      '02:00 PM', '02:10 PM', '02:20 PM', '02:30 PM', '02:40 PM',
+      '02:50 PM', '03:00 PM', '03:10 PM', '03:20 PM', '03:30 PM',
+      '03:40 PM', '03:50 PM', '04:00 PM', '04:10 PM', '04:20 PM',
+      '04:30 PM', '04:40 PM', '04:50 PM', '05:00 PM', '05:10 PM',
+      '05:20 PM', '05:30 PM', '05:45 PM', '06:00 PM', '06:15 PM'
+    ];
+
+    // Exactly 30 tokens out of 50 are already booked
+    const bookedTokenNumbers = new Set([
+      1, 2, 3, 5, 6, 9, 10, 11, 12, 13, 14, 15, 17, 18, 20, 21, 22, 24, 25, 26, 27, 29, 30, 31, 33, 34, 36, 40, 44, 48
+    ]);
+
+    const samplePatients = [
+      { name: 'P. Balakrishnan', phone: '9845045678' },
+      { name: 'S. Vijayalakshmi', phone: '9845056789' },
+      { name: 'M. Senthil Nathan', phone: '9845067890' },
+      { name: 'R. Karpagam', phone: '9845078901' },
+      { name: 'V. Murugesan', phone: '9845089012' },
+      { name: 'D. Selvaraj', phone: '9845090123' },
+      { name: 'A. Thangavelu', phone: '9845012345' },
+      { name: 'N. Chitra Devi', phone: '9845023451' },
+      { name: 'K. Somasundaram', phone: '9845034562' },
+      { name: 'L. Revathi', phone: '9845045673' },
+      { name: 'T. Manoharan', phone: '9845056784' },
+      { name: 'C. Radhakrishnan', phone: '9845067895' },
+      { name: 'S. Kavitha', phone: '9845078906' },
+      { name: 'P. Muthusamy', phone: '9845089017' },
+      { name: 'J. Ananthi', phone: '9845090128' },
+      { name: 'B. Devarajan', phone: '9845012349' },
+      { name: 'V. Gomathi', phone: '9845023450' }
     ];
 
     const generated = times.map((t, idx) => {
@@ -621,6 +726,12 @@ export function App() {
         status = 'RESERVED_BULK';
         bookedByNurseId = 'nurse-1';
         nurseReferralCode = 'NURSE-PRIYA-782';
+      } else if (bookedTokenNumbers.has(tokenNumber)) {
+        status = 'BOOKED';
+        const sample = samplePatients[tokenNumber % samplePatients.length];
+        patientName = sample.name;
+        patientPhone = sample.phone;
+        patientId = `patient-walkin-${tokenNumber}`;
       }
 
       return {

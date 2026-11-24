@@ -289,4 +289,6 @@ export interface VideoAppointment {
   status: 'SCHEDULED' | 'IN_ROOM' | 'COMPLETED' | 'CANCELLED';
   paymentMethod: string;
   createdAt: string;
+  bookedByNurseId?: string;
+  nurseId?: string;
 }

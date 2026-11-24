@@ -85,9 +85,16 @@ export const BookingConsultationScreen: React.FC<BookingConsultationScreenProps>
   const [selectedDate, setSelectedDate] = useState(dates[0]);
 
   // Slots
-  const availableDoctorSlots = allSlots.filter(
-    s => s.doctorId === doctor.id && (s.status === 'AVAILABLE' || s.id === initialSlot?.id)
+  const doctorSlots = allSlots
+    .filter(s => s.doctorId === doctor.id)
+    .sort((a, b) => a.tokenNumber - b.tokenNumber);
+
+  const availableDoctorSlots = doctorSlots.filter(
+    s => s.status === 'AVAILABLE' || s.id === initialSlot?.id
   );
+
+  const bookedCount = doctorSlots.filter(s => s.status !== 'AVAILABLE' && s.id !== initialSlot?.id).length;
+  const availableCount = doctorSlots.length - bookedCount;
 
   const videoTimeSlots = [
     '⚡ Instant Call (Next in 2 mins)',
@@ -348,10 +355,24 @@ export const BookingConsultationScreen: React.FC<BookingConsultationScreenProps>
         </div>
 
         {/* Slot / Time Selection */}
-        <div className="space-y-1.5">
-          <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block px-1">
-            {isVideo ? 'Available Video Slots' : 'Available Clinic Token Slots'}
-          </label>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between px-1">
+            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
+              {isVideo ? 'Available Video Slots' : `Clinic Token Slots (${doctorSlots.length} Total)`}
+            </label>
+            {!isVideo && (
+              <div className="flex items-center gap-2 text-[10.5px] font-bold">
+                <span className="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/70">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  <span>{availableCount} Available</span>
+                </span>
+                <span className="inline-flex items-center gap-1 text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200/70">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+                  <span>{bookedCount} Booked</span>
+                </span>
+              </div>
+            )}
+          </div>
 
           {isVideo ? (
             <div className="grid grid-cols-2 gap-2">
@@ -375,26 +396,46 @@ export const BookingConsultationScreen: React.FC<BookingConsultationScreenProps>
               })}
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {availableDoctorSlots.length > 0 ? (
-                availableDoctorSlots.map((slot) => {
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[380px] overflow-y-auto pr-1">
+              {doctorSlots.length > 0 ? (
+                doctorSlots.map((slot) => {
+                  const isBooked = slot.status !== 'AVAILABLE' && slot.id !== initialSlot?.id;
                   const isSelected = selectedOpSlot?.id === slot.id;
+
                   return (
                     <button
                       key={slot.id}
                       type="button"
-                      onClick={() => setSelectedOpSlot(slot)}
-                      className={`p-2.5 rounded-xl border text-left text-xs font-semibold transition-all cursor-pointer flex items-center justify-between ${
-                        isSelected
-                          ? 'bg-emerald-50 text-emerald-950 border-emerald-500 ring-2 ring-emerald-400/40 shadow-xs'
-                          : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
+                      disabled={isBooked}
+                      onClick={() => !isBooked && setSelectedOpSlot(slot)}
+                      className={`p-2.5 rounded-xl border text-left text-xs font-semibold transition-all relative ${
+                        isBooked
+                          ? 'bg-slate-100/90 border-slate-200 text-slate-400 cursor-not-allowed select-none opacity-80'
+                          : isSelected
+                          ? 'bg-emerald-50 text-emerald-950 border-emerald-500 ring-2 ring-emerald-400/40 shadow-xs cursor-pointer'
+                          : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-200 hover:border-slate-300 shadow-2xs cursor-pointer'
                       }`}
                     >
-                      <div>
-                        <span className="block font-bold">Token #{slot.tokenNumber}</span>
-                        <span className="block text-[10px] font-normal text-slate-500">{slot.time}</span>
+                      <div className="flex items-start justify-between gap-1">
+                        <div>
+                          <span className={`block font-bold tabular-nums ${isBooked ? 'text-slate-400 line-through decoration-slate-300' : 'text-slate-900'}`}>
+                            Token #{slot.tokenNumber}
+                          </span>
+                          <span className="block text-[10px] font-normal text-slate-400 tabular-nums mt-0.5">
+                            {slot.time}
+                          </span>
+                        </div>
+
+                        {isBooked ? (
+                          <span className="px-1.5 py-0.5 rounded bg-rose-100/90 text-rose-700 border border-rose-200 text-[9px] font-bold uppercase tracking-wider shrink-0 mt-0.5">
+                            Booked
+                          </span>
+                        ) : isSelected ? (
+                          <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[3] shrink-0 mt-0.5" />
+                        ) : (
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0 mt-1" title="Available" />
+                        )}
                       </div>
-                      {isSelected && <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[3] shrink-0" />}
                     </button>
                   );
                 })

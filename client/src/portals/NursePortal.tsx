@@ -41,7 +41,8 @@ import {
   ArrowUpDown,
   UserCheck,
   Calendar,
-  Video
+  Video,
+  Users
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -133,6 +134,15 @@ export const NursePortal: React.FC<NursePortalProps> = ({
   const assignedTokensCount = bookedOrCompletedByNurse.length;
   const totalNurseTokensCount = nurseSlots.length;
   const batchDoctors = Array.from(new Set(nurseSlots.map(s => s.doctorName)));
+
+  // Patient Attendance Counts (Online Video Call vs Offline Hospital OPD)
+  const onlineVideoAttendanceCount = allNurseVideoAppointments.length;
+  // Offline hospital attendances (in-person patients attending hospital OPD today - all 30 booked/reserved tokens)
+  const offlineHospitalAttendanceCount = slots.filter(s => s.status === 'BOOKED' || s.status === 'COMPLETED' || s.status === 'IN_CONSULTATION' || s.status === 'RESERVED_BULK').length;
+  const offlineNurseWalkinCount = bookedOrCompletedByNurse.length;
+  const totalPatientAttendanceCount = onlineVideoAttendanceCount + offlineHospitalAttendanceCount;
+  const onlineAttendancePct = totalPatientAttendanceCount > 0 ? Math.round((onlineVideoAttendanceCount / totalPatientAttendanceCount) * 100) : 0;
+  const offlineAttendancePct = totalPatientAttendanceCount > 0 ? (100 - onlineAttendancePct) : 0;
 
   // Filtered Walk-in tokens
   const filteredWalkinTokens = nurseSlots.filter(token => {
@@ -932,6 +942,140 @@ export const NursePortal: React.FC<NursePortalProps> = ({
                     ))}
                   </div>
                 )}
+              </div>
+
+              {/* Patient Attendance Count: Online Video Call vs Offline Hospital */}
+              <div className="p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-3">
+                {/* Header */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold">
+                      <Users className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-xs sm:text-sm text-slate-900 leading-tight">Patient Attendance Summary</h4>
+                      <p className="text-[10.5px] text-slate-500">Live count of patients attending Online vs Offline today</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold shrink-0">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span>Live Roster</span>
+                  </div>
+                </div>
+
+                {/* Metric Cards Grid: Online Attend vs Offline Attend */}
+                <div className="grid grid-cols-2 gap-2.5">
+                  {/* 1. Online Attend (Video Call) */}
+                  <div 
+                    onClick={() => setTokenStatusFilter('video')}
+                    className={`p-3 rounded-xl border transition-all cursor-pointer relative overflow-hidden group ${
+                      tokenStatusFilter === 'video' 
+                        ? 'bg-sky-50/90 border-sky-400 ring-2 ring-sky-200' 
+                        : 'bg-gradient-to-br from-sky-50/60 to-blue-50/40 border-sky-200 hover:border-sky-300 hover:shadow-xs'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-6 h-6 rounded-lg bg-sky-600 text-white flex items-center justify-center shadow-2xs">
+                          <Video className="w-3.5 h-3.5" />
+                        </div>
+                        <span className="text-[10px] font-bold text-sky-800 uppercase tracking-wider">Online Attend</span>
+                      </div>
+                      <span className="px-1.5 py-0.2 rounded-md bg-sky-100 text-sky-700 font-bold text-[9px]">
+                        Video Call
+                      </span>
+                    </div>
+
+                    <div className="flex items-baseline gap-1.5 mt-1">
+                      <span className="text-2xl sm:text-3xl font-black text-sky-950 tracking-tight">
+                        <RollingCounter value={onlineVideoAttendanceCount} />
+                      </span>
+                      <span className="text-[11px] text-sky-700 font-semibold">Patients</span>
+                    </div>
+
+                    <div className="mt-2 pt-2 border-t border-sky-100/90 flex items-center justify-between text-[10px] text-sky-800/80">
+                      <span>Telehealth Calls</span>
+                      <span className="font-bold text-sky-700 group-hover:underline">
+                        {tokenStatusFilter === 'video' ? 'Active' : 'Filter Calls →'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* 2. Offline Attend (Hospital OPD) */}
+                  <div 
+                    onClick={() => setTokenStatusFilter(tokenStatusFilter === 'video' ? 'all' : tokenStatusFilter)}
+                    className={`p-3 rounded-xl border transition-all cursor-pointer relative overflow-hidden group ${
+                      tokenStatusFilter !== 'video' 
+                        ? 'bg-emerald-50/90 border-emerald-400 ring-2 ring-emerald-200' 
+                        : 'bg-gradient-to-br from-emerald-50/60 to-teal-50/40 border-emerald-200 hover:border-emerald-300 hover:shadow-xs'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center shadow-2xs">
+                          <Building2 className="w-3.5 h-3.5" />
+                        </div>
+                        <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider">Offline Attend</span>
+                      </div>
+                      <span className="px-1.5 py-0.2 rounded-md bg-emerald-100 text-emerald-700 font-bold text-[9px]">
+                        Hospital OPD
+                      </span>
+                    </div>
+
+                    <div className="flex items-baseline gap-1.5 mt-1">
+                      <span className="text-2xl sm:text-3xl font-black text-emerald-950 tracking-tight">
+                        <RollingCounter value={offlineHospitalAttendanceCount} />
+                      </span>
+                      <span className="text-[11px] text-emerald-700 font-semibold">Patients</span>
+                    </div>
+
+                    <div className="mt-2 pt-2 border-t border-emerald-100/90 flex items-center justify-between text-[10px] text-emerald-800/80">
+                      <span>In-Clinic / OPD</span>
+                      <span className="font-bold text-emerald-700 group-hover:underline">
+                        {tokenStatusFilter !== 'video' ? 'Viewing' : 'Filter Tokens →'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Attendance Split Bar & Total Indicator */}
+                <div className="bg-slate-50/90 rounded-xl p-2.5 border border-slate-100 space-y-1.5">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-slate-600 font-medium">
+                      Total Attending: <strong className="text-slate-900 font-bold">{totalPatientAttendanceCount} Patients</strong>
+                    </span>
+                    <div className="flex items-center gap-2 text-[10.5px] font-bold tabular-nums">
+                      <span className="text-sky-700 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
+                        {onlineVideoAttendanceCount} Online ({onlineAttendancePct}%)
+                      </span>
+                      <span className="text-slate-300">•</span>
+                      <span className="text-emerald-700 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                        {offlineHospitalAttendanceCount} Offline ({offlineAttendancePct}%)
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Visual Percentage Distribution Bar */}
+                  <div className="w-full h-2 bg-slate-200/80 rounded-full overflow-hidden flex">
+                    <div 
+                      className="bg-sky-500 h-full transition-all duration-500" 
+                      style={{ width: `${onlineAttendancePct}%` }}
+                      title={`Online Video Call: ${onlineVideoAttendanceCount} (${onlineAttendancePct}%)`}
+                    />
+                    <div 
+                      className="bg-emerald-500 h-full transition-all duration-500" 
+                      style={{ width: `${offlineAttendancePct}%` }}
+                      title={`Offline Hospital: ${offlineHospitalAttendanceCount} (${offlineAttendancePct}%)`}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between text-[9.5px] text-slate-400 pt-0.5">
+                    <span>Includes Sister Priya Walk-Ins ({offlineNurseWalkinCount}) & Hospital OPD Tokens</span>
+                    <span>ABDM Synced</span>
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-2">

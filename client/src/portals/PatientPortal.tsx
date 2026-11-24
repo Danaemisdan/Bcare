@@ -1285,10 +1285,13 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                               if (hosp) setSelectedHospital(hosp);
                               handleOpenCheckout(doc, 'IN_PERSON_OPD');
                             }}
-                            className="py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer"
+                            className="py-2 px-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex flex-col items-center justify-center gap-0.5 transition-all shadow-xs cursor-pointer text-center h-full min-h-[48px]"
                           >
-                            <Stethoscope className="w-3.5 h-3.5 text-blue-100" />
-                            <span>Visit • ₹{doc.opConsultationFee || splitConfig.baseOpFee}</span>
+                            <div className="flex items-center justify-center gap-1.5">
+                              <Stethoscope className="w-3.5 h-3.5 text-blue-100 shrink-0" />
+                              <span className="font-bold text-[11px] leading-tight">Book an Appointment</span>
+                            </div>
+                            <span className="text-[10px] text-blue-100 font-medium">Normal Visit • ₹{doc.opConsultationFee || splitConfig.baseOpFee}</span>
                           </motion.button>
 
                           <motion.button
@@ -1299,10 +1302,13 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                               if (hosp) setSelectedHospital(hosp);
                               handleOpenCheckout(doc, 'VIDEO_CONSULTATION');
                             }}
-                            className="py-2.5 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200/80 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                            className="py-2 px-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200/80 font-semibold text-xs flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer text-center h-full min-h-[48px]"
                           >
-                            <Video className="w-3.5 h-3.5 text-blue-600" />
-                            <span>Video Call • ₹{doc.teleConsultationFee || 250}</span>
+                            <div className="flex items-center justify-center gap-1.5">
+                              <Video className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                              <span className="font-bold text-[11px] leading-tight text-blue-900">Book an Appointment by Video Call</span>
+                            </div>
+                            <span className="text-[10px] text-blue-600 font-medium">Video Call • ₹{doc.teleConsultationFee || 250}</span>
                           </motion.button>
                         </div>
                       </div>
@@ -1424,10 +1430,13 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                               setSelectedDoctor(primaryDoc);
                               handleOpenCheckout(primaryDoc, 'IN_PERSON_OPD');
                             }}
-                            className="py-2 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer"
+                            className="py-2 px-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex flex-col items-center justify-center gap-0.5 transition-all shadow-xs cursor-pointer text-center h-full min-h-[48px]"
                           >
-                            <Building2 className="w-3.5 h-3.5 text-blue-100" />
-                            <span>Normal Visit • ₹{hosp.baseOpFee || 100}</span>
+                            <div className="flex items-center justify-center gap-1.5">
+                              <Building2 className="w-3.5 h-3.5 text-blue-100 shrink-0" />
+                              <span className="font-bold text-[11px] leading-tight">Book an Appointment</span>
+                            </div>
+                            <span className="text-[10px] text-blue-100 font-medium">Normal Visit • ₹{hosp.baseOpFee || 100}</span>
                           </motion.button>
 
                           <motion.button
@@ -1438,10 +1447,13 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                               setSelectedDoctor(primaryDoc);
                               handleOpenCheckout(primaryDoc, 'VIDEO_CONSULTATION');
                             }}
-                            className="py-2 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200/80 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                            className="py-2 px-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200/80 font-semibold text-xs flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer text-center h-full min-h-[48px]"
                           >
-                            <Video className="w-3.5 h-3.5 text-blue-600" />
-                            <span>Video Call • ₹{primaryDoc?.teleConsultationFee || 250}</span>
+                            <div className="flex items-center justify-center gap-1.5">
+                              <Video className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                              <span className="font-bold text-[11px] leading-tight text-blue-900">Book an Appointment by Video Call</span>
+                            </div>
+                            <span className="text-[10px] text-blue-600 font-medium">Video Call • ₹{primaryDoc?.teleConsultationFee || 250}</span>
                           </motion.button>
                         </div>
                       </div>
