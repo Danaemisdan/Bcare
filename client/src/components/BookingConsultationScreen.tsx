@@ -20,7 +20,14 @@ import {
   CheckCircle2, 
   FileText,
   Lock,
-  ArrowRight
+  ArrowRight,
+  UserCheck,
+  Zap,
+  Ticket,
+  ChevronRight,
+  Info,
+  PhoneCall,
+  AlertCircle
 } from 'lucide-react';
 import { DoctorProfile, Hospital, OpSlot, PatientProfile, RevenueSplitConfig } from '../types';
 import { RollingCounter } from './RollingCounter';
@@ -30,6 +37,8 @@ export type ConsultationType = 'IN_PERSON_OPD' | 'VIDEO_CONSULTATION';
 export interface BookingConsultationScreenProps {
   doctor: DoctorProfile;
   hospital: Hospital;
+  allDoctors?: DoctorProfile[];
+  selectDoctorFirst?: boolean;
   initialType?: ConsultationType;
   initialSlot?: OpSlot;
   allSlots: OpSlot[];
@@ -52,10 +61,14 @@ export interface BookingConsultationScreenProps {
   onTriggerWhatsAppToast?: (title: string, message: string, type: 'TOKEN_CONFIRMATION' | 'PRESCRIPTION_READY' | 'TELECONSULT_LINK') => void;
 }
 
+type StepName = 'DOCTOR' | 'MODE' | 'SLOT' | 'PAYMENT';
+
 export const BookingConsultationScreen: React.FC<BookingConsultationScreenProps> = ({
-  doctor,
+  doctor: initialDoctor,
   hospital,
-  initialType = 'VIDEO_CONSULTATION',
+  allDoctors = [],
+  selectDoctorFirst = false,
+  initialType = 'IN_PERSON_OPD',
   initialSlot,
   allSlots,
   patientProfile,
@@ -64,29 +77,45 @@ export const BookingConsultationScreen: React.FC<BookingConsultationScreenProps>
   onConfirmBooking,
   onTriggerWhatsAppToast
 }) => {
+  // Step sequence determination
+  const steps: StepName[] = selectDoctorFirst 
+    ? ['DOCTOR', 'MODE', 'SLOT', 'PAYMENT'] 
+    : ['MODE', 'SLOT', 'PAYMENT'];
+
+  const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
+  const currentStep = steps[currentStepIndex];
+
+  // Selected Doctor state
+  const [selectedDoctor, setSelectedDoctor] = useState<DoctorProfile>(initialDoctor);
+
+  // Doctors affiliated with this hospital (or all if none explicitly affiliated)
+  const hospitalDoctors = allDoctors.filter(d => d.hospitalId === hospital.id);
+  const displayDoctors = hospitalDoctors.length > 0 ? hospitalDoctors : (allDoctors.length > 0 ? allDoctors : [initialDoctor]);
+
+  // Consultation Format: In-Person OPD vs Video Call
   const [consultationType, setConsultationType] = useState<ConsultationType>(initialType);
   const isVideo = consultationType === 'VIDEO_CONSULTATION';
 
-  // Automatically scroll container to top on mount
+  // Automatically scroll container to top on mount and step changes
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' as any });
     const scrollContainers = document.querySelectorAll('.overflow-y-auto');
     scrollContainers.forEach(c => { c.scrollTop = 0; });
-  }, []);
+  }, [currentStepIndex]);
 
   // Date selection
   const dates = [
-    { id: 'today', day: 'Today', dateStr: 'Nov 4', fullDate: '2026-11-04' },
-    { id: 'tomorrow', day: 'Tomorrow', dateStr: 'Nov 5', fullDate: '2026-11-05' },
-    { id: 'day3', day: 'Thu', dateStr: 'Nov 6', fullDate: '2026-11-06' },
-    { id: 'day4', day: 'Fri', dateStr: 'Nov 7', fullDate: '2026-11-07' },
-    { id: 'day5', day: 'Sat', dateStr: 'Nov 8', fullDate: '2026-11-08' }
+    { id: 'today', day: 'Today', dateStr: 'Nov 25', fullDate: '2026-11-25' },
+    { id: 'tomorrow', day: 'Tomorrow', dateStr: 'Nov 26', fullDate: '2026-11-26' },
+    { id: 'day3', day: 'Thu', dateStr: 'Nov 27', fullDate: '2026-11-27' },
+    { id: 'day4', day: 'Fri', dateStr: 'Nov 28', fullDate: '2026-11-28' },
+    { id: 'day5', day: 'Sat', dateStr: 'Nov 29', fullDate: '2026-11-29' }
   ];
   const [selectedDate, setSelectedDate] = useState(dates[0]);
 
-  // Slots
+  // Slots for the currently chosen doctor
   const doctorSlots = allSlots
-    .filter(s => s.doctorId === doctor.id)
+    .filter(s => s.doctorId === selectedDoctor.id)
     .sort((a, b) => a.tokenNumber - b.tokenNumber);
 
   const availableDoctorSlots = doctorSlots.filter(
@@ -96,13 +125,15 @@ export const BookingConsultationScreen: React.FC<BookingConsultationScreenProps>
   const bookedCount = doctorSlots.filter(s => s.status !== 'AVAILABLE' && s.id !== initialSlot?.id).length;
   const availableCount = doctorSlots.length - bookedCount;
 
+  // Video Time Slots
   const videoTimeSlots = [
-    '⚡ Instant Call (Next in 2 mins)',
+    '⚡ Instant Call (~2 mins wait)',
     '10:30 AM',
     '11:15 AM',
     '02:00 PM',
     '03:30 PM',
-    '05:00 PM'
+    '05:00 PM',
+    '06:30 PM'
   ];
 
   const [selectedVideoTime, setSelectedVideoTime] = useState<string>(videoTimeSlots[0]);
@@ -110,7 +141,18 @@ export const BookingConsultationScreen: React.FC<BookingConsultationScreenProps>
     initialSlot || availableDoctorSlots[0] || null
   );
 
-  // Vouchers
+  // Update selectedOpSlot whenever selectedDoctor changes
+  useEffect(() => {
+    const docAvailable = allSlots.filter(s => s.doctorId === selectedDoctor.id && s.status === 'AVAILABLE');
+    if (docAvailable.length > 0) {
+      setSelectedOpSlot(docAvailable[0]);
+    } else {
+      const anySlot = allSlots.find(s => s.doctorId === selectedDoctor.id);
+      setSelectedOpSlot(anySlot || null);
+    }
+  }, [selectedDoctor, allSlots]);
+
+  // Vouchers & promo codes
   const [voucherCode, setVoucherCode] = useState('');
   const [appliedVoucher, setAppliedVoucher] = useState<{ code: string; discount: number; label: string } | null>(null);
   const [voucherError, setVoucherError] = useState('');
@@ -120,18 +162,17 @@ export const BookingConsultationScreen: React.FC<BookingConsultationScreenProps>
   const [patientReason, setPatientReason] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Fee calculation
+  // Fee calculation ("simple asf")
   const baseConsultFee = isVideo 
-    ? (doctor.teleConsultationFee || 200) 
-    : (doctor.opConsultationFee || splitConfig.baseOpFee || 500);
+    ? (selectedDoctor.teleConsultationFee || 250) 
+    : (selectedDoctor.opConsultationFee || hospital.baseOpFee || splitConfig.baseOpFee || 100);
 
-  const platformFee = isVideo ? 40 : splitConfig.platformShare + splitConfig.franchiseShare;
-  const gstAmount = isVideo ? 10 : splitConfig.gstAmount;
-  const subtotal = baseConsultFee + platformFee + gstAmount;
-
+  const platformFee = 0; // Transparent zero extra platform fees
+  const subtotal = baseConsultFee + platformFee;
   const discountValue = appliedVoucher ? appliedVoucher.discount : 0;
   const grandTotal = Math.max(0, subtotal - discountValue);
 
+  // Handle promo code
   const handleApplyCode = (codeToApply: string) => {
     setVoucherError('');
     const clean = codeToApply.trim().toUpperCase();
@@ -159,19 +200,35 @@ export const BookingConsultationScreen: React.FC<BookingConsultationScreenProps>
       });
       setVoucherCode('');
     } else {
-      setVoucherError('Invalid promo code. Try AYUSHMAN, NURSE-PRIYA-782 or BCARE10');
+      setVoucherError('Invalid code. Try BCARE10, AYUSHMAN or NURSE-PRIYA-782');
     }
   };
 
+  // Step Navigation handlers
+  const handleNextStep = () => {
+    if (currentStepIndex < steps.length - 1) {
+      setCurrentStepIndex(prev => prev + 1);
+    }
+  };
+
+  const handlePrevStep = () => {
+    if (currentStepIndex > 0) {
+      setCurrentStepIndex(prev => prev - 1);
+    } else {
+      onBack();
+    }
+  };
+
+  // Final Confirmation
   const handleProceedBooking = async () => {
     setIsProcessing(true);
     try {
       const chosenTime = isVideo ? selectedVideoTime : (selectedOpSlot?.time || '10:00 AM');
-      const tokenNum = !isVideo ? selectedOpSlot?.tokenNumber : undefined;
+      const tokenNum = !isVideo ? (selectedOpSlot?.tokenNumber || selectedDoctor.nextAvailableToken || 5) : undefined;
 
       await onConfirmBooking({
         consultationType,
-        doctorId: doctor.id,
+        doctorId: selectedDoctor.id,
         hospitalId: hospital.id,
         slotId: selectedOpSlot?.id,
         date: selectedDate.fullDate,
@@ -187,7 +244,7 @@ export const BookingConsultationScreen: React.FC<BookingConsultationScreenProps>
         onTriggerWhatsAppToast(
           isVideo ? 'Video Consultation Confirmed' : `OPD Token #${tokenNum} Confirmed`,
           isVideo 
-            ? `Your HD Video Call with ${doctor.name} is scheduled for ${chosenTime}.`
+            ? `Your HD Video Call with ${selectedDoctor.name} is scheduled for ${chosenTime}.`
             : `Your In-Person Token #${tokenNum} at ${hospital.name} is confirmed for ${chosenTime}.`,
           'TOKEN_CONFIRMATION'
         );
@@ -197,538 +254,773 @@ export const BookingConsultationScreen: React.FC<BookingConsultationScreenProps>
     }
   };
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-      className="min-h-full flex flex-col bg-slate-50 text-slate-900 pb-28 relative select-none"
-    >
-      {/* Sticky Top Navigation Bar */}
-      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 py-3 flex items-center justify-between gap-2">
-        <button
-          type="button"
-          onClick={onBack}
-          className="flex items-center gap-1.5 py-1.5 px-3 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all cursor-pointer shadow-2xs active:scale-95 whitespace-nowrap shrink-0"
-        >
-          <ChevronLeft className="w-4 h-4 shrink-0" />
-          <span>Back</span>
-        </button>
+  const stepNumberDisplay = currentStepIndex + 1;
+  const totalStepsDisplay = steps.length;
 
-        <div className="text-center min-w-0 flex-1">
-          <h2 className="text-xs font-bold text-slate-900 tracking-tight truncate">
-            Book Consultation
-          </h2>
-          <p className="text-[10px] text-slate-500 font-medium truncate">
-            {hospital.name.split(' ')[0]} • ABDM Verified
-          </p>
+  return (
+    <div className="min-h-full flex flex-col bg-slate-50 text-slate-900 pb-28 relative select-none">
+      
+      {/* ============================================================== */}
+      {/* 1. TOP STICKY HEADER WITH STEP PROGRESS (Step X of Y)          */}
+      {/* ============================================================== */}
+      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 py-3 shadow-2xs">
+        <div className="flex items-center justify-between gap-2">
+          <button
+            type="button"
+            onClick={handlePrevStep}
+            className="flex items-center gap-1 py-1.5 px-3 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer shadow-2xs active:scale-95 whitespace-nowrap shrink-0"
+          >
+            <ChevronLeft className="w-4 h-4 shrink-0" />
+            <span>{currentStepIndex === 0 ? 'Exit' : 'Back'}</span>
+          </button>
+
+          <div className="text-center min-w-0 flex-1">
+            <div className="flex items-center justify-center gap-1.5">
+              <span className="text-[11px] font-extrabold uppercase tracking-wider text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">
+                Step {stepNumberDisplay} of {totalStepsDisplay}
+              </span>
+            </div>
+            <h2 className="text-xs font-bold text-slate-900 tracking-tight truncate mt-0.5">
+              {currentStep === 'DOCTOR' && 'Choose Doctor'}
+              {currentStep === 'MODE' && 'Consultation Mode'}
+              {currentStep === 'SLOT' && (isVideo ? 'Select Video Time' : 'Select OPD Token')}
+              {currentStep === 'PAYMENT' && 'Confirm & Pay'}
+            </h2>
+          </div>
+
+          <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold whitespace-nowrap shrink-0">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+            <span>ABDM</span>
+          </div>
         </div>
 
-        <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-semibold whitespace-nowrap shrink-0">
-          <ShieldCheck className="w-3 h-3 text-emerald-600 shrink-0" />
-          <span>ABDM</span>
+        {/* Segmented Step Indicator Line */}
+        <div className="flex items-center gap-1.5 w-full mt-2.5">
+          {steps.map((s, idx) => (
+            <div
+              key={s}
+              className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+                idx <= currentStepIndex ? 'bg-blue-600' : 'bg-slate-200'
+              }`}
+            />
+          ))}
         </div>
       </div>
 
-      {/* Main Scrollable Body */}
-      <div className="p-4 space-y-4">
-        
-        {/* Doctor Showcase Card */}
-        <div className="p-4 rounded-3xl bg-white border border-slate-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] flex items-start gap-3.5 relative overflow-hidden">
-          <div className="relative shrink-0">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 text-white flex items-center justify-center font-bold text-lg shadow-sm">
-              {(doctor as any).avatar ? (
-                <img src={(doctor as any).avatar} alt={doctor.name} className="w-full h-full object-cover rounded-2xl" />
-              ) : (
-                doctor.name.replace('Dr. ', '').split(' ')[0][0]
-              )}
-            </div>
-            <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 ring-2 ring-white" />
-          </div>
+      {/* ============================================================== */}
+      {/* 2. BODY: ONLY ONE FORM ON THE FACE AT ANY GIVEN TIME           */}
+      {/* ============================================================== */}
+      <div className="p-4 flex-1">
+        <AnimatePresence mode="wait">
 
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center justify-between gap-1">
-              <h3 className="font-bold text-sm text-slate-900 tracking-tight truncate">
-                {doctor.name}
-              </h3>
-              <div className="flex items-center gap-1 text-[11px] font-bold text-amber-500 shrink-0">
-                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                <span>4.9</span>
-              </div>
-            </div>
-
-            <p className="text-xs font-medium text-emerald-700 mt-0.5 truncate">
-              {doctor.specialty}
-            </p>
-
-            <div className="flex items-center gap-1 text-[11px] text-slate-500 mt-1 truncate">
-              <MapPin className="w-3 h-3 shrink-0 text-slate-400" />
-              <span className="truncate">{hospital.name}</span>
-            </div>
-
-            <div className="flex items-center gap-2 mt-2 pt-2 border-t border-slate-100 text-[10px] text-slate-500 font-medium flex-wrap">
-              <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-semibold whitespace-nowrap shrink-0">
-                Room {(doctor as any).roomNumber || '204'}
-              </span>
-              <span>•</span>
-              <span className="whitespace-nowrap">14+ yrs clinical exp</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Consultation Mode Switcher */}
-        <div className="space-y-1.5">
-          <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block px-1">
-            Choose Consultation Format
-          </label>
-
-          <div className="grid grid-cols-2 gap-2 p-1 bg-slate-200/70 rounded-2xl border border-slate-200">
-            <button
-              type="button"
-              onClick={() => setConsultationType('VIDEO_CONSULTATION')}
-              className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
-                isVideo
-                  ? 'bg-white text-slate-950 font-bold shadow-xs ring-1 ring-slate-300'
-                  : 'text-slate-600 hover:text-slate-900 font-medium'
-              }`}
+          {/* ========================================================== */}
+          {/* STEP 1: CHOOSE DOCTOR (When initiated from Hospital)        */}
+          {/* ========================================================== */}
+          {currentStep === 'DOCTOR' && (
+            <motion.div
+              key="step-doctor"
+              initial={{ opacity: 0, x: 15 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -15 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="space-y-4"
             >
-              <div className="flex items-center gap-1.5">
-                <Video className={`w-4 h-4 ${isVideo ? 'text-sky-600' : 'text-slate-500'}`} />
-                <span className="text-xs">HD Video Call</span>
-              </div>
-              <span className={`text-[11px] tabular-nums ${isVideo ? 'text-sky-700 font-bold' : 'text-slate-500'}`}>
-                ₹{doctor.teleConsultationFee || 200}
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setConsultationType('IN_PERSON_OPD')}
-              className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
-                !isVideo
-                  ? 'bg-white text-slate-950 font-bold shadow-xs ring-1 ring-slate-300'
-                  : 'text-slate-600 hover:text-slate-900 font-medium'
-              }`}
-            >
-              <div className="flex items-center gap-1.5">
-                <Building2 className={`w-4 h-4 ${!isVideo ? 'text-emerald-600' : 'text-slate-500'}`} />
-                <span className="text-xs">In-Person OPD</span>
-              </div>
-              <span className={`text-[11px] tabular-nums ${!isVideo ? 'text-emerald-700 font-bold' : 'text-slate-500'}`}>
-                ₹{doctor.opConsultationFee || splitConfig.baseOpFee || 500}
-              </span>
-            </button>
-          </div>
-        </div>
-
-        {/* Date Selection Bar */}
-        <div className="space-y-1.5">
-          <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block px-1">
-            Select Appointment Day
-          </label>
-
-          <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1">
-            {dates.map((d) => {
-              const isSelected = selectedDate.id === d.id;
-              return (
-                <button
-                  key={d.id}
-                  type="button"
-                  onClick={() => setSelectedDate(d)}
-                  className={`py-2.5 px-3.5 rounded-2xl border text-center transition-all cursor-pointer shrink-0 min-w-[70px] ${
-                    isSelected
-                      ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
-                      : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
-                  }`}
-                >
-                  <span className={`block text-[10px] font-semibold ${isSelected ? 'text-slate-300' : 'text-slate-400'}`}>
-                    {d.day}
+              {/* Hospital Overview Card */}
+              <div className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-2xs flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200/80">
+                  <img
+                    src={hospital.imageUrl || 'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?w=400'}
+                    alt={hospital.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="font-bold text-xs text-slate-900 truncate">{hospital.name}</h3>
+                    <span className="text-[10px] text-amber-600 font-bold flex items-center shrink-0">
+                      ★ {hospital.rating || 4.8}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 truncate mt-0.5">{hospital.address}</p>
+                  <span className="inline-block mt-1 text-[9.5px] font-bold text-rose-700 bg-rose-50 border border-rose-200/70 px-1.5 py-0.2 rounded-md">
+                    24/7 Emergency & Live OPD
                   </span>
-                  <span className="block text-xs font-bold mt-0.5">
-                    {d.dateStr}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Slot / Time Selection */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between px-1">
-            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
-              {isVideo ? 'Available Video Slots' : `Clinic Token Slots (${doctorSlots.length} Total)`}
-            </label>
-            {!isVideo && (
-              <div className="flex items-center gap-2 text-[10.5px] font-bold">
-                <span className="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/70">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                  <span>{availableCount} Available</span>
-                </span>
-                <span className="inline-flex items-center gap-1 text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200/70">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
-                  <span>{bookedCount} Booked</span>
-                </span>
+                </div>
               </div>
-            )}
-          </div>
 
-          {isVideo ? (
-            <div className="grid grid-cols-2 gap-2">
-              {videoTimeSlots.map((slotTime) => {
-                const isSelected = selectedVideoTime === slotTime;
-                return (
-                  <button
-                    key={slotTime}
-                    type="button"
-                    onClick={() => setSelectedVideoTime(slotTime)}
-                    className={`p-2.5 rounded-xl border text-left text-xs font-semibold transition-all cursor-pointer flex items-center justify-between ${
-                      isSelected
-                        ? 'bg-sky-50 text-sky-900 border-sky-400 ring-2 ring-sky-300/40 shadow-xs'
-                        : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
-                    }`}
-                  >
-                    <span className="truncate">{slotTime}</span>
-                    {isSelected && <Check className="w-3.5 h-3.5 text-sky-600 stroke-[3] shrink-0" />}
-                  </button>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[380px] overflow-y-auto pr-1">
-              {doctorSlots.length > 0 ? (
-                doctorSlots.map((slot) => {
-                  const isBooked = slot.status !== 'AVAILABLE' && slot.id !== initialSlot?.id;
-                  const isSelected = selectedOpSlot?.id === slot.id;
+              <div>
+                <h3 className="text-sm font-extrabold text-slate-900 tracking-tight">
+                  Select Specialist at this Hospital
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Choose the attending physician for your consultation:
+                </p>
+              </div>
+
+              {/* Doctors List at Hospital */}
+              <div className="space-y-2.5">
+                {displayDoctors.map((doc) => {
+                  const isSelected = selectedDoctor.id === doc.id;
 
                   return (
-                    <button
-                      key={slot.id}
-                      type="button"
-                      disabled={isBooked}
-                      onClick={() => !isBooked && setSelectedOpSlot(slot)}
-                      className={`p-2.5 rounded-xl border text-left text-xs font-semibold transition-all relative ${
-                        isBooked
-                          ? 'bg-slate-100/90 border-slate-200 text-slate-400 cursor-not-allowed select-none opacity-80'
-                          : isSelected
-                          ? 'bg-emerald-50 text-emerald-950 border-emerald-500 ring-2 ring-emerald-400/40 shadow-xs cursor-pointer'
-                          : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-200 hover:border-slate-300 shadow-2xs cursor-pointer'
+                    <motion.div
+                      whileTap={{ scale: 0.99 }}
+                      key={doc.id}
+                      onClick={() => setSelectedDoctor(doc)}
+                      className={`p-3.5 rounded-2xl border transition-all cursor-pointer relative ${
+                        isSelected
+                          ? 'bg-blue-50/50 border-blue-600 shadow-xs ring-1 ring-blue-600'
+                          : 'bg-white border-slate-200/90 hover:border-slate-300 shadow-2xs'
                       }`}
                     >
-                      <div className="flex items-start justify-between gap-1">
-                        <div>
-                          <span className={`block font-bold tabular-nums ${isBooked ? 'text-slate-400 line-through decoration-slate-300' : 'text-slate-900'}`}>
-                            Token #{slot.tokenNumber}
-                          </span>
-                          <span className="block text-[10px] font-normal text-slate-400 tabular-nums mt-0.5">
-                            {slot.time}
-                          </span>
+                      <div className="flex items-start gap-3">
+                        {/* Avatar */}
+                        <div className="w-12 h-12 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-base shrink-0 relative shadow-2xs">
+                          {doc.name.replace('Dr. ', '').split(' ')[0][0]}
+                          <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-white" />
                         </div>
 
-                        {isBooked ? (
-                          <span className="px-1.5 py-0.5 rounded bg-rose-100/90 text-rose-700 border border-rose-200 text-[9px] font-bold uppercase tracking-wider shrink-0 mt-0.5">
-                            Booked
-                          </span>
-                        ) : isSelected ? (
-                          <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[3] shrink-0 mt-0.5" />
-                        ) : (
-                          <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0 mt-1" title="Available" />
-                        )}
+                        {/* Info */}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-1">
+                            <h4 className="font-extrabold text-xs text-slate-900 truncate">
+                              {doc.name}
+                            </h4>
+                            <div className="flex items-center gap-1 text-[10px] font-bold text-amber-500 shrink-0">
+                              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                              <span>{doc.rating || 4.9}</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 mt-0.5 text-xs">
+                            <span className="font-bold text-blue-700">{doc.specialty}</span>
+                            <span className="text-slate-300">•</span>
+                            <span className="text-slate-500 text-[11px]">{doc.experienceYears || 14} yrs exp</span>
+                          </div>
+
+                          <div className="flex items-center gap-2 mt-2 pt-2 border-t border-slate-100 text-[11px]">
+                            <span className="font-medium text-slate-600">
+                              OPD: <strong className="text-slate-900 font-bold">₹{doc.opConsultationFee || 100}</strong>
+                            </span>
+                            <span className="text-slate-300">•</span>
+                            <span className="font-medium text-slate-600">
+                              Video: <strong className="text-slate-900 font-bold">₹{doc.teleConsultationFee || 250}</strong>
+                            </span>
+                            <span className="text-slate-300">•</span>
+                            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded">
+                              Token #{doc.nextAvailableToken || 5} Ready
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Radio Checkmark */}
+                        <div className="shrink-0 pt-1">
+                          <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
+                            isSelected 
+                              ? 'bg-blue-600 border-blue-600 text-white' 
+                              : 'border-slate-300 bg-white'
+                          }`}>
+                            {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                          </div>
+                        </div>
                       </div>
-                    </button>
+                    </motion.div>
                   );
-                })
-              ) : (
-                <div className="col-span-full p-3 rounded-2xl bg-amber-50 text-amber-800 border border-amber-200 text-xs">
-                  No preset slots today. Next available walk-in token will be generated automatically.
+                })}
+              </div>
+
+              {/* Bottom Continue Action */}
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={handleNextStep}
+                  className="w-full py-3.5 px-4 rounded-2xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-extrabold text-sm flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
+                >
+                  <span>Continue with {selectedDoctor.name.split(' ')[1] || selectedDoctor.name}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* ========================================================== */}
+          {/* STEP 2: CONSULTATION MODE (In-Person OPD vs Video Call)     */}
+          {/* ========================================================== */}
+          {currentStep === 'MODE' && (
+            <motion.div
+              key="step-mode"
+              initial={{ opacity: 0, x: 15 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -15 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="space-y-4"
+            >
+              {/* Doctor Header Banner */}
+              <div className="p-3.5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex items-center justify-between gap-2">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-11 h-11 rounded-xl bg-slate-900 text-white font-bold text-sm flex items-center justify-center shrink-0">
+                    {selectedDoctor.name.replace('Dr. ', '').split(' ')[0][0]}
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="font-extrabold text-xs text-slate-900 truncate">{selectedDoctor.name}</h3>
+                    <p className="text-[11px] font-semibold text-blue-700 truncate">{selectedDoctor.specialty} • {hospital.name.split(' ')[0]}</p>
+                  </div>
+                </div>
+
+                {selectDoctorFirst && (
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStepIndex(0)}
+                    className="text-[11px] font-bold text-blue-600 hover:text-blue-800 px-2 py-1 rounded-md bg-blue-50 shrink-0"
+                  >
+                    Change
+                  </button>
+                )}
+              </div>
+
+              <div>
+                <h3 className="text-sm font-extrabold text-slate-900 tracking-tight">
+                  How would you like to consult?
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Select consultation format with Dr. {selectedDoctor.name}:
+                </p>
+              </div>
+
+              {/* The Two Choice Cards */}
+              <div className="grid grid-cols-1 gap-3">
+                {/* 1. In-Person OPD */}
+                <motion.div
+                  whileTap={{ scale: 0.99 }}
+                  onClick={() => setConsultationType('IN_PERSON_OPD')}
+                  className={`p-4 rounded-2xl border transition-all cursor-pointer relative ${
+                    !isVideo
+                      ? 'bg-blue-50/60 border-blue-600 shadow-sm ring-2 ring-blue-600/30'
+                      : 'bg-white border-slate-200 hover:border-slate-300 shadow-2xs'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3">
+                      <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                        !isVideo ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700'
+                      }`}>
+                        <Building2 className="w-5 h-5" />
+                      </div>
+
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-extrabold text-sm text-slate-900">
+                            In-Person OPD Visit
+                          </h4>
+                          <span className="text-[9.5px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                            Queue Pass
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-600 mt-1">
+                          Direct physical consultation at {hospital.name}.
+                        </p>
+
+                        <div className="mt-2.5 space-y-1 text-[11px] text-slate-600">
+                          <div className="flex items-center gap-1.5">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                            <span>Live queue tracker & token pass on your phone</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                            <span>Room {(selectedDoctor as any).roomNumber || '204'} • In-person checkup & vitals</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                            <span>Official signed hospital prescription</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <span className="text-[10px] text-slate-400 font-bold block uppercase">Fee</span>
+                      <span className="text-base font-black text-slate-900 tabular-nums">
+                        ₹{selectedDoctor.opConsultationFee || hospital.baseOpFee || 100}
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* 2. Video Call */}
+                <motion.div
+                  whileTap={{ scale: 0.99 }}
+                  onClick={() => setConsultationType('VIDEO_CONSULTATION')}
+                  className={`p-4 rounded-2xl border transition-all cursor-pointer relative ${
+                    isVideo
+                      ? 'bg-emerald-50/60 border-emerald-600 shadow-sm ring-2 ring-emerald-600/30'
+                      : 'bg-white border-slate-200 hover:border-slate-300 shadow-2xs'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3">
+                      <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                        isVideo ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-700'
+                      }`}>
+                        <Video className="w-5 h-5" />
+                      </div>
+
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-extrabold text-sm text-slate-900">
+                            Book an Appointment by Video Call
+                          </h4>
+                          <span className="text-[9.5px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
+                            From Home
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-600 mt-1">
+                          Private 1-on-1 HD teleconsult with Dr. {selectedDoctor.name}.
+                        </p>
+
+                        <div className="mt-2.5 space-y-1 text-[11px] text-slate-600">
+                          <div className="flex items-center gap-1.5">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                            <span>Connect instantly in ~2 mins or schedule time</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                            <span>10 Indian regional languages supported</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                            <span>Digital prescription delivered via WhatsApp & PDF</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <span className="text-[10px] text-slate-400 font-bold block uppercase">Fee</span>
+                      <span className="text-base font-black text-slate-900 tabular-nums">
+                        ₹{selectedDoctor.teleConsultationFee || 250}
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* Bottom Action */}
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={handleNextStep}
+                  className="w-full py-3.5 px-4 rounded-2xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-extrabold text-sm flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
+                >
+                  <span>Continue to {isVideo ? 'Time Slots' : 'OPD Tokens'}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* ========================================================== */}
+          {/* STEP 3: SELECT SLOT (OPD Tokens vs Video Time Slots)        */}
+          {/* ========================================================== */}
+          {currentStep === 'SLOT' && (
+            <motion.div
+              key="step-slot"
+              initial={{ opacity: 0, x: 15 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -15 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="space-y-4"
+            >
+              {/* Doctor & Format Context */}
+              <div className="p-3 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2">
+                  <span className={`p-1.5 rounded-lg ${isVideo ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'}`}>
+                    {isVideo ? <Video className="w-3.5 h-3.5" /> : <Building2 className="w-3.5 h-3.5" />}
+                  </span>
+                  <span className="font-bold text-slate-900">{selectedDoctor.name}</span>
+                </div>
+                <span className="font-bold text-blue-700">{isVideo ? 'Video Call' : 'Hospital OPD Pass'}</span>
+              </div>
+
+              {/* Day Selector */}
+              <div>
+                <label className="text-xs font-extrabold uppercase tracking-wider text-slate-500 block mb-1.5">
+                  Select Day
+                </label>
+                <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1">
+                  {dates.map((d) => {
+                    const isSelected = selectedDate.id === d.id;
+                    return (
+                      <button
+                        key={d.id}
+                        type="button"
+                        onClick={() => setSelectedDate(d)}
+                        className={`py-2 px-3.5 rounded-xl border text-center transition-all cursor-pointer shrink-0 min-w-[70px] ${
+                          isSelected
+                            ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                            : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
+                        }`}
+                      >
+                        <span className={`block text-[10px] font-semibold ${isSelected ? 'text-slate-300' : 'text-slate-400'}`}>
+                          {d.day}
+                        </span>
+                        <span className="block text-xs font-bold mt-0.5">
+                          {d.dateStr}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* BRANCH A: IN-PERSON OPD TOKENS ("for OPD tokens as it is") */}
+              {!isVideo && (
+                <div className="space-y-3">
+                  {/* Queue Status Box */}
+                  <div className="p-3 rounded-2xl bg-blue-50/70 border border-blue-200/80 flex items-center justify-between text-xs">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-blue-700 tracking-wider block">
+                        Live OPD Queue Status
+                      </span>
+                      <span className="text-slate-800 font-semibold mt-0.5 block">
+                        Now in room: <strong className="text-blue-900 font-black">Token #02</strong>
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] text-slate-500 block">Est. Consultation</span>
+                      <span className="text-blue-700 font-bold">~8 mins / patient</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">
+                      Available Tokens for {selectedDate.day}
+                    </h3>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Select your preferred token number:
+                    </p>
+                  </div>
+
+                  {/* Token Grid */}
+                  <div className="grid grid-cols-2 gap-2.5 max-h-72 overflow-y-auto pr-1">
+                    {doctorSlots.slice(0, 16).map((slot) => {
+                      const isSelected = selectedOpSlot?.id === slot.id;
+                      const isAvailable = slot.status === 'AVAILABLE';
+
+                      return (
+                        <button
+                          key={slot.id}
+                          type="button"
+                          disabled={!isAvailable}
+                          onClick={() => setSelectedOpSlot(slot)}
+                          className={`p-3 rounded-xl border text-left transition-all ${
+                            isSelected
+                              ? 'bg-blue-600 text-white border-blue-600 shadow-sm ring-2 ring-blue-300'
+                              : isAvailable
+                              ? 'bg-white hover:bg-slate-50 text-slate-900 border-slate-200 shadow-2xs cursor-pointer'
+                              : 'bg-slate-100 text-slate-400 border-slate-200 opacity-60 cursor-not-allowed'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className={`text-sm font-black tabular-nums ${isSelected ? 'text-white' : 'text-slate-900'}`}>
+                              Token #{slot.tokenNumber}
+                            </span>
+                            <span className={`text-[9.5px] font-bold px-1.5 py-0.2 rounded ${
+                              isSelected
+                                ? 'bg-blue-500 text-white'
+                                : isAvailable
+                                ? 'bg-emerald-50 text-emerald-700'
+                                : 'bg-slate-200 text-slate-500'
+                            }`}>
+                              {isSelected ? 'Selected' : isAvailable ? 'Available' : 'Booked'}
+                            </span>
+                          </div>
+                          <span className={`block text-[11px] mt-1 ${isSelected ? 'text-blue-100' : 'text-slate-500'}`}>
+                            Est: {slot.time}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
-            </div>
+
+              {/* BRANCH B: VIDEO CALL TIME SLOTS ("then for video the time slots") */}
+              {isVideo && (
+                <div className="space-y-3">
+                  <div>
+                    <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">
+                      Choose Video Time
+                    </h3>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Doctor will connect with you at your chosen time:
+                    </p>
+                  </div>
+
+                  {/* Instant Call Banner */}
+                  <div
+                    onClick={() => setSelectedVideoTime(videoTimeSlots[0])}
+                    className={`p-3.5 rounded-2xl border transition-all cursor-pointer ${
+                      selectedVideoTime === videoTimeSlots[0]
+                        ? 'bg-emerald-50 border-emerald-600 shadow-sm ring-2 ring-emerald-500/30'
+                        : 'bg-white border-slate-200 hover:border-slate-300 shadow-2xs'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold">
+                          <Zap className="w-4 h-4 fill-emerald-200" />
+                        </div>
+                        <div>
+                          <span className="font-extrabold text-xs text-slate-900 block">
+                            Connect Instantly (Next in ~2 mins)
+                          </span>
+                          <span className="text-[10px] text-emerald-700 font-semibold">
+                            Dr. {selectedDoctor.name.split(' ')[1] || selectedDoctor.name} is online now
+                          </span>
+                        </div>
+                      </div>
+                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                        selectedVideoTime === videoTimeSlots[0] ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-slate-300'
+                      }`}>
+                        {selectedVideoTime === videoTimeSlots[0] && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Scheduled Slots */}
+                  <div className="pt-1">
+                    <span className="text-[11px] font-bold text-slate-600 block mb-2">
+                      Or Pick a Scheduled Slot ({selectedDate.day}):
+                    </span>
+                    <div className="grid grid-cols-2 gap-2">
+                      {videoTimeSlots.slice(1).map((time) => {
+                        const isSelected = selectedVideoTime === time;
+
+                        return (
+                          <button
+                            key={time}
+                            type="button"
+                            onClick={() => setSelectedVideoTime(time)}
+                            className={`p-3 rounded-xl border text-center transition-all cursor-pointer ${
+                              isSelected
+                                ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                                : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-200'
+                            }`}
+                          >
+                            <div className="flex items-center justify-center gap-1.5">
+                              <Clock className={`w-3.5 h-3.5 ${isSelected ? 'text-white' : 'text-slate-400'}`} />
+                              <span className="text-xs font-bold">{time}</span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Bottom Continue Action */}
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={handleNextStep}
+                  className="w-full py-3.5 px-4 rounded-2xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-extrabold text-sm flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
+                >
+                  <span>Continue to Payment</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </motion.div>
           )}
-        </div>
 
-        {/* Patient Profile & ABHA Identity Strip */}
-        <div className="p-3.5 rounded-2xl bg-white border border-slate-200/90 space-y-2">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 min-w-0 flex-1 truncate">
-              Patient Information
-            </span>
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-semibold whitespace-nowrap shrink-0">
-              <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
-              <span>Verified Account</span>
-            </span>
-          </div>
+          {/* ========================================================== */}
+          {/* STEP 4: PAYMENT ("then payment simple asf")                 */}
+          {/* ========================================================== */}
+          {currentStep === 'PAYMENT' && (
+            <motion.div
+              key="step-payment"
+              initial={{ opacity: 0, x: 15 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -15 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="space-y-4"
+            >
+              {/* Summary Card */}
+              <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className={`p-1.5 rounded-lg ${isVideo ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'}`}>
+                      {isVideo ? <Video className="w-4 h-4" /> : <Building2 className="w-4 h-4" />}
+                    </span>
+                    <span className="font-extrabold text-xs text-slate-900">
+                      {isVideo ? 'Video Consultation' : `OPD Token #${selectedOpSlot?.tokenNumber || 5}`}
+                    </span>
+                  </div>
+                  <span className="text-[11px] font-bold text-slate-500">
+                    {selectedDate.day}, {selectedDate.dateStr}
+                  </span>
+                </div>
 
-          <div className="flex items-center justify-between text-xs pt-1">
-            <div>
-              <span className="font-bold text-slate-900 block">{patientProfile.name}</span>
-              <span className="text-[11px] text-slate-500 font-mono">+91 {patientProfile.phone}</span>
-            </div>
-            <div className="text-right">
-              <span className="text-[10px] text-slate-400 block font-medium">ABDM ABHA ID</span>
-              <span className="font-mono text-[11px] text-emerald-700 font-bold">ABHA-9842-8812-7491</span>
-            </div>
-          </div>
+                <div className="text-xs space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Physician:</span>
+                    <span className="font-bold text-slate-900">{selectedDoctor.name} ({selectedDoctor.specialty})</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Center:</span>
+                    <span className="font-semibold text-slate-800">{hospital.name}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Time / Room:</span>
+                    <span className="font-bold text-blue-700">
+                      {isVideo ? selectedVideoTime : `${selectedOpSlot?.time || '10:00 AM'} • Room ${(selectedDoctor as any).roomNumber || '204'}`}
+                    </span>
+                  </div>
+                </div>
+              </div>
 
-          <div className="pt-2 border-t border-slate-100">
-            <input
-              type="text"
-              value={patientReason}
-              onChange={(e) => setPatientReason(e.target.value)}
-              placeholder="Optional: Brief reason for consult (e.g. Fever, routine BP check)"
-              className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-slate-900 transition-all placeholder:text-slate-400"
-            />
-          </div>
-        </div>
+              {/* Patient Details */}
+              <div className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-2xs text-xs space-y-2">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                  Patient Details
+                </span>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-600">Patient:</span>
+                  <span className="font-bold text-slate-900">{patientProfile.name}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-600">Mobile Phone:</span>
+                  <span className="font-bold text-slate-900">+91 {patientProfile.phone}</span>
+                </div>
+              </div>
 
-        {/* 1-Tap Quick Offers & Referral Input */}
-        <div className="p-3.5 rounded-2xl bg-white border border-slate-200/90 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Discounts & Subsidies
-            </span>
-            <span className="text-[10px] text-emerald-600 font-semibold">1-Tap Apply</span>
-          </div>
+              {/* Payment Mode Selection */}
+              <div className="space-y-2">
+                <label className="text-xs font-extrabold uppercase tracking-wider text-slate-500 block">
+                  Select Payment Option
+                </label>
+                <div className="grid grid-cols-1 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('UPI')}
+                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between ${
+                      paymentMethod === 'UPI'
+                        ? 'bg-blue-50 border-blue-600 text-slate-900 ring-1 ring-blue-600'
+                        : 'bg-white border-slate-200 text-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Smartphone className="w-4 h-4 text-blue-600 shrink-0" />
+                      <div>
+                        <span className="text-xs font-bold block">Instant UPI (GPay, PhonePe, Paytm, QR)</span>
+                        <span className="text-[10px] text-slate-500">Zero transaction fees • Instant Pass Confirmation</span>
+                      </div>
+                    </div>
+                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                      paymentMethod === 'UPI' ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-300'
+                    }`}>
+                      {paymentMethod === 'UPI' && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                    </div>
+                  </button>
 
-          {!appliedVoucher ? (
-            <div className="space-y-2">
-              <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-0.5">
-                <button
-                  type="button"
-                  onClick={() => handleApplyCode('AYUSHMAN')}
-                  className="px-2.5 py-1 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-semibold shrink-0 transition-colors cursor-pointer"
-                >
-                  ⚡ AYUSHMAN (-₹20)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleApplyCode('PRIYA15')}
-                  className="px-2.5 py-1 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 text-xs font-semibold shrink-0 transition-colors cursor-pointer"
-                >
-                  🏷️ PRIYA15 (-₹15)
-                </button>
+                  {!isVideo && (
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod('COUNTER')}
+                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between ${
+                        paymentMethod === 'COUNTER'
+                          ? 'bg-blue-50 border-blue-600 text-slate-900 ring-1 ring-blue-600'
+                          : 'bg-white border-slate-200 text-slate-700'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <Wallet className="w-4 h-4 text-slate-600 shrink-0" />
+                        <div>
+                          <span className="text-xs font-bold block">Pay at Hospital Counter (Cash / UPI upon arrival)</span>
+                          <span className="text-[10px] text-slate-500">Pay directly at reception Room 204</span>
+                        </div>
+                      </div>
+                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                        paymentMethod === 'COUNTER' ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-300'
+                      }`}>
+                        {paymentMethod === 'COUNTER' && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                      </div>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Simple asf Pricing Breakdown */}
+              <div className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-2xs text-xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">Consultation Fee</span>
+                  <span className="font-bold text-slate-900 tabular-nums">₹{baseConsultFee}</span>
+                </div>
+                <div className="flex items-center justify-between text-emerald-700">
+                  <span>Platform Convenience</span>
+                  <span className="font-bold">₹0 (FREE)</span>
+                </div>
+
+                {appliedVoucher && (
+                  <div className="flex items-center justify-between text-emerald-700 font-bold">
+                    <span>{appliedVoucher.label}</span>
+                    <span>-₹{appliedVoucher.discount}</span>
+                  </div>
+                )}
+
+                <div className="border-t border-slate-100 pt-2 flex items-center justify-between text-sm">
+                  <span className="font-extrabold text-slate-900">Total Amount</span>
+                  <span className="font-black text-slate-900 text-base tabular-nums">₹{grandTotal}</span>
+                </div>
+              </div>
+
+              {/* Promo code pills */}
+              <div className="flex items-center gap-1.5 flex-wrap">
                 <button
                   type="button"
                   onClick={() => handleApplyCode('BCARE10')}
-                  className="px-2.5 py-1 rounded-full bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 text-xs font-semibold shrink-0 transition-colors cursor-pointer"
+                  className="text-[10px] font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-full border border-blue-200 transition-colors"
                 >
-                  🎁 BCARE10 (-₹10)
+                  Use BCARE10 (₹10 off)
                 </button>
-              </div>
-
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <Tag className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="text"
-                    value={voucherCode}
-                    onChange={(e) => {
-                      setVoucherCode(e.target.value);
-                      setVoucherError('');
-                    }}
-                    placeholder="Have a voucher or nurse code?"
-                    className="w-full text-xs pl-8 pr-3 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-slate-900 uppercase font-mono placeholder:normal-case placeholder:font-sans transition-all"
-                  />
-                </div>
                 <button
                   type="button"
-                  onClick={() => handleApplyCode(voucherCode)}
-                  className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shrink-0 transition-colors cursor-pointer"
+                  onClick={() => handleApplyCode('AYUSHMAN')}
+                  className="text-[10px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-full border border-emerald-200 transition-colors"
                 >
-                  Apply
+                  Use AYUSHMAN (₹20 off)
                 </button>
               </div>
 
-              {voucherError && (
-                <p className="text-[11px] text-rose-600 pl-1">{voucherError}</p>
-              )}
-            </div>
-          ) : (
-            <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between text-xs text-emerald-900">
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-emerald-600 stroke-[3]" />
-                <div>
-                  <span className="font-mono font-bold">{appliedVoucher.code}</span>
-                  <span className="text-[11px] text-emerald-700 ml-1.5 font-medium">{appliedVoucher.label}</span>
-                </div>
+              {/* Single Tap Confirm CTA */}
+              <div className="pt-2">
+                <button
+                  type="button"
+                  disabled={isProcessing}
+                  onClick={handleProceedBooking}
+                  className="w-full py-4 px-4 rounded-2xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 text-white font-extrabold text-sm flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
+                >
+                  {isProcessing ? (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <span>
+                        {paymentMethod === 'COUNTER' 
+                          ? `Confirm Token #${selectedOpSlot?.tokenNumber || 5} (Pay at Hospital)` 
+                          : `Pay ₹${grandTotal} & Confirm Booking`}
+                      </span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => setAppliedVoucher(null)}
-                className="text-xs font-bold text-emerald-800 hover:underline cursor-pointer"
-              >
-                Remove
-              </button>
-            </div>
+            </motion.div>
           )}
-        </div>
 
-        {/* Itemized Order Breakdown */}
-        <div className="p-3.5 rounded-2xl bg-white border border-slate-200/90 space-y-2 text-xs">
-          <div className="flex items-center justify-between pb-1 border-b border-slate-100">
-            <span className="font-bold text-slate-900 text-xs">Billing Breakdown</span>
-            <span className="text-[11px] text-slate-500">Standard Tier</span>
-          </div>
-
-          <div className="flex justify-between items-center text-slate-700">
-            <span className="flex items-center gap-1.5">
-              <Stethoscope className="w-3.5 h-3.5 text-slate-400" />
-              <span>{isVideo ? 'Doctor Video Consultation' : 'Doctor OPD Consultation'}</span>
-            </span>
-            <span className="font-semibold text-slate-900 tabular-nums">₹{baseConsultFee}</span>
-          </div>
-
-          <div className="flex justify-between items-center text-slate-700">
-            <span className="flex items-center gap-1.5">
-              <Building2 className="w-3.5 h-3.5 text-slate-400" />
-              <span>Hospital Facility & Digital Token</span>
-            </span>
-            <span className="font-semibold text-slate-900 tabular-nums">₹{platformFee}</span>
-          </div>
-
-          <div className="flex justify-between items-center text-slate-700">
-            <span className="flex items-center gap-1.5">
-              <Receipt className="w-3.5 h-3.5 text-slate-400" />
-              <span>Statutory GST (5%)</span>
-            </span>
-            <span className="font-semibold text-slate-900 tabular-nums">₹{gstAmount}</span>
-          </div>
-
-          <div className="flex justify-between items-center gap-2 text-slate-500">
-            <span className="flex items-center gap-1.5 min-w-0 flex-1">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-              <span className="truncate">ABDM Health Record Cloud Sync</span>
-            </span>
-            <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 whitespace-nowrap shrink-0">
-              Complimentary
-            </span>
-          </div>
-
-          {appliedVoucher && (
-            <div className="flex justify-between items-center text-emerald-700 font-bold pt-1 border-t border-slate-100">
-              <span className="flex items-center gap-1.5">
-                <Tag className="w-3.5 h-3.5" />
-                <span>Offer Discount ({appliedVoucher.code})</span>
-              </span>
-              <span className="tabular-nums">-₹{appliedVoucher.discount}</span>
-            </div>
-          )}
-        </div>
-
-        {/* Payment Method Selector */}
-        <div className="space-y-1.5">
-          <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block px-1">
-            Choose Payment Mode
-          </label>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            <button
-              type="button"
-              onClick={() => setPaymentMethod('UPI')}
-              className={`p-3 rounded-2xl border text-left flex flex-col justify-between gap-1 transition-all cursor-pointer ${
-                paymentMethod === 'UPI'
-                  ? 'bg-slate-950 text-white border-slate-950 shadow-xs'
-                  : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-200'
-              }`}
-            >
-              <div className="flex items-center gap-1.5">
-                <Smartphone className="w-4 h-4" />
-                <span className="font-bold text-xs">Instant UPI</span>
-              </div>
-              <span className={`text-[10px] ${paymentMethod === 'UPI' ? 'text-slate-300' : 'text-slate-500'}`}>
-                GPay, PhonePe, QR
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setPaymentMethod('CARD')}
-              className={`p-3 rounded-2xl border text-left flex flex-col justify-between gap-1 transition-all cursor-pointer ${
-                paymentMethod === 'CARD'
-                  ? 'bg-slate-950 text-white border-slate-950 shadow-xs'
-                  : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-200'
-              }`}
-            >
-              <div className="flex items-center gap-1.5">
-                <CreditCard className="w-4 h-4" />
-                <span className="font-bold text-xs">Cards / Bank</span>
-              </div>
-              <span className={`text-[10px] ${paymentMethod === 'CARD' ? 'text-slate-300' : 'text-slate-500'}`}>
-                Visa, RuPay, NetBank
-              </span>
-            </button>
-
-            {!isVideo && (
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('COUNTER')}
-                className={`p-3 rounded-2xl border text-left flex flex-col justify-between gap-1 transition-all cursor-pointer ${
-                  paymentMethod === 'COUNTER'
-                    ? 'bg-slate-950 text-white border-slate-950 shadow-xs'
-                    : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-200'
-                }`}
-              >
-                <div className="flex items-center gap-1.5">
-                  <Wallet className="w-4 h-4" />
-                  <span className="font-bold text-xs">Pay at Counter</span>
-                </div>
-                <span className={`text-[10px] ${paymentMethod === 'COUNTER' ? 'text-slate-300' : 'text-slate-500'}`}>
-                  Cash at Clinic Desk
-                </span>
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Security / Compliance Guarantee */}
-        <div className="flex items-center justify-center gap-2 text-[10px] text-slate-400 py-1">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-          <span>256-Bit SSL Encrypted</span>
-          <span>•</span>
-          <span>ABDM Compliant</span>
-          <span>•</span>
-          <span>100% Refund Guarantee</span>
-        </div>
-
+        </AnimatePresence>
       </div>
 
-      {/* Sticky Bottom Floating Action Bar */}
-      <div className="sticky bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-xl border-t border-slate-200/90 p-3.5 sm:p-4 shadow-[0_-10px_30px_rgba(0,0,0,0.08)] flex items-center justify-between gap-3 mt-auto">
-        <div>
-          <span className="text-[10px] text-slate-500 block font-medium">Total Payable</span>
-          <div className="text-xl font-bold tracking-tight text-slate-950 flex items-center tabular-nums leading-none mt-0.5">
-            <RollingCounter value={grandTotal} prefix="₹" height={24} />
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={handleProceedBooking}
-          disabled={isProcessing}
-          className={`flex-1 py-3 px-4 rounded-2xl text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition-all disabled:opacity-50 cursor-pointer active:scale-98 ${
-            isVideo
-              ? 'bg-gradient-to-r from-sky-600 to-teal-600 hover:from-sky-700 hover:to-teal-700 shadow-sky-600/25'
-              : 'bg-slate-950 hover:bg-slate-800 shadow-slate-950/20'
-          }`}
-        >
-          {isProcessing ? (
-            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-          ) : (
-            <>
-              <span>
-                {paymentMethod === 'COUNTER'
-                  ? 'Confirm Token (Pay at OPD)'
-                  : isVideo
-                  ? `Pay ₹${grandTotal} & Book Video Call`
-                  : `Pay ₹${grandTotal} & Confirm Token`
-                }
-              </span>
-              <ArrowRight className="w-4 h-4" />
-            </>
-          )}
-        </button>
-      </div>
-    </motion.div>
+    </div>
   );
 };
+export default BookingConsultationScreen;

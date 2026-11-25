@@ -177,6 +177,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
     hospital: Hospital;
     consultationType: ConsultationType;
     slot?: OpSlot;
+    selectDoctorFirst?: boolean;
   } | null>(null);
 
   // Active Video Appointments State
@@ -446,17 +447,41 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
   const activeUserTokens = slots.filter(s => (s.patientPhone === patientProfile.phone || (patientProfile.userId && s.patientId === patientProfile.userId)) && (s.status === 'BOOKED' || s.status === 'IN_CONSULTATION'));
   const completedUserTokens = slots.filter(s => (s.patientPhone === patientProfile.phone || (patientProfile.userId && s.patientId === patientProfile.userId)) && s.status === 'COMPLETED');
 
-  const handleOpenCheckout = (doc: DoctorProfile, type: ConsultationType, explicitSlot?: OpSlot) => {
+  const handleOpenHospitalBooking = (hosp: Hospital) => {
+    const hospDoctors = doctors.filter(d => d.hospitalId === hosp.id);
+    const primaryDoc = hospDoctors[0] || doctors[0];
+    const targetSlot = slots.find(s => s.doctorId === primaryDoc.id && s.status === 'AVAILABLE') || slots[0];
+
+    setSelectedHospital(hosp);
+    setSelectedDoctor(primaryDoc);
+    setActiveBookingTarget({
+      doctor: primaryDoc,
+      hospital: hosp,
+      consultationType: 'IN_PERSON_OPD',
+      slot: targetSlot,
+      selectDoctorFirst: true
+    });
+    if (onBookingScreenToggle) onBookingScreenToggle(true);
+  };
+
+  const handleOpenDoctorBooking = (doc: DoctorProfile, explicitType?: ConsultationType, explicitSlot?: OpSlot) => {
     const hosp = hospitals.find(h => h.id === doc.hospitalId) || hospitals[0];
     const targetSlot = explicitSlot || slots.find(s => s.doctorId === doc.id && s.status === 'AVAILABLE') || slots[0];
 
+    setSelectedDoctor(doc);
+    setSelectedHospital(hosp);
     setActiveBookingTarget({
       doctor: doc,
       hospital: hosp,
-      consultationType: type,
-      slot: targetSlot
+      consultationType: explicitType || 'IN_PERSON_OPD',
+      slot: targetSlot,
+      selectDoctorFirst: false
     });
     if (onBookingScreenToggle) onBookingScreenToggle(true);
+  };
+
+  const handleOpenCheckout = (doc: DoctorProfile, type: ConsultationType, explicitSlot?: OpSlot) => {
+    handleOpenDoctorBooking(doc, type, explicitSlot);
   };
 
   // Handle Token Booking
@@ -539,6 +564,8 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
       <BookingConsultationScreen
         doctor={activeBookingTarget.doctor}
         hospital={activeBookingTarget.hospital}
+        allDoctors={doctors}
+        selectDoctorFirst={activeBookingTarget.selectDoctorFirst}
         initialType={activeBookingTarget.consultationType}
         initialSlot={activeBookingTarget.slot}
         allSlots={slots}
@@ -1275,40 +1302,24 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                           </div>
                         </div>
 
-                        {/* Modern Action Buttons */}
-                        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
+                        {/* Modern Single Action Button */}
+                        <div className="pt-2 border-t border-slate-100">
                           <motion.button
-                            whileTap={{ scale: 0.97 }}
+                            whileTap={{ scale: 0.98 }}
                             type="button"
-                            onClick={() => {
-                              setSelectedDoctor(doc);
-                              if (hosp) setSelectedHospital(hosp);
-                              handleOpenCheckout(doc, 'IN_PERSON_OPD');
-                            }}
-                            className="py-2 px-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex flex-col items-center justify-center gap-0.5 transition-all shadow-xs cursor-pointer text-center h-full min-h-[48px]"
+                            onClick={() => handleOpenDoctorBooking(doc)}
+                            className="w-full py-2.5 px-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-xs flex items-center justify-between shadow-xs hover:shadow transition-all cursor-pointer"
                           >
-                            <div className="flex items-center justify-center gap-1.5">
-                              <Stethoscope className="w-3.5 h-3.5 text-blue-100 shrink-0" />
-                              <span className="font-bold text-[11px] leading-tight">Book an Appointment</span>
+                            <div className="flex items-center gap-2">
+                              <CalendarCheck className="w-4 h-4 text-blue-100 shrink-0" />
+                              <span className="font-bold text-xs">Book Consultation</span>
                             </div>
-                            <span className="text-[10px] text-blue-100 font-medium">Normal Visit • ₹{doc.opConsultationFee || splitConfig.baseOpFee}</span>
-                          </motion.button>
-
-                          <motion.button
-                            whileTap={{ scale: 0.97 }}
-                            type="button"
-                            onClick={() => {
-                              setSelectedDoctor(doc);
-                              if (hosp) setSelectedHospital(hosp);
-                              handleOpenCheckout(doc, 'VIDEO_CONSULTATION');
-                            }}
-                            className="py-2 px-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200/80 font-semibold text-xs flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer text-center h-full min-h-[48px]"
-                          >
-                            <div className="flex items-center justify-center gap-1.5">
-                              <Video className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                              <span className="font-bold text-[11px] leading-tight text-blue-900">Book an Appointment by Video Call</span>
+                            <div className="flex items-center gap-1.5 text-blue-100 text-[11px] font-semibold">
+                              <span>In-Person & Video</span>
+                              <span className="opacity-60">•</span>
+                              <span className="text-white font-bold">From ₹{doc.opConsultationFee || 100}</span>
+                              <ChevronRight className="w-3.5 h-3.5 text-blue-200 shrink-0" />
                             </div>
-                            <span className="text-[10px] text-blue-600 font-medium">Video Call • ₹{doc.teleConsultationFee || 250}</span>
                           </motion.button>
                         </div>
                       </div>
@@ -1420,40 +1431,24 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                           </button>
                         </div>
 
-                        {/* Modern High-End Action Buttons Matching Reference */}
-                        <div className="grid grid-cols-2 gap-2 pt-0.5">
+                        {/* Modern Single Action Button Matching Reference */}
+                        <div className="pt-0.5">
                           <motion.button
-                            whileTap={{ scale: 0.97 }}
+                            whileTap={{ scale: 0.98 }}
                             type="button"
-                            onClick={() => {
-                              setSelectedHospital(hosp);
-                              setSelectedDoctor(primaryDoc);
-                              handleOpenCheckout(primaryDoc, 'IN_PERSON_OPD');
-                            }}
-                            className="py-2 px-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex flex-col items-center justify-center gap-0.5 transition-all shadow-xs cursor-pointer text-center h-full min-h-[48px]"
+                            onClick={() => handleOpenHospitalBooking(hosp)}
+                            className="w-full py-2.5 px-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-xs flex items-center justify-between shadow-xs hover:shadow transition-all cursor-pointer"
                           >
-                            <div className="flex items-center justify-center gap-1.5">
-                              <Building2 className="w-3.5 h-3.5 text-blue-100 shrink-0" />
-                              <span className="font-bold text-[11px] leading-tight">Book an Appointment</span>
+                            <div className="flex items-center gap-2">
+                              <CalendarCheck className="w-4 h-4 text-blue-100 shrink-0" />
+                              <span className="font-bold text-xs">Book an Appointment</span>
                             </div>
-                            <span className="text-[10px] text-blue-100 font-medium">Normal Visit • ₹{hosp.baseOpFee || 100}</span>
-                          </motion.button>
-
-                          <motion.button
-                            whileTap={{ scale: 0.97 }}
-                            type="button"
-                            onClick={() => {
-                              setSelectedHospital(hosp);
-                              setSelectedDoctor(primaryDoc);
-                              handleOpenCheckout(primaryDoc, 'VIDEO_CONSULTATION');
-                            }}
-                            className="py-2 px-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200/80 font-semibold text-xs flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer text-center h-full min-h-[48px]"
-                          >
-                            <div className="flex items-center justify-center gap-1.5">
-                              <Video className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                              <span className="font-bold text-[11px] leading-tight text-blue-900">Book an Appointment by Video Call</span>
+                            <div className="flex items-center gap-1.5 text-blue-100 text-[11px] font-semibold">
+                              <span>OPD & Video</span>
+                              <span className="opacity-60">•</span>
+                              <span className="text-white font-bold">From ₹{hosp.baseOpFee || 100}</span>
+                              <ChevronRight className="w-3.5 h-3.5 text-blue-200 shrink-0" />
                             </div>
-                            <span className="text-[10px] text-blue-600 font-medium">Video Call • ₹{primaryDoc?.teleConsultationFee || 250}</span>
                           </motion.button>
                         </div>
                       </div>
@@ -1609,116 +1604,157 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                     return (
                       <div
                         key={token.id}
-                        className="rounded-[24px] border border-blue-200/90 bg-white p-4 shadow-sm hover:shadow-md transition-all space-y-3 relative overflow-hidden"
+                        className="rounded-3xl border border-slate-200/90 bg-white shadow-xs hover:shadow-md transition-all overflow-hidden relative"
                       >
-                        {/* Header Row: Token # + Status badge */}
-                        <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
-                          <div className="flex items-center gap-2.5 min-w-0 flex-1 pr-1">
-                            <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white font-black text-sm flex items-center justify-center shadow-xs shrink-0">
-                              #{token.tokenNumber < 10 ? `0${token.tokenNumber}` : token.tokenNumber}
-                            </div>
+                        {/* Top Perforated Notch & Hospital Badge */}
+                        <div className="bg-slate-50/80 px-4 py-2.5 border-b border-slate-100 flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <Building2 className="w-4 h-4 text-blue-600 shrink-0" />
                             <div className="min-w-0">
-                              <span className="text-[10px] text-blue-600 font-bold uppercase tracking-wider block">
-                                Hospital OPD Token
-                              </span>
-                              <h4 className="font-extrabold text-xs text-slate-900 leading-tight truncate">
-                                {doc?.name || token.doctorName || 'Attending Specialist'}
+                              <h4 className="font-extrabold text-xs text-slate-900 truncate">
+                                {hosp?.name}
                               </h4>
+                              <p className="text-[10px] text-slate-500 truncate">
+                                {hosp?.address || 'Coimbatore'} • ABDM Verified
+                              </p>
                             </div>
                           </div>
 
-                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1 whitespace-nowrap shrink-0 ${
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1 whitespace-nowrap shrink-0 ${
                             token.status === 'IN_CONSULTATION'
                               ? 'bg-amber-50 text-amber-700 border-amber-300 animate-pulse'
                               : 'bg-emerald-50 text-emerald-700 border-emerald-300'
                           }`}>
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                            <span>{token.status === 'IN_CONSULTATION' ? 'In Consultation' : 'Live in Queue'}</span>
+                            <span>{token.status === 'IN_CONSULTATION' ? 'In Consultation' : 'Active Pass'}</span>
                           </span>
                         </div>
 
-                        {/* Metadata: Hospital, Room, Slot Time */}
-                        <div className="text-xs space-y-1.5 text-slate-600">
-                          <div className="flex items-center justify-between">
-                            <span className="text-slate-400">Hospital:</span>
-                            <span className="font-bold text-slate-900">{hosp?.name}</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-slate-400">Department & Room:</span>
-                            <span className="font-semibold text-slate-800">{doc?.specialty || token.specialty || 'General'} • Room {doc?.roomNumber || '204'}</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-slate-400">Slot & Status:</span>
-                            <span className="font-bold text-slate-900">Today • {token.time} • ₹{token.feePaid || 100} (Paid)</span>
-                          </div>
-                        </div>
+                        {/* Main Ticket Body */}
+                        <div className="p-4 space-y-3">
+                          {/* Token Hero Row */}
+                          <div className="flex items-center justify-between gap-3 bg-slate-900 text-white rounded-2xl p-3.5 shadow-2xs">
+                            <div>
+                              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">
+                                Your OPD Token Number
+                              </span>
+                              <div className="flex items-baseline gap-2 mt-0.5">
+                                <span className="text-2xl font-black text-white tabular-nums tracking-tight">
+                                  #{token.tokenNumber < 10 ? `0${token.tokenNumber}` : token.tokenNumber}
+                                </span>
+                                <span className="text-xs font-semibold text-emerald-400">
+                                  {tokensAhead === 0 ? '● You are next!' : `● ${tokensAhead} ahead`}
+                                </span>
+                              </div>
+                              <span className="text-[10px] text-slate-300 block mt-0.5">
+                                Arrive 10m before call • Est: {token.time}
+                              </span>
+                            </div>
 
-                        {/* Queue Status Box */}
-                        <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-2.5 space-y-1.5">
-                          <div className="flex items-center justify-between text-[11px]">
-                            <span className="text-slate-600 flex items-center gap-1 font-medium">
-                              <Clock className="w-3.5 h-3.5 text-blue-600" />
-                              <span>Now Serving:</span>
-                              <strong className="text-slate-900 font-bold">Token #{currentServingToken}</strong>
-                            </span>
-                            <span className="text-blue-700 font-bold">
-                              {tokensAhead === 0 ? 'You are next in line!' : `~${estWait} mins (${tokensAhead} ahead)`}
-                            </span>
+                            <div className="text-right bg-white/10 backdrop-blur-xs rounded-xl p-2.5 border border-white/10 shrink-0">
+                              <span className="text-[9.5px] uppercase font-bold text-slate-300 block">Now Serving</span>
+                              <span className="text-lg font-black text-emerald-400 tabular-nums">
+                                #{currentServingToken < 10 ? `0${currentServingToken}` : currentServingToken}
+                              </span>
+                              <span className="text-[9.5px] text-slate-300 block">~{estWait}m wait</span>
+                            </div>
                           </div>
-                          <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden flex">
-                            <div
-                              className="bg-blue-600 h-full rounded-full transition-all duration-500"
-                              style={{ width: `${Math.min(100, Math.max(15, (currentServingToken / token.tokenNumber) * 100))}%` }}
-                            />
+
+                          {/* Real-time Queue Progress Bar */}
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold">
+                              <span>Queue Flow</span>
+                              <span className="text-blue-700 font-extrabold">
+                                {tokensAhead === 0 ? 'Next in line to enter Room ' + (doc?.roomNumber || '204') : `Waiting for Token #${Math.max(1, token.tokenNumber - 1)}`}
+                              </span>
+                            </div>
+                            <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden flex">
+                              <div
+                                className="bg-blue-600 h-full rounded-full transition-all duration-500"
+                                style={{ width: `${Math.min(100, Math.max(15, (currentServingToken / token.tokenNumber) * 100))}%` }}
+                              />
+                            </div>
                           </div>
-                        </div>
 
-                        {/* Actions: Google Maps Navigation, View Full Pass */}
-                        <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100">
-                          <button
-                            type="button"
-                            onClick={() => window.open(googleMapsUrl, '_blank')}
-                            className="py-2 px-3 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/80 font-bold text-xs flex items-center justify-center gap-1.5 whitespace-nowrap transition-colors cursor-pointer"
-                            title="Open Google Maps Route"
-                          >
-                            <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                            <span>Navigate (Maps)</span>
-                          </button>
+                          {/* Physician & Clinical Details */}
+                          <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 bg-slate-50/70 p-2.5 rounded-xl border border-slate-100">
+                            <div>
+                              <span className="text-[10px] text-slate-400 block font-medium">Attending Physician:</span>
+                              <span className="font-extrabold text-slate-900 truncate block">
+                                {doc?.name || token.doctorName || 'Dr. Ananya Sharma'}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-slate-400 block font-medium">Department & Room:</span>
+                              <span className="font-bold text-slate-800 truncate block">
+                                {doc?.specialty || token.specialty || 'Cardiology'} • Room {doc?.roomNumber || '204'}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-slate-400 block font-medium">Patient UHID / Name:</span>
+                              <span className="font-bold text-slate-900 truncate block">
+                                {patientProfile.name}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-slate-400 block font-medium">Billing & Status:</span>
+                              <span className="font-bold text-emerald-700 truncate block">
+                                ₹{token.feePaid || 100} (Paid via UPI)
+                              </span>
+                            </div>
+                          </div>
 
-                          <button
-                            type="button"
-                            onClick={() => setShowLivePassModal(true)}
-                            className="py-2 px-3 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 whitespace-nowrap transition-colors cursor-pointer"
-                          >
-                            <QrCode className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                            <span>View Pass (QR)</span>
-                          </button>
-                        </div>
-
-                        {/* Secondary WhatsApp & Cancel Row */}
-                        <div className="flex items-center justify-between pt-0.5 text-xs">
-                          <button
-                            type="button"
-                            onClick={() => onTriggerWhatsAppToast(
-                              'OP Queue Pass',
-                              `Token #${token.tokenNumber} details shared to your WhatsApp (+91 ${patientProfile.phone})`,
-                              'TOKEN_CONFIRMATION'
-                            )}
-                            className="text-emerald-700 hover:text-emerald-800 font-bold text-[11px] flex items-center gap-1 cursor-pointer"
-                          >
-                            <MessageCircle className="w-3 h-3 text-emerald-600" />
-                            <span>Send to WhatsApp</span>
-                          </button>
-
-                          {onCancelSlot && (
+                          {/* Actions: Maps Navigation & Full Pass Modal */}
+                          <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100">
                             <button
                               type="button"
-                              onClick={() => onCancelSlot(token.id)}
-                              className="text-slate-400 hover:text-rose-600 text-[11px] font-semibold transition-colors cursor-pointer"
+                              onClick={() => window.open(googleMapsUrl, '_blank')}
+                              className="py-2.5 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/80 font-bold text-xs flex items-center justify-center gap-1.5 whitespace-nowrap transition-colors cursor-pointer"
+                              title="Open Google Maps Route"
                             >
-                              Cancel Pass
+                              <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                              <span>Navigate (Maps)</span>
                             </button>
-                          )}
+
+                            <button
+                              type="button"
+                              onClick={() => setShowLivePassModal(true)}
+                              className="py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 whitespace-nowrap transition-colors cursor-pointer shadow-2xs"
+                            >
+                              <QrCode className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                              <span>View Pass (QR)</span>
+                            </button>
+                          </div>
+
+                          {/* Secondary Row: WhatsApp & Cancel */}
+                          <div className="flex items-center justify-between pt-0.5 text-xs">
+                            <button
+                              type="button"
+                              onClick={() => onTriggerWhatsAppToast(
+                                'OP Queue Pass',
+                                `Token #${token.tokenNumber} details shared to your WhatsApp (+91 ${patientProfile.phone})`,
+                                'TOKEN_CONFIRMATION'
+                              )}
+                              className="text-emerald-700 hover:text-emerald-800 font-bold text-[11px] flex items-center gap-1 cursor-pointer"
+                            >
+                              <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                              <span>Send Pass to WhatsApp</span>
+                            </button>
+
+                            {onCancelSlot && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (confirm(`Cancel Token #${token.tokenNumber}?`)) {
+                                    onCancelSlot(token.id);
+                                  }
+                                }}
+                                className="text-slate-400 hover:text-rose-600 text-[11px] font-semibold transition-colors cursor-pointer"
+                              >
+                                Cancel Pass
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     );
@@ -3071,14 +3107,14 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
           return (
             <PhoneModalPortal>
               <div 
-                className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs pointer-events-auto"
+                className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm pointer-events-auto"
                 onClick={() => setShowLivePassModal(false)}
               >
-                {/* Liquid Glass Animated Pop-up Modal (@aakashmehra/components/liquid-glass-button inspired) */}
+                {/* Authentic Hospital OPD Slip / Boarding Pass */}
                 <motion.div
-                  initial={{ scale: 0.9, opacity: 0, y: 16 }}
+                  initial={{ scale: 0.92, opacity: 0, y: 16 }}
                   animate={{ scale: 1, opacity: 1, y: 0 }}
-                  exit={{ scale: 0.9, opacity: 0, y: 12 }}
+                  exit={{ scale: 0.92, opacity: 0, y: 12 }}
                   transition={{
                     type: 'spring',
                     stiffness: 380,
@@ -3086,90 +3122,143 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                     mass: 0.8
                   }}
                   onClick={(e) => e.stopPropagation()}
-                  className="relative w-full max-w-sm rounded-[30px] overflow-hidden shadow-[0_25px_60px_-10px_rgba(0,0,0,0.6),inset_0_1.5px_2px_rgba(255,255,255,0.3)] border border-white/25 bg-gradient-to-br from-slate-950/95 via-slate-900/95 to-[#081713]/95 backdrop-blur-2xl backdrop-saturate-180 text-white p-5 space-y-4"
+                  className="relative w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl border border-slate-200/90 bg-white text-slate-900 p-5 space-y-3.5"
                 >
-                {/* Specular Edge Hairline */}
-                <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-emerald-400/50 to-transparent pointer-events-none" />
-                {/* Top Meta Row */}
-                <div className="flex items-center justify-between gap-2 text-xs">
-                  <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-                    <span className="font-bold text-[11px] tracking-wider uppercase text-emerald-400 truncate">
-                      LIVE OPD QUEUE PASS
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="px-2.5 py-0.5 rounded-full bg-white/10 border border-white/10 text-emerald-300 text-[10px] font-medium tracking-wide backdrop-blur-md whitespace-nowrap shrink-0">
-                      {token.status === 'IN_CONSULTATION' ? '● In Consultation' : 'Confirmed'}
-                    </span>
+                  {/* Top Header: Hospital & ABDM Government Verification */}
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold shrink-0 shadow-xs">
+                        <Building2 className="w-5 h-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className="font-extrabold text-xs text-slate-900 truncate">
+                          {mHospName}
+                        </h4>
+                        <div className="flex items-center gap-1 text-[10px] text-emerald-700 font-semibold mt-0.5">
+                          <ShieldCheck className="w-3 h-3 text-emerald-600 shrink-0" />
+                          <span>ABDM HFR ID: TN-CBE-0491</span>
+                        </div>
+                      </div>
+                    </div>
+
                     <button
                       type="button"
                       onClick={() => setShowLivePassModal(false)}
-                      className="p-1 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer shrink-0"
+                      className="p-1 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer shrink-0"
                     >
                       <X className="w-4 h-4" />
                     </button>
                   </div>
-                </div>
 
-                {/* Main Ticket Info */}
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-[11px] uppercase text-slate-400 font-medium tracking-wider">Your Token</span>
-                      <span className="text-3xl font-extrabold tracking-tight text-white tabular-nums">
-                        #{token.tokenNumber < 10 ? `0${token.tokenNumber}` : token.tokenNumber}
+                  {/* Hero Token Badge (Physical Ticket Callout) */}
+                  <div className="bg-slate-900 text-white rounded-2xl p-4 text-center space-y-1 relative shadow-sm">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                      Official OPD Token Pass
+                    </span>
+                    <div className="text-4xl font-black text-white tabular-nums tracking-tight">
+                      #{token.tokenNumber < 10 ? `0${token.tokenNumber}` : token.tokenNumber}
+                    </div>
+                    <div className="text-xs font-semibold text-emerald-400 pt-0.5">
+                      {token.status === 'IN_CONSULTATION' 
+                        ? '● Now Inside Consultation Room' 
+                        : (tokensAhead === 0 ? '● You are next in line to enter!' : `● ${tokensAhead} patients ahead of you`)}
+                    </div>
+                    <p className="text-[10px] text-slate-300">
+                      Please report to {mRoom} when Token #{Math.max(1, token.tokenNumber - 1)} enters
+                    </p>
+                  </div>
+
+                  {/* Real-time Queue Progress */}
+                  <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 space-y-1.5">
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-slate-600 font-medium flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5 text-blue-600" />
+                        <span>Now Serving:</span>
+                        <strong className="text-slate-900 font-bold">Token #{currentServingToken}</strong>
+                      </span>
+                      <span className="text-blue-700 font-bold">
+                        ~{estWait} min estimated wait
                       </span>
                     </div>
-                    <div className="mt-1">
-                      <div>
-                        <h4 className="font-bold text-sm text-white leading-tight">
-                          {mDocName}
-                        </h4>
-                        <span className="inline-block text-[10px] font-semibold text-emerald-300 bg-emerald-950/70 border border-emerald-500/30 px-1.5 py-0.2 rounded mt-0.5">
-                          {mSpecialty}
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-400 mt-0.5 font-normal">
-                        {mHospName} • {mRoom} • {token.time}
-                      </p>
+                    <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden flex">
+                      <div
+                        className="bg-blue-600 h-full rounded-full transition-all duration-500"
+                        style={{ width: `${Math.min(100, Math.max(15, (currentServingToken / token.tokenNumber) * 100))}%` }}
+                      />
                     </div>
                   </div>
 
-                  {/* Live Counter Box */}
-                  <div className="text-right shrink-0">
-                    <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl px-3 py-2 text-center">
-                      <div className="flex items-center justify-center gap-1 text-emerald-300 font-semibold text-sm tabular-nums">
-                        <RollingCounter value={tokensAhead} height={18} />
-                        <span className="text-xs text-slate-300 font-normal">ahead</span>
-                      </div>
-                      <span className="text-[10px] text-slate-400 font-normal block mt-0.5">
-                        ~{estWait} min wait
-                      </span>
+                  {/* Clinical Details */}
+                  <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                    <div>
+                      <span className="text-[10px] text-slate-400 block font-medium">Doctor:</span>
+                      <span className="font-extrabold text-slate-900 truncate block">{mDocName}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-slate-400 block font-medium">Specialty:</span>
+                      <span className="font-bold text-slate-800 truncate block">{mSpecialty}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-slate-400 block font-medium">Room & Floor:</span>
+                      <span className="font-bold text-slate-800 truncate block">{mRoom}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-slate-400 block font-medium">Appointment:</span>
+                      <span className="font-bold text-slate-900 truncate block">Today • {token.time}</span>
                     </div>
                   </div>
-                </div>
 
-                {/* Ticket Perforation Footer */}
-                <div className="pt-3 border-t border-dashed border-white/15 flex items-center justify-between text-xs">
-                  <span className="text-[10px] text-slate-400 font-semibold tracking-wider">
-                    PASS: BC-TKN-{token.tokenNumber}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onTriggerWhatsAppToast?.('LIVE_OPD_TICKET', 'Live Token Pass sent to WhatsApp', 'TOKEN_CONFIRMATION');
-                      setShowLivePassModal(false);
-                    }}
-                    className="text-xs font-semibold text-emerald-300 hover:text-white flex items-center gap-1 transition-colors cursor-pointer"
-                  >
-                    <span>Track Status on WhatsApp</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </motion.div>
-            </div>
-          </PhoneModalPortal>
+                  {/* Patient Credentials */}
+                  <div className="flex items-center justify-between text-xs text-slate-600 px-1">
+                    <div>
+                      <span className="text-[10px] text-slate-400 block font-medium">Patient:</span>
+                      <span className="font-bold text-slate-900">{patientProfile.name}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] text-slate-400 block font-medium">Billing:</span>
+                      <span className="font-bold text-emerald-700">₹{token.feePaid || 100} Paid (UPI)</span>
+                    </div>
+                  </div>
+
+                  {/* Perforation Divider with Scannable Barcode & QR */}
+                  <div className="pt-2 border-t border-dashed border-slate-200 text-center space-y-1.5">
+                    <div className="flex items-center justify-center gap-1.5 text-slate-700">
+                      <QrCode className="w-5 h-5 text-slate-800" />
+                      <span className="text-xs font-mono font-bold tracking-widest text-slate-800">
+                        BC-OPD-2026-1125-{token.tokenNumber < 10 ? `0${token.tokenNumber}` : token.tokenNumber}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-slate-400">
+                      Scan at Hospital Kiosk or OPD triage counter for automated check-in
+                    </p>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => window.open(mHosp?.googleMapsUrl || 'https://maps.google.com', '_blank')}
+                      className="py-2.5 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/80 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                    >
+                      <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                      <span>Directions (Maps)</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onTriggerWhatsAppToast?.('LIVE_OPD_TICKET', `Token #${token.tokenNumber} Pass sent to WhatsApp`, 'TOKEN_CONFIRMATION');
+                        setShowLivePassModal(false);
+                      }}
+                      className="py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                    >
+                      <MessageCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span>Send to WhatsApp</span>
+                    </button>
+                  </div>
+                </motion.div>
+              </div>
+            </PhoneModalPortal>
         );
       })()}
 
