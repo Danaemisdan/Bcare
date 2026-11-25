@@ -1375,8 +1375,8 @@ export function App() {
 
   // Nimbus Liquid Glass Nav Items: Home, Bookings (Visits + Video), AI Health, Hospitals (with Maps), Profile (with Records & Legal)
   const activeBookingsCount = (
-    slots.filter(s => s.patientPhone === currentUser?.phone && (s.status === 'BOOKED' || s.status === 'IN_CONSULTATION')).length +
-    videoAppointments.filter(v => v.patientPhone === currentUser?.phone && v.status === 'SCHEDULED').length
+    slots.filter(s => (s.patientPhone === currentUser?.phone || (currentUser?.id && s.patientId === currentUser.id) || (s.patientName && currentUser?.name && s.patientName.toLowerCase().trim() === currentUser.name.toLowerCase().trim())) && (s.status === 'BOOKED' || s.status === 'IN_CONSULTATION')).length +
+    videoAppointments.filter(v => (v.patientPhone === currentUser?.phone || (currentUser?.id && v.patientId === currentUser.id) || (v.patientName && currentUser?.name && v.patientName.toLowerCase().trim() === currentUser.name.toLowerCase().trim())) && (v.status === 'SCHEDULED' || v.status === 'IN_ROOM')).length
   );
 
   const patientNavItems: LiquidNavItem<'op_booking' | 'bookings' | 'ai_assist' | 'hospitals' | 'profile'>[] = [
@@ -1432,7 +1432,7 @@ export function App() {
   ];
 
   const activeUserTokens = slots.filter(
-    s => (s.patientPhone === patientProfile.phone || (patientProfile.userId && s.patientId === patientProfile.userId)) && (s.status === 'BOOKED' || s.status === 'IN_CONSULTATION')
+    s => (s.patientPhone === patientProfile.phone || (patientProfile.userId && s.patientId === patientProfile.userId) || (s.patientName && s.patientName.toLowerCase().trim() === patientProfile.name.toLowerCase().trim())) && (s.status === 'BOOKED' || s.status === 'IN_CONSULTATION')
   );
 
   const handleAuthSuccess = (data: { user: any; token: string; role: UserRole; profile: any }) => {

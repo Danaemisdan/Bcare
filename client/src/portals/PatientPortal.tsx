@@ -1,5 +1,5 @@
 import { UserLocationData, calculateDistanceKm, getGoogleMapsDirectionsUrl, detectCurrentLocation } from '../services/locationService';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Hospital, 
@@ -17,6 +17,7 @@ import { TeleconsultRoomModal } from '../components/TeleconsultRoomModal';
 import { CheckoutSummary, ConsultationType } from '../components/CheckoutSummary';
 import { BookingConsultationScreen } from '../components/BookingConsultationScreen';
 import { AiHealthAssistant } from '../components/AiHealthAssistant';
+import { OpdTokenPassCard } from '../components/OpdTokenPassCard';
 import { PhoneModalPortal } from '../components/PhoneModalPortal';
 import { generatePrescriptionPdf } from '../utils/pdfGenerator';
 import { 
@@ -444,8 +445,67 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
   const activeDoctor = filteredDoctors[0] || selectedDoctor || doctors[0];
   const doctorSlots = slots.filter(s => s.doctorId === activeDoctor.id);
 
-  const activeUserTokens = slots.filter(s => (s.patientPhone === patientProfile.phone || (patientProfile.userId && s.patientId === patientProfile.userId)) && (s.status === 'BOOKED' || s.status === 'IN_CONSULTATION'));
-  const completedUserTokens = slots.filter(s => (s.patientPhone === patientProfile.phone || (patientProfile.userId && s.patientId === patientProfile.userId)) && s.status === 'COMPLETED');
+  // Valid bookings strictly isolated to THIS patient (No invalid or cross-patient bookings)
+  const activeUserTokens = useMemo(() => {
+    const userPhone = patientProfile.phone;
+    const userId = patientProfile.userId;
+    const userName = patientProfile.name?.toLowerCase().trim() || '';
+
+    return slots.filter(s => {
+      const isThisPatient = (s.patientPhone && s.patientPhone === userPhone) ||
+                            (userId && s.patientId === userId) ||
+                            (s.patientName && s.patientName.toLowerCase().trim() === userName);
+      return isThisPatient && (s.status === 'BOOKED' || s.status === 'IN_CONSULTATION');
+    });
+  }, [slots, patientProfile]);
+
+  const completedUserTokens = useMemo(() => {
+    const userPhone = patientProfile.phone;
+    const userId = patientProfile.userId;
+    const userName = patientProfile.name?.toLowerCase().trim() || '';
+
+    return slots.filter(s => {
+      const isThisPatient = (s.patientPhone && s.patientPhone === userPhone) ||
+                            (userId && s.patientId === userId) ||
+                            (s.patientName && s.patientName.toLowerCase().trim() === userName);
+      return isThisPatient && s.status === 'COMPLETED';
+    });
+  }, [slots, patientProfile]);
+
+  const validUserVideoAppointments = useMemo(() => {
+    const userPhone = patientProfile.phone;
+    const userId = patientProfile.userId;
+    const userName = patientProfile.name?.toLowerCase().trim() || '';
+
+    const fromProps = (videoAppointments || []).filter(v => {
+      const isUser = (v.patientPhone && v.patientPhone === userPhone) ||
+                     (userId && v.patientId === userId) ||
+                     (v.patientName && v.patientName.toLowerCase().trim() === userName);
+      return isUser && (v.status === 'SCHEDULED' || v.status === 'IN_ROOM');
+    });
+
+    const fromLocal = userVideoAppointments.filter(v => 
+      v.status === 'SCHEDULED' || v.status === 'IN_ROOM'
+    );
+
+    const map = new Map<string, VideoAppointment>();
+    for (const a of fromProps) map.set(a.id, a);
+    for (const a of fromLocal) map.set(a.id, a);
+    return Array.from(map.values());
+  }, [videoAppointments, userVideoAppointments, patientProfile]);
+
+  const completedUserVideoAppointments = useMemo(() => {
+    const userPhone = patientProfile.phone;
+    const userId = patientProfile.userId;
+    const userName = patientProfile.name?.toLowerCase().trim() || '';
+
+    return (videoAppointments || []).filter(v => {
+      const isUser = (v.patientPhone && v.patientPhone === userPhone) ||
+                     (userId && v.patientId === userId) ||
+                     (v.patientName && v.patientName.toLowerCase().trim() === userName);
+      return isUser && v.status === 'COMPLETED';
+    });
+  }, [videoAppointments, patientProfile]);
 
   const handleOpenHospitalBooking = (hosp: Hospital) => {
     const hospDoctors = doctors.filter(d => d.hospitalId === hosp.id);
@@ -688,140 +748,22 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
               const bookedHospital = hospitals.find(h => h.id === token.hospitalId) || 
                                      hospitals.find(h => h.name.toLowerCase().includes(token.hospitalName?.toLowerCase() || '')) ||
                                      hospitals[0];
-              const doctorName = bookedDoctor?.name || token.doctorName || 'Attending Physician';
-              const doctorSpecialty = bookedDoctor?.specialty || token.specialty || 'General Medicine';
-              const hospitalName = bookedHospital?.name || token.hospitalName || 'Medical Centre';
-              const roomNumber = bookedDoctor?.roomNumber || 'Room 104';
-              const doctorInitials = doctorName.replace(/^Dr\.\s*/i, '').split(' ').map(n => n[0]).slice(0, 2).join('') || 'DR';
-
-              // Queue Calculation
-              const currentServingSlot = slots.find(s => s.status === 'IN_CONSULTATION' && s.doctorId === token.doctorId);
-              const currentServingToken = currentServingSlot?.tokenNumber ?? Math.max(1, token.tokenNumber - 2);
-              const tokensAhead = Math.max(0, token.tokenNumber - currentServingToken);
-              const estimatedWait = tokensAhead * 6;
 
               return (
                 <motion.div 
                   initial={{ opacity: 0, y: -8, scale: 0.98 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  className="rounded-3xl border border-slate-200/90 bg-white shadow-xs hover:shadow-md transition-all overflow-hidden relative text-slate-900 space-y-0"
+                  transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
                 >
-                  {/* Top Bar: Hospital Branding & Official Verification */}
-                  <div className="bg-slate-50/80 px-4 py-2.5 border-b border-slate-100 flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold shrink-0">
-                        <Building2 className="w-4 h-4" />
-                      </div>
-                      <div className="min-w-0">
-                        <h4 className="font-extrabold text-xs text-slate-900 truncate">
-                          {hospitalName}
-                        </h4>
-                        <p className="text-[10px] text-slate-500 truncate">
-                          {bookedHospital?.address || 'Coimbatore'} • ABDM Verified
-                        </p>
-                      </div>
-                    </div>
-
-                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
-                      token.status === 'IN_CONSULTATION'
-                        ? 'bg-amber-50 text-amber-700 border-amber-300'
-                        : 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                    }`}>
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                      <span>{token.status === 'IN_CONSULTATION' ? 'In Consultation' : 'Confirmed Active Pass'}</span>
-                    </span>
-                  </div>
-
-                  <div className="p-4 space-y-3">
-                    {/* Hero Token Container */}
-                    <div className="flex items-center justify-between gap-3 bg-slate-900 text-white rounded-2xl p-3.5 shadow-2xs">
-                      <div>
-                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">
-                          Your OPD Token Number
-                        </span>
-                        <div className="flex items-baseline gap-2 mt-0.5">
-                          <span className="text-3xl font-black text-white tabular-nums tracking-tight">
-                            #{token.tokenNumber < 10 ? `0${token.tokenNumber}` : token.tokenNumber}
-                          </span>
-                          <span className="text-xs font-semibold text-emerald-400">
-                            {tokensAhead === 0 ? '● You are next!' : `● ${tokensAhead} ahead`}
-                          </span>
-                        </div>
-                        <span className="text-[10px] text-slate-300 block mt-0.5">
-                          Arrive 10m before call • Est: {token.time}
-                        </span>
-                      </div>
-
-                      <div className="text-right bg-white/10 backdrop-blur-xs rounded-xl p-2.5 border border-white/10 shrink-0">
-                        <span className="text-[9.5px] uppercase font-bold text-slate-300 block">Now Serving</span>
-                        <span className="text-lg font-black text-emerald-400 tabular-nums">
-                          #{currentServingToken < 10 ? `0${currentServingToken}` : currentServingToken}
-                        </span>
-                        <span className="text-[9.5px] text-slate-300 block">~{estimatedWait}m wait</span>
-                      </div>
-                    </div>
-
-                    {/* Physician & Booking Strip */}
-                    <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 bg-slate-50/80 p-2.5 rounded-xl border border-slate-100">
-                      <div>
-                        <span className="text-[10px] text-slate-400 block font-medium">Physician:</span>
-                        <span className="font-extrabold text-slate-900 truncate block">{doctorName}</span>
-                      </div>
-                      <div>
-                        <span className="text-[10px] text-slate-400 block font-medium">Department & Room:</span>
-                        <span className="font-bold text-slate-800 truncate block">{doctorSpecialty} • {roomNumber}</span>
-                      </div>
-                      <div>
-                        <span className="text-[10px] text-slate-400 block font-medium">Patient:</span>
-                        <span className="font-bold text-slate-900 truncate block">{patientProfile.name}</span>
-                      </div>
-                      <div>
-                        <span className="text-[10px] text-slate-400 block font-medium">Payment Status:</span>
-                        <span className="font-bold text-emerald-700 truncate block">₹{token.feePaid || 100} (Paid via UPI)</span>
-                      </div>
-                    </div>
-
-                    {/* Primary Action Buttons: View Pass & Navigate (NO accidental cancel button!) */}
-                    <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100">
-                      <button
-                        type="button"
-                        onClick={() => window.open(bookedHospital?.googleMapsUrl || `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(bookedHospital?.address || 'Coimbatore')}`, '_blank')}
-                        className="py-2.5 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/80 font-bold text-xs flex items-center justify-center gap-1.5 whitespace-nowrap transition-colors cursor-pointer"
-                      >
-                        <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                        <span>Navigate (Maps)</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setShowLivePassModal(true)}
-                        className="py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 whitespace-nowrap transition-colors cursor-pointer shadow-2xs"
-                      >
-                        <QrCode className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                        <span>View Pass & QR</span>
-                      </button>
-                    </div>
-
-                    {/* Security & Token Guarantee Notice */}
-                    <div className="flex items-center justify-between text-[10.5px] text-slate-500 pt-0.5 px-0.5">
-                      <span className="flex items-center gap-1 text-emerald-700 font-semibold">
-                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <span>Paid Pass Active • Queue Locked</span>
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => onTriggerWhatsAppToast(
-                          'OP Queue Pass',
-                          `Token #${token.tokenNumber} pass sent to WhatsApp (+91 ${patientProfile.phone})`,
-                          'TOKEN_CONFIRMATION'
-                        )}
-                        className="text-blue-700 hover:underline font-bold flex items-center gap-1 cursor-pointer"
-                      >
-                        <MessageCircle className="w-3 h-3 text-emerald-600" />
-                        <span>Send to WhatsApp</span>
-                      </button>
-                    </div>
-                  </div>
+                  <OpdTokenPassCard
+                    token={token}
+                    doctor={bookedDoctor}
+                    hospital={bookedHospital}
+                    patientProfile={patientProfile}
+                    allSlots={slots}
+                    onViewPassModal={() => setShowLivePassModal(true)}
+                    onTriggerWhatsAppToast={onTriggerWhatsAppToast}
+                  />
                 </motion.div>
               );
             })()}
@@ -883,7 +825,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
               }`}
             >
               <CalendarCheck className="w-4 h-4 text-blue-600" />
-              <span>Bookings ({activeUserTokens.length + (videoAppointments?.filter(v => v.status === 'SCHEDULED').length || 0)})</span>
+              <span>Bookings ({activeUserTokens.length + validUserVideoAppointments.length})</span>
             </button>
 
             <button
@@ -1534,7 +1476,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                   : 'text-slate-500 hover:text-slate-800'
               }`}
             >
-              Upcoming Passes ({activeUserTokens.length + (videoAppointments?.filter(v => v.status === 'SCHEDULED').length || 0)})
+              Upcoming Passes ({activeUserTokens.length + validUserVideoAppointments.length})
             </button>
             <button
               type="button"
@@ -1545,7 +1487,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                   : 'text-slate-500 hover:text-slate-800'
               }`}
             >
-              Past Visits ({completedUserTokens.length + prescriptions.length})
+              Past Visits ({completedUserTokens.length + completedUserVideoAppointments.length + prescriptions.length})
             </button>
           </div>
 
@@ -1555,7 +1497,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
           {bookingScope === 'ACTIVE' && (
             <div className="space-y-4">
               {/* Secondary Category Filters */}
-              {(activeUserTokens.length > 0 || (videoAppointments?.length || 0) > 0) && (
+              {(activeUserTokens.length > 0 || validUserVideoAppointments.length > 0) && (
                 <div className="bg-slate-100/70 p-1 rounded-full flex items-center gap-1 select-none overflow-x-auto">
                   <button
                     type="button"
@@ -1566,7 +1508,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                         : 'text-slate-500 hover:text-slate-800'
                     }`}
                   >
-                    All Active ({activeUserTokens.length + (videoAppointments?.filter(v => v.status === 'SCHEDULED').length || 0)})
+                    All Active ({activeUserTokens.length + validUserVideoAppointments.length})
                   </button>
                   <button
                     type="button"
@@ -1588,7 +1530,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                         : 'text-slate-500 hover:text-slate-800'
                     }`}
                   >
-                    Video Calls ({videoAppointments?.filter(v => v.status === 'SCHEDULED').length || 0})
+                    Video Calls ({validUserVideoAppointments.length})
                   </button>
                 </div>
               )}
@@ -1601,176 +1543,41 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                       <Ticket className="w-4 h-4 text-blue-600" />
                       <span>Live Hospital OPD Passes ({activeUserTokens.length})</span>
                     </span>
-                    <span className="text-[11px] text-blue-600 font-bold">Real-Time Queue</span>
+                    <span className="text-[11px] text-blue-600 font-bold">ABDM Verified Passes</span>
                   </div>
 
                   {activeUserTokens.map(token => {
                     const doc = doctors.find(d => d.id === token.doctorId);
                     const hosp = hospitals.find(h => h.id === token.hospitalId) || hospitals[0];
-                    const googleMapsUrl = hosp?.googleMapsUrl || `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(hosp?.address || 'Coimbatore')}`;
-
-                    const currentServingSlot = slots.find(s => s.status === 'IN_CONSULTATION' && s.doctorId === token.doctorId);
-                    const currentServingToken = currentServingSlot?.tokenNumber ?? Math.max(1, token.tokenNumber - 2);
-                    const tokensAhead = Math.max(0, token.tokenNumber - currentServingToken);
-                    const estWait = tokensAhead * 6;
 
                     return (
-                      <div
+                      <OpdTokenPassCard
                         key={token.id}
-                        className="rounded-3xl border border-slate-200/90 bg-white shadow-xs hover:shadow-md transition-all overflow-hidden relative"
-                      >
-                        {/* Top Perforated Notch & Hospital Badge */}
-                        <div className="bg-slate-50/80 px-4 py-2.5 border-b border-slate-100 flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <Building2 className="w-4 h-4 text-blue-600 shrink-0" />
-                            <div className="min-w-0">
-                              <h4 className="font-extrabold text-xs text-slate-900 truncate">
-                                {hosp?.name}
-                              </h4>
-                              <p className="text-[10px] text-slate-500 truncate">
-                                {hosp?.address || 'Coimbatore'} • ABDM Verified
-                              </p>
-                            </div>
-                          </div>
-
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
-                            token.status === 'IN_CONSULTATION'
-                              ? 'bg-amber-50 text-amber-700 border-amber-300'
-                              : 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                          }`}>
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                            <span>{token.status === 'IN_CONSULTATION' ? 'In Consultation' : 'Active Pass'}</span>
-                          </span>
-                        </div>
-
-                        {/* Main Ticket Body */}
-                        <div className="p-4 space-y-3">
-                          {/* Token Hero Row */}
-                          <div className="flex items-center justify-between gap-3 bg-slate-900 text-white rounded-2xl p-3.5 shadow-2xs">
-                            <div>
-                              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">
-                                Your OPD Token Number
-                              </span>
-                              <div className="flex items-baseline gap-2 mt-0.5">
-                                <span className="text-2xl font-black text-white tabular-nums tracking-tight">
-                                  #{token.tokenNumber < 10 ? `0${token.tokenNumber}` : token.tokenNumber}
-                                </span>
-                                <span className="text-xs font-semibold text-emerald-400">
-                                  {tokensAhead === 0 ? '● You are next!' : `● ${tokensAhead} ahead`}
-                                </span>
-                              </div>
-                              <span className="text-[10px] text-slate-300 block mt-0.5">
-                                Arrive 10m before call • Est: {token.time}
-                              </span>
-                            </div>
-
-                            <div className="text-right bg-white/10 backdrop-blur-xs rounded-xl p-2.5 border border-white/10 shrink-0">
-                              <span className="text-[9.5px] uppercase font-bold text-slate-300 block">Now Serving</span>
-                              <span className="text-lg font-black text-emerald-400 tabular-nums">
-                                #{currentServingToken < 10 ? `0${currentServingToken}` : currentServingToken}
-                              </span>
-                              <span className="text-[9.5px] text-slate-300 block">~{estWait}m wait</span>
-                            </div>
-                          </div>
-
-                          {/* Physician & Clinical Details */}
-                          <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 bg-slate-50/70 p-2.5 rounded-xl border border-slate-100">
-                            <div>
-                              <span className="text-[10px] text-slate-400 block font-medium">Attending Physician:</span>
-                              <span className="font-extrabold text-slate-900 truncate block">
-                                {doc?.name || token.doctorName || 'Dr. Ananya Sharma'}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="text-[10px] text-slate-400 block font-medium">Department & Room:</span>
-                              <span className="font-bold text-slate-800 truncate block">
-                                {doc?.specialty || token.specialty || 'Cardiology'} • Room {doc?.roomNumber || '204'}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="text-[10px] text-slate-400 block font-medium">Patient UHID / Name:</span>
-                              <span className="font-bold text-slate-900 truncate block">
-                                {patientProfile.name}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="text-[10px] text-slate-400 block font-medium">Billing & Status:</span>
-                              <span className="font-bold text-emerald-700 truncate block">
-                                ₹{token.feePaid || 100} (Paid via UPI)
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Actions: Maps Navigation & Full Pass Modal */}
-                          <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100">
-                            <button
-                              type="button"
-                              onClick={() => window.open(googleMapsUrl, '_blank')}
-                              className="py-2.5 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/80 font-bold text-xs flex items-center justify-center gap-1.5 whitespace-nowrap transition-colors cursor-pointer"
-                              title="Open Google Maps Route"
-                            >
-                              <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                              <span>Navigate (Maps)</span>
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => setShowLivePassModal(true)}
-                              className="py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 whitespace-nowrap transition-colors cursor-pointer shadow-2xs"
-                            >
-                              <QrCode className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                              <span>View Pass (QR)</span>
-                            </button>
-                          </div>
-
-                          {/* Secondary Row: WhatsApp & Cancel */}
-                          <div className="flex items-center justify-between pt-0.5 text-xs">
-                            <button
-                              type="button"
-                              onClick={() => onTriggerWhatsAppToast(
-                                'OP Queue Pass',
-                                `Token #${token.tokenNumber} details shared to your WhatsApp (+91 ${patientProfile.phone})`,
-                                'TOKEN_CONFIRMATION'
-                              )}
-                              className="text-emerald-700 hover:text-emerald-800 font-bold text-[11px] flex items-center gap-1 cursor-pointer"
-                            >
-                              <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
-                              <span>Send Pass to WhatsApp</span>
-                            </button>
-
-                            {onCancelSlot && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  if (confirm(`Cancel Token #${token.tokenNumber}?`)) {
-                                    onCancelSlot(token.id);
-                                  }
-                                }}
-                                className="text-slate-400 hover:text-rose-600 text-[11px] font-semibold transition-colors cursor-pointer"
-                              >
-                                Cancel Pass
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
+                        token={token}
+                        doctor={doc}
+                        hospital={hosp}
+                        patientProfile={patientProfile}
+                        allSlots={slots}
+                        onViewPassModal={() => setShowLivePassModal(true)}
+                        onTriggerWhatsAppToast={onTriggerWhatsAppToast}
+                      />
                     );
                   })}
                 </div>
               )}
 
               {/* SECTION B: VIDEO CONSULTATIONS */}
-              {(bookingFilter === 'ALL' || bookingFilter === 'VIDEO') && (videoAppointments?.filter(v => v.status === 'SCHEDULED').length || 0) > 0 && (
+              {(bookingFilter === 'ALL' || bookingFilter === 'VIDEO') && validUserVideoAppointments.length > 0 && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between px-1">
                     <span className="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
                       <Video className="w-4 h-4 text-emerald-600" />
-                      <span>Video Consultations ({videoAppointments?.filter(v => v.status === 'SCHEDULED').length})</span>
+                      <span>Video Consultations ({validUserVideoAppointments.length})</span>
                     </span>
                     <span className="text-[11px] text-emerald-700 font-bold">10 Languages</span>
                   </div>
 
-                  {videoAppointments?.filter(v => v.status === 'SCHEDULED').map(apt => {
+                  {validUserVideoAppointments.map(apt => {
                     const doc = doctors.find(d => d.id === apt.doctorId) || doctors[0];
 
                     return (
@@ -1848,7 +1655,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
               )}
 
               {/* Empty State for Active */}
-              {activeUserTokens.length === 0 && (videoAppointments?.filter(v => v.status === 'SCHEDULED').length || 0) === 0 && (
+              {activeUserTokens.length === 0 && validUserVideoAppointments.length === 0 && (
                 <div className="p-8 text-center bg-white rounded-3xl border border-slate-200/80 space-y-3">
                   <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto">
                     <CalendarCheck className="w-6 h-6" />
@@ -1856,7 +1663,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                   <div>
                     <h4 className="text-sm font-extrabold text-slate-900">No Upcoming Passes</h4>
                     <p className="text-xs text-slate-500 max-w-xs mx-auto mt-0.5">
-                      You do not have any active appointments for today. Book an in-person OPD pass or schedule a video call.
+                      You do not have any active appointments. Book an in-person OPD pass or schedule a video call.
                     </p>
                   </div>
                   <button
@@ -3088,14 +2895,23 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
           const token = activeUserTokens[0];
           const mDoc = doctors.find(d => d.id === token.doctorId);
           const mHosp = hospitals.find(h => h.id === token.hospitalId) || hospitals[0];
-          const mDocName = mDoc?.name || token.doctorName || 'Attending Physician';
-          const mSpecialty = mDoc?.specialty || token.specialty || 'General Medicine';
-          const mHospName = mHosp?.name || token.hospitalName || 'Medical Centre';
-          const mRoom = mDoc?.roomNumber || 'Room 104';
+          const mDocName = mDoc?.name || token.doctorName || 'Dr. Ananya Sharma, MD, DM';
+          const mSpecialty = mDoc?.specialty || token.specialty || 'Cardiology';
+          const mHospName = mHosp?.name || token.hospitalName || 'City Care Multi-Specialty Hospital';
+          const mRoom = mDoc?.roomNumber || 'Room 204';
 
-          const currentServingSlot = slots.find(s => s.status === 'IN_CONSULTATION' && s.doctorId === token.doctorId);
-          const currentServingToken = currentServingSlot?.tokenNumber ?? Math.max(1, token.tokenNumber - 2);
-          const tokensAhead = Math.max(0, token.tokenNumber - currentServingToken);
+          const todayStr = new Date().toISOString().split('T')[0];
+          const tomorrowStr = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+          const isToday = !token.date || token.date === todayStr;
+          const isTomorrow = token.date === tomorrowStr;
+
+          const dateLabel = isToday ? 'Today' : isTomorrow ? 'Tomorrow' : token.date;
+
+          const currentServingSlot = isToday 
+            ? slots.find(s => s.status === 'IN_CONSULTATION' && s.doctorId === token.doctorId && (s.date === token.date || !s.date))
+            : null;
+          const currentServingToken = currentServingSlot?.tokenNumber ?? (isToday ? Math.max(1, token.tokenNumber - 2) : 1);
+          const tokensAhead = isToday ? Math.max(0, token.tokenNumber - currentServingToken) : token.tokenNumber;
           const estWait = tokensAhead * 6;
 
           return (
@@ -3153,34 +2969,55 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                       #{token.tokenNumber < 10 ? `0${token.tokenNumber}` : token.tokenNumber}
                     </div>
                     <div className="text-xs font-semibold text-emerald-400 pt-0.5">
-                      {token.status === 'IN_CONSULTATION' 
-                        ? '● Now Inside Consultation Room' 
-                        : (tokensAhead === 0 ? '● You are next in line to enter!' : `● ${tokensAhead} patients ahead of you`)}
+                      {isToday ? (
+                        token.status === 'IN_CONSULTATION' 
+                          ? '● Inside Consultation Room' 
+                          : (tokensAhead === 0 ? '● You are next in line to enter!' : `● ${tokensAhead} patients ahead of you`)
+                      ) : (
+                        `● Confirmed Advance Booking for ${dateLabel}`
+                      )}
                     </div>
                     <p className="text-[10px] text-slate-300">
-                      Please report to {mRoom} when Token #{Math.max(1, token.tokenNumber - 1)} enters
+                      {isToday 
+                        ? `Please report to ${mRoom} when Token #${Math.max(1, token.tokenNumber - 1)} enters`
+                        : `OPD Queue opens ${dateLabel} morning. Check in 10m before ${token.time || '09:00 AM'}`}
                     </p>
                   </div>
 
-                  {/* Real-time Queue Progress */}
-                  <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 space-y-1.5">
-                    <div className="flex items-center justify-between text-[11px]">
-                      <span className="text-slate-600 font-medium flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5 text-blue-600" />
-                        <span>Now Serving:</span>
-                        <strong className="text-slate-900 font-bold">Token #{currentServingToken}</strong>
-                      </span>
-                      <span className="text-blue-700 font-bold">
-                        ~{estWait} min estimated wait
-                      </span>
+                  {/* Queue Status / Scheduled Status */}
+                  {isToday ? (
+                    <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 space-y-1.5">
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="text-slate-600 font-medium flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5 text-blue-600" />
+                          <span>Now Serving:</span>
+                          <strong className="text-slate-900 font-bold">Token #{currentServingToken}</strong>
+                        </span>
+                        <span className="text-blue-700 font-bold">
+                          ~{estWait} min estimated wait
+                        </span>
+                      </div>
+                      <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden flex">
+                        <div
+                          className="bg-blue-600 h-full rounded-full transition-all duration-500"
+                          style={{ width: `${Math.min(100, Math.max(15, (currentServingToken / token.tokenNumber) * 100))}%` }}
+                        />
+                      </div>
                     </div>
-                    <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden flex">
-                      <div
-                        className="bg-blue-600 h-full rounded-full transition-all duration-500"
-                        style={{ width: `${Math.min(100, Math.max(15, (currentServingToken / token.tokenNumber) * 100))}%` }}
-                      />
+                  ) : (
+                    <div className="bg-blue-50/70 border border-blue-200/80 rounded-xl p-3 text-xs text-blue-900 space-y-1">
+                      <div className="flex items-center justify-between text-[11px] font-bold">
+                        <span className="flex items-center gap-1.5 text-blue-800">
+                          <Calendar className="w-3.5 h-3.5 text-blue-600" />
+                          <span>Advance Reservation</span>
+                        </span>
+                        <span className="text-emerald-700 font-extrabold">Queue Position Locked</span>
+                      </div>
+                      <p className="text-[11px] text-blue-800/80 leading-snug">
+                        Scheduled for {dateLabel} at {token.time || '09:00 AM'}. Priority entry at OPD Counter.
+                      </p>
                     </div>
-                  </div>
+                  )}
 
                   {/* Clinical Details */}
                   <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
@@ -3198,7 +3035,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                     </div>
                     <div>
                       <span className="text-[10px] text-slate-400 block font-medium">Appointment:</span>
-                      <span className="font-bold text-slate-900 truncate block">Today • {token.time}</span>
+                      <span className="font-bold text-slate-900 truncate block">{dateLabel} • {token.time || '09:00 AM'}</span>
                     </div>
                   </div>
 
@@ -3219,7 +3056,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                     <div className="flex items-center justify-center gap-1.5 text-slate-700">
                       <QrCode className="w-5 h-5 text-slate-800" />
                       <span className="text-xs font-mono font-bold tracking-widest text-slate-800">
-                        BC-OPD-2026-1125-{token.tokenNumber < 10 ? `0${token.tokenNumber}` : token.tokenNumber}
+                        BC-OPD-2026-{token.tokenNumber < 10 ? `0${token.tokenNumber}` : token.tokenNumber}
                       </span>
                     </div>
                     <p className="text-[10px] text-slate-400">
