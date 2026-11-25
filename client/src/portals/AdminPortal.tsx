@@ -1777,7 +1777,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
               <div className="pt-3 border-t border-zinc-100 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Radio className="w-4 h-4 text-emerald-600 animate-pulse" />
+                    <Radio className="w-4 h-4 text-emerald-600" />
                     <h4 className="font-semibold text-xs text-zinc-950">Live Gateway Dispatch & WhatsApp Audit Stream</h4>
                   </div>
                   <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">

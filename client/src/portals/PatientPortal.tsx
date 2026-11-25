@@ -645,7 +645,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
       {!isMobile && platformSettings?.broadcastBanner?.enabled && (
         <div className="px-3.5 py-2 rounded-xl bg-slate-900 text-white flex items-center justify-between gap-2.5 shadow-sm text-xs animate-in fade-in">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
             <p className="font-normal text-[12px] text-slate-200 truncate">
               {platformSettings.broadcastBanner.text}
             </p>
@@ -676,11 +676,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                 >
                   <MapPin className="w-3 h-3 text-blue-600 shrink-0" />
                   <span className="truncate">{userLocation?.displayName || 'Detecting Location...'}</span>
-                  {userLocation?.isLiveGps ? (
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" title="Live GPS Active" />
-                  ) : (
-                    <ChevronDown className="w-2.5 h-2.5 text-slate-400 shrink-0" />
-                  )}
+                  <ChevronDown className="w-2.5 h-2.5 text-slate-400 shrink-0" />
                 </button>
               </div>
             </div>
@@ -726,12 +722,12 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                       </div>
                     </div>
 
-                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1 whitespace-nowrap shrink-0 ${
+                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
                       token.status === 'IN_CONSULTATION'
-                        ? 'bg-amber-50 text-amber-700 border-amber-300 animate-pulse'
+                        ? 'bg-amber-50 text-amber-700 border-amber-300'
                         : 'bg-emerald-50 text-emerald-700 border-emerald-300'
                     }`}>
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
                       <span>{token.status === 'IN_CONSULTATION' ? 'In Consultation' : 'Confirmed Active Pass'}</span>
                     </span>
                   </div>
@@ -852,7 +848,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-[10px] font-medium text-emerald-800 mb-1.5 whitespace-nowrap shrink-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
                 Verified Patient ID: #BC-9842
               </div>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-zinc-950 tracking-tight">
@@ -964,7 +960,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                     <div className="truncate">
                       <h4 className="font-semibold text-sky-100 truncate flex items-center gap-1.5">
                         <span>Video Consultation Confirmed</span>
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
                       </h4>
                       <p className="text-[11px] text-sky-300 truncate">
                         {app.doctorName} ({app.doctorSpecialty}) • {app.time}
@@ -1156,16 +1152,16 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
             {/* Center: Natural Medical Copy (Zero truncation) */}
             <div className="flex-1 min-w-0 pr-1">
               <div className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
                 <span className="text-[10.5px] font-bold text-emerald-400 tracking-wider uppercase">
-                  B Care AI Triage
+                  B Care Navigator
                 </span>
               </div>
               <h3 className="text-sm font-extrabold text-white tracking-tight leading-snug mt-0.5">
-                Describe your symptoms
+                Tell us what's wrong
               </h3>
               <p className="text-[11px] text-slate-300 font-medium leading-tight mt-0.5">
-                Instant doctor triage in 10 languages
+                We'll guide you where to go & who to see
               </p>
             </div>
 
@@ -1260,7 +1256,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                 </div>
                 <div className="text-left leading-tight">
                   <span className="block text-[11px] font-extrabold text-blue-700">Ask Care AI</span>
-                  <span className="block text-[9px] text-blue-500 font-medium">Instant Triage</span>
+                  <span className="block text-[9px] text-blue-500 font-medium">Where to Go?</span>
                 </div>
               </button>
             </div>
@@ -1330,10 +1326,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                             </p>
 
                             <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-800 pt-0.5">
-                              <span className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                              </span>
+                              <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
                               <span className="font-bold">Token #{doc.nextAvailableToken || 4} available</span>
                               <span className="text-slate-400">•</span>
                               <span className="text-slate-500">~{doc.estimatedWaitMins || 10}m wait</span>
@@ -1438,10 +1431,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
 
                             {/* Live Token Status */}
                             <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50/80 border border-emerald-200/70 text-[10px] font-medium text-emerald-800 whitespace-nowrap">
-                              <span className="relative flex h-1.5 w-1.5 shrink-0">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-                              </span>
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
                               <span className="font-bold">Next: Token #{primaryDoc?.nextAvailableToken || 4}</span>
                               <span className="text-slate-400">•</span>
                               <span className="text-slate-500">~10m wait</span>
@@ -1659,12 +1649,12 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                             </div>
                           </div>
 
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1 whitespace-nowrap shrink-0 ${
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
                             token.status === 'IN_CONSULTATION'
-                              ? 'bg-amber-50 text-amber-700 border-amber-300 animate-pulse'
+                              ? 'bg-amber-50 text-amber-700 border-amber-300'
                               : 'bg-emerald-50 text-emerald-700 border-emerald-300'
                           }`}>
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
                             <span>{token.status === 'IN_CONSULTATION' ? 'In Consultation' : 'Active Pass'}</span>
                           </span>
                         </div>
@@ -1839,7 +1829,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                           </div>
 
                           <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold flex items-center gap-1 whitespace-nowrap shrink-0">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
                             <span>Ready</span>
                           </span>
                         </div>
@@ -2280,10 +2270,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
 
                 <div className="flex items-center justify-between text-xs pb-2.5 border-b border-white/10">
                   <div className="flex items-center gap-2">
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
-                    </span>
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
                     <span className="font-bold text-[11px] tracking-wider uppercase text-emerald-400">
                       ACTIVE LIVE OPD PASS
                     </span>
@@ -3113,13 +3100,13 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                           Fast
                         </span>
                       </div>
-                      <Sparkles className="w-4 h-4 text-blue-600 animate-pulse shrink-0" />
+                      <Sparkles className="w-4 h-4 text-blue-600 shrink-0" />
                     </div>
                     <p className="text-[11px] text-blue-900/80 mt-1 leading-snug">
-                      Describe your symptoms, pain or discomfort in everyday words or voice. Our AI will triage and match you to the right specialist.
+                      Tell us your symptoms, pain or discomfort. Our Care Navigator will simply tell you where to go and who to see.
                     </p>
                     <div className="mt-2.5 flex items-center gap-1.5 text-xs font-bold text-blue-700">
-                      <span>Start Clinical AI Triage</span>
+                      <span>Find Where to Go & Hospitals</span>
                       <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                     </div>
                   </div>

@@ -198,7 +198,7 @@ export const FranchisePortal: React.FC<FranchisePortalProps> = ({
                 </div>
 
                 <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50/90 border border-emerald-200/80 text-[11px] font-semibold text-emerald-800 tabular-nums whitespace-nowrap shrink-0 shadow-2xs">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                   <span>99% Achieved</span>
                 </div>
               </div>

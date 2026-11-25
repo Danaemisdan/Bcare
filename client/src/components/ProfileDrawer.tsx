@@ -124,7 +124,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0 flex-1">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
                       <span className="text-[10px] font-bold tracking-wider uppercase text-emerald-400 truncate">
                         Active Queue Pass
                       </span>

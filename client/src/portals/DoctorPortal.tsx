@@ -377,7 +377,7 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
                 >
                   <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-white/10">
                     <span className="flex items-center gap-1.5 text-xs font-semibold text-white min-w-0 flex-1">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
                       <span className="truncate">Current In Consultation</span>
                     </span>
                     <span className="font-semibold text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 whitespace-nowrap shrink-0">

@@ -123,12 +123,9 @@ export const FloatingQueueBlimp: React.FC<FloatingQueueBlimpProps> = ({
                            hover:border-emerald-400/60 transition-all cursor-pointer"
                 title="Active Live OPD Queue Pass (Tap to expand)"
               >
-                {/* Live Pulse Indicator & Token Number */}
+                {/* Live Indicator & Token Number */}
                 <div className="flex items-center gap-1.5">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
-                  </span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
                   <span className="text-xs font-extrabold text-white tabular-nums tracking-tight">
                     #{token.tokenNumber}
                   </span>
@@ -230,10 +227,7 @@ export const FloatingQueueBlimp: React.FC<FloatingQueueBlimpProps> = ({
                 {/* Header: Title, Live Status & Minimize */}
                 <div className="flex items-center justify-between gap-2 text-xs">
                   <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                    <span className="relative flex h-2 w-2 shrink-0">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
-                    </span>
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
                     <span className="font-bold text-[11px] tracking-wider uppercase text-emerald-400 truncate">
                       LIVE OPD QUEUE PASS
                     </span>
