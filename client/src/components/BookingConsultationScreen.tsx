@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ChevronLeft, 
@@ -103,27 +103,106 @@ export const BookingConsultationScreen: React.FC<BookingConsultationScreenProps>
     scrollContainers.forEach(c => { c.scrollTop = 0; });
   }, [currentStepIndex]);
 
-  // Date selection
-  const dates = [
-    { id: 'today', day: 'Today', dateStr: 'Nov 25', fullDate: '2026-11-25' },
-    { id: 'tomorrow', day: 'Tomorrow', dateStr: 'Nov 26', fullDate: '2026-11-26' },
-    { id: 'day3', day: 'Thu', dateStr: 'Nov 27', fullDate: '2026-11-27' },
-    { id: 'day4', day: 'Fri', dateStr: 'Nov 28', fullDate: '2026-11-28' },
-    { id: 'day5', day: 'Sat', dateStr: 'Nov 29', fullDate: '2026-11-29' }
-  ];
+  // Date selection (Dynamic 5-day calendar starting today)
+  const dates = useMemo(() => {
+    const result = [];
+    const now = new Date();
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    for (let i = 0; i < 5; i++) {
+      const d = new Date(now.getTime() + i * 24 * 60 * 60 * 1000);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      const fullDate = `${yyyy}-${mm}-${dd}`;
+      const day = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : dayNames[d.getDay()];
+      const dateStr = `${monthNames[d.getMonth()]} ${d.getDate()}`;
+      result.push({
+        id: i === 0 ? 'today' : i === 1 ? 'tomorrow' : `day${i + 1}`,
+        day,
+        dateStr,
+        fullDate
+      });
+    }
+    return result;
+  }, []);
+
   const [selectedDate, setSelectedDate] = useState(dates[0]);
 
-  // Slots for the currently chosen doctor
-  const doctorSlots = allSlots
-    .filter(s => s.doctorId === selectedDoctor.id)
-    .sort((a, b) => a.tokenNumber - b.tokenNumber);
+  // Standard session times for OPD (20 tokens per session)
+  const defaultOpSessionTimes = [
+    '08:30 AM', '08:45 AM', '09:00 AM', '09:15 AM', '09:30 AM',
+    '09:45 AM', '10:00 AM', '10:15 AM', '10:30 AM', '10:45 AM',
+    '11:00 AM', '11:15 AM', '11:30 AM', '11:45 AM', '12:00 PM',
+    '12:15 PM', '12:30 PM', '12:45 PM', '02:00 PM', '02:15 PM'
+  ];
 
-  const availableDoctorSlots = doctorSlots.filter(
-    s => s.status === 'AVAILABLE' || s.id === initialSlot?.id
-  );
+  // Resolve or synthesize OPD tokens for the selected doctor & date
+  const activeDateSlots: OpSlot[] = useMemo(() => {
+    // 1. Look for existing slots matching this doctor & date
+    const matched = (allSlots || [])
+      .filter(s => s.doctorId === selectedDoctor.id && (s.date === selectedDate.fullDate || (!s.date && selectedDate.id === 'today')))
+      .sort((a, b) => a.tokenNumber - b.tokenNumber);
 
-  const bookedCount = doctorSlots.filter(s => s.status !== 'AVAILABLE' && s.id !== initialSlot?.id).length;
-  const availableCount = doctorSlots.length - bookedCount;
+    if (matched.length >= 8) {
+      return matched;
+    }
+
+    // 2. Synthesize a full realistic 20-token session so the queue is never blank
+    const isToday = selectedDate.id === 'today' || selectedDate.fullDate === new Date().toISOString().split('T')[0];
+    const nextAvail = selectedDoctor.nextAvailableToken || (isToday ? 3 : 1);
+
+    return defaultOpSessionTimes.map((time, idx) => {
+      const tokenNumber = idx + 1;
+      const existingOne = matched.find(m => m.tokenNumber === tokenNumber);
+      if (existingOne) return existingOne;
+
+      let status: OpSlot['status'] = 'AVAILABLE';
+      if (isToday) {
+        if (tokenNumber === 1) status = 'COMPLETED';
+        else if (tokenNumber === 2) status = 'IN_CONSULTATION';
+        else if (tokenNumber < nextAvail) status = 'BOOKED';
+      } else {
+        // Tomorrow and upcoming days: first 2 tokens pre-booked by advance callers
+        if (tokenNumber <= 2) status = 'BOOKED';
+      }
+
+      if (initialSlot && initialSlot.tokenNumber === tokenNumber && initialSlot.doctorId === selectedDoctor.id) {
+        status = 'AVAILABLE';
+      }
+
+      return {
+        id: `slot-${selectedDoctor.id}-${selectedDate.fullDate}-${tokenNumber}`,
+        doctorId: selectedDoctor.id,
+        doctorName: selectedDoctor.name,
+        hospitalId: hospital.id,
+        hospitalName: hospital.name,
+        specialty: selectedDoctor.specialty,
+        date: selectedDate.fullDate,
+        time,
+        tokenNumber,
+        status,
+        feePaid: selectedDoctor.opConsultationFee || hospital.baseOpFee || 100,
+        feeSplit: {
+          doctor: splitConfig?.doctorFee || 50,
+          nurse: 0,
+          franchise: splitConfig?.franchiseShare || 10,
+          platform: (splitConfig?.platformShare || 20) + (splitConfig?.nurseReferralCommission || 15),
+          gst: splitConfig?.gstAmount || 5
+        }
+      };
+    });
+  }, [allSlots, selectedDoctor, selectedDate, hospital, initialSlot, splitConfig]);
+
+  const availableDoctorSlots = useMemo(() => {
+    return activeDateSlots.filter(s => s.status === 'AVAILABLE' || s.id === initialSlot?.id);
+  }, [activeDateSlots, initialSlot]);
+
+  const bookedCount = useMemo(() => {
+    return activeDateSlots.filter(s => s.status !== 'AVAILABLE' && s.id !== initialSlot?.id).length;
+  }, [activeDateSlots, initialSlot]);
+
+  const availableCount = activeDateSlots.length - bookedCount;
 
   // Video Time Slots
   const videoTimeSlots = [
@@ -137,20 +216,19 @@ export const BookingConsultationScreen: React.FC<BookingConsultationScreenProps>
   ];
 
   const [selectedVideoTime, setSelectedVideoTime] = useState<string>(videoTimeSlots[0]);
-  const [selectedOpSlot, setSelectedOpSlot] = useState<OpSlot | null>(
-    initialSlot || availableDoctorSlots[0] || null
-  );
+  const [selectedOpSlot, setSelectedOpSlot] = useState<OpSlot | null>(() => {
+    if (initialSlot && initialSlot.doctorId === selectedDoctor.id) return initialSlot;
+    return activeDateSlots.find(s => s.status === 'AVAILABLE') || activeDateSlots[0] || null;
+  });
 
-  // Update selectedOpSlot whenever selectedDoctor changes
+  // Keep selectedOpSlot always pointing to an available token for the chosen doctor & date
   useEffect(() => {
-    const docAvailable = allSlots.filter(s => s.doctorId === selectedDoctor.id && s.status === 'AVAILABLE');
-    if (docAvailable.length > 0) {
-      setSelectedOpSlot(docAvailable[0]);
-    } else {
-      const anySlot = allSlots.find(s => s.doctorId === selectedDoctor.id);
-      setSelectedOpSlot(anySlot || null);
+    const isCurSlotStillValid = selectedOpSlot && activeDateSlots.some(s => s.id === selectedOpSlot.id && s.status === 'AVAILABLE');
+    if (!isCurSlotStillValid) {
+      const firstAvailable = activeDateSlots.find(s => s.status === 'AVAILABLE') || activeDateSlots[0] || null;
+      setSelectedOpSlot(firstAvailable);
     }
-  }, [selectedDoctor, allSlots]);
+  }, [selectedDoctor.id, selectedDate.fullDate, activeDateSlots]);
 
   // Vouchers & promo codes
   const [voucherCode, setVoucherCode] = useState('');
@@ -206,6 +284,10 @@ export const BookingConsultationScreen: React.FC<BookingConsultationScreenProps>
 
   // Step Navigation handlers
   const handleNextStep = () => {
+    if (currentStep === 'SLOT' && !isVideo && !selectedOpSlot) {
+      const fallback = availableDoctorSlots[0] || activeDateSlots[0];
+      if (fallback) setSelectedOpSlot(fallback);
+    }
     if (currentStepIndex < steps.length - 1) {
       setCurrentStepIndex(prev => prev + 1);
     }
@@ -676,24 +758,41 @@ export const BookingConsultationScreen: React.FC<BookingConsultationScreenProps>
               {!isVideo && (
                 <div className="space-y-3">
                   {/* Queue Status Box */}
-                  <div className="p-3 rounded-2xl bg-blue-50/70 border border-blue-200/80 flex items-center justify-between text-xs">
-                    <div>
-                      <span className="text-[10px] uppercase font-bold text-blue-700 tracking-wider block">
-                        Live OPD Queue Status
-                      </span>
-                      <span className="text-slate-800 font-semibold mt-0.5 block">
-                        Now in room: <strong className="text-blue-900 font-black">Token #02</strong>
-                      </span>
+                  {selectedDate.id === 'today' ? (
+                    <div className="p-3 rounded-2xl bg-blue-50/70 border border-blue-200/80 flex items-center justify-between text-xs">
+                      <div>
+                        <span className="text-[10px] uppercase font-bold text-blue-700 tracking-wider block">
+                          Live OPD Queue Status
+                        </span>
+                        <span className="text-slate-800 font-semibold mt-0.5 block">
+                          Now in room: <strong className="text-blue-900 font-black">Token #02</strong> (Room {(selectedDoctor as any).roomNumber || '204'})
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] text-slate-500 block">Est. Consultation</span>
+                        <span className="text-blue-700 font-bold">~{selectedDoctor.estimatedWaitMins || 8} mins / patient</span>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <span className="text-[10px] text-slate-500 block">Est. Consultation</span>
-                      <span className="text-blue-700 font-bold">~8 mins / patient</span>
+                  ) : (
+                    <div className="p-3 rounded-2xl bg-slate-100/80 border border-slate-200/80 flex items-center justify-between text-xs">
+                      <div>
+                        <span className="text-[10px] uppercase font-bold text-slate-600 tracking-wider block">
+                          Advance OPD Schedule ({selectedDate.day})
+                        </span>
+                        <span className="text-slate-800 font-semibold mt-0.5 block">
+                          Queue begins: <strong className="text-slate-900 font-black">08:30 AM</strong> • Room {(selectedDoctor as any).roomNumber || '204'}
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] text-slate-500 block">Queue Capacity</span>
+                        <span className="text-emerald-700 font-bold">20 Tokens / Day</span>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   <div>
                     <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">
-                      Available Tokens for {selectedDate.day}
+                      Available Tokens for {selectedDate.day} ({selectedDate.dateStr})
                     </h3>
                     <p className="text-[11px] text-slate-500 mt-0.5">
                       Select your preferred token number:
@@ -702,8 +801,8 @@ export const BookingConsultationScreen: React.FC<BookingConsultationScreenProps>
 
                   {/* Token Grid */}
                   <div className="grid grid-cols-2 gap-2.5 max-h-72 overflow-y-auto pr-1">
-                    {doctorSlots.slice(0, 16).map((slot) => {
-                      const isSelected = selectedOpSlot?.id === slot.id;
+                    {activeDateSlots.map((slot) => {
+                      const isSelected = selectedOpSlot?.id === slot.id || (selectedOpSlot?.tokenNumber === slot.tokenNumber && selectedOpSlot?.date === slot.date);
                       const isAvailable = slot.status === 'AVAILABLE';
 
                       return (
@@ -722,16 +821,18 @@ export const BookingConsultationScreen: React.FC<BookingConsultationScreenProps>
                         >
                           <div className="flex items-center justify-between">
                             <span className={`text-sm font-black tabular-nums ${isSelected ? 'text-white' : 'text-slate-900'}`}>
-                              Token #{slot.tokenNumber}
+                              Token #{slot.tokenNumber < 10 ? `0${slot.tokenNumber}` : slot.tokenNumber}
                             </span>
-                            <span className={`text-[9.5px] font-bold px-1.5 py-0.2 rounded ${
+                            <span className={`text-[9.5px] font-bold px-1.5 py-0.5 rounded ${
                               isSelected
                                 ? 'bg-blue-500 text-white'
                                 : isAvailable
                                 ? 'bg-emerald-50 text-emerald-700'
+                                : slot.status === 'IN_CONSULTATION'
+                                ? 'bg-amber-100 text-amber-800'
                                 : 'bg-slate-200 text-slate-500'
                             }`}>
-                              {isSelected ? 'Selected' : isAvailable ? 'Available' : 'Booked'}
+                              {isSelected ? 'Selected' : isAvailable ? 'Available' : slot.status === 'IN_CONSULTATION' ? 'In Room' : 'Booked'}
                             </span>
                           </div>
                           <span className={`block text-[11px] mt-1 ${isSelected ? 'text-blue-100' : 'text-slate-500'}`}>
@@ -853,7 +954,9 @@ export const BookingConsultationScreen: React.FC<BookingConsultationScreenProps>
                       {isVideo ? <Video className="w-4 h-4" /> : <Building2 className="w-4 h-4" />}
                     </span>
                     <span className="font-extrabold text-xs text-slate-900">
-                      {isVideo ? 'Video Consultation' : `OPD Token #${selectedOpSlot?.tokenNumber || 5}`}
+                      {isVideo 
+                        ? 'Video Consultation' 
+                        : `OPD Token #${selectedOpSlot?.tokenNumber ? (selectedOpSlot.tokenNumber < 10 ? `0${selectedOpSlot.tokenNumber}` : selectedOpSlot.tokenNumber) : '03'}`}
                     </span>
                   </div>
                   <span className="text-[11px] font-bold text-slate-500">
@@ -1006,7 +1109,7 @@ export const BookingConsultationScreen: React.FC<BookingConsultationScreenProps>
                     <>
                       <span>
                         {paymentMethod === 'COUNTER' 
-                          ? `Confirm Token #${selectedOpSlot?.tokenNumber || 5} (Pay at Hospital)` 
+                          ? `Confirm Token #${selectedOpSlot?.tokenNumber ? (selectedOpSlot.tokenNumber < 10 ? `0${selectedOpSlot.tokenNumber}` : selectedOpSlot.tokenNumber) : '03'} (Pay at Hospital)` 
                           : `Pay ₹${grandTotal} & Confirm Booking`}
                       </span>
                       <ArrowRight className="w-4 h-4" />

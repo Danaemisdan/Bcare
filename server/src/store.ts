@@ -528,11 +528,22 @@ export class AppDataStore {
     this.seedTodaySlots();
   }
 
-  // Seed initial OP token slots for today (50 Tokens per session: 30 Booked, 20 Available)
+  // Seed initial OP token slots for today & upcoming week across all doctors
   seedTodaySlots() {
     const today = new Date().toISOString().split('T')[0];
-    const doc = this.doctors[0]; // Dr. Ananya Sharma
-    const times = [
+    const upcomingDates: string[] = [];
+    const now = new Date();
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(now.getTime() + i * 24 * 60 * 60 * 1000);
+      upcomingDates.push(d.toISOString().split('T')[0]);
+    }
+    // Ensure hardcoded 2026-11-25 through 2026-11-29 are included
+    ['2026-11-25', '2026-11-26', '2026-11-27', '2026-11-28', '2026-11-29'].forEach(d => {
+      if (!upcomingDates.includes(d)) upcomingDates.push(d);
+    });
+
+    const doc1 = this.doctors[0]; // Dr. Ananya Sharma
+    const timesDoc1 = [
       '08:30 AM', '08:40 AM', '08:50 AM', '09:00 AM', '09:10 AM',
       '09:20 AM', '09:30 AM', '09:40 AM', '09:50 AM', '10:00 AM',
       '10:10 AM', '10:20 AM', '10:30 AM', '10:40 AM', '10:50 AM',
@@ -545,7 +556,15 @@ export class AppDataStore {
       '05:20 PM', '05:30 PM', '05:45 PM', '06:00 PM', '06:15 PM'
     ];
 
-    // Exactly 30 tokens out of 50 are already booked
+    // Standard 20 session times for all doctors
+    const standardTimes = [
+      '08:30 AM', '08:45 AM', '09:00 AM', '09:15 AM', '09:30 AM',
+      '09:45 AM', '10:00 AM', '10:15 AM', '10:30 AM', '10:45 AM',
+      '11:00 AM', '11:15 AM', '11:30 AM', '11:45 AM', '12:00 PM',
+      '12:15 PM', '12:30 PM', '12:45 PM', '02:00 PM', '02:15 PM'
+    ];
+
+    // Exactly 30 tokens out of 50 are already booked for doc-1 today
     const bookedTokenNumbers = new Set([
       1, 2, 3, 5, 6, 9, 10, 11, 12, 13, 14, 15, 17, 18, 20, 21, 22, 24, 25, 26, 27, 29, 30, 31, 33, 34, 36, 40, 44, 48
     ]);
@@ -570,7 +589,10 @@ export class AppDataStore {
       { name: 'V. Gomathi', phone: '9845023450' }
     ];
 
-    this.opSlots = times.map((time, idx) => {
+    const allGeneratedSlots: OpSlot[] = [];
+
+    // 1. Doc-1 for Today: 50 slots with backwards compatible IDs slot-1 to slot-50
+    const doc1TodaySlots: OpSlot[] = timesDoc1.map((time, idx) => {
       const tokenNumber = idx + 1;
       let status: OpSlot['status'] = 'AVAILABLE';
       let patientId: string | undefined = undefined;
@@ -580,36 +602,27 @@ export class AppDataStore {
       let nurseReferralCode: string | undefined = undefined;
       let bulkReservationBatchId: string | undefined = undefined;
 
-      // Token 1: Completed consultation earlier this morning for previous patient
       if (tokenNumber === 1) {
         status = 'COMPLETED';
         patientId = 'user-patient-prev';
         patientName = 'G. Subramanian';
         patientPhone = '9845011111';
-      } 
-      // Token 2: In Consultation right now
-      else if (tokenNumber === 2) {
+      } else if (tokenNumber === 2) {
         status = 'IN_CONSULTATION';
         patientName = 'Meenakshi Sundaram';
         patientPhone = '9845023456';
-      }
-      // Token 3: Booked via Nurse Priya referral
-      else if (tokenNumber === 3) {
+      } else if (tokenNumber === 3) {
         status = 'BOOKED';
         patientName = 'K. Arumugam';
         patientPhone = '9845034567';
         bookedByNurseId = 'nurse-1';
         nurseReferralCode = 'NURSE-PRIYA-782';
-      }
-      // Tokens 11 to 15: Reserved in BULK by Nurse Priya for rural/walk-in patients!
-      else if (tokenNumber >= 11 && tokenNumber <= 15) {
+      } else if (tokenNumber >= 11 && tokenNumber <= 15) {
         status = 'RESERVED_BULK';
         bookedByNurseId = 'nurse-1';
         nurseReferralCode = 'NURSE-PRIYA-782';
         bulkReservationBatchId = 'BATCH-POLLACHI-VILLAGE-101';
-      }
-      // Other 22 booked tokens
-      else if (bookedTokenNumbers.has(tokenNumber)) {
+      } else if (bookedTokenNumbers.has(tokenNumber)) {
         status = 'BOOKED';
         const sample = samplePatients[tokenNumber % samplePatients.length];
         patientName = sample.name;
@@ -619,11 +632,11 @@ export class AppDataStore {
 
       return {
         id: `slot-${tokenNumber}`,
-        doctorId: doc.id,
-        doctorName: doc.name,
-        hospitalId: doc.hospitalId,
-        hospitalName: doc.hospitalName,
-        specialty: doc.specialty,
+        doctorId: doc1.id,
+        doctorName: doc1.name,
+        hospitalId: doc1.hospitalId,
+        hospitalName: doc1.hospitalName,
+        specialty: doc1.specialty,
         date: today,
         time,
         tokenNumber,
@@ -644,6 +657,79 @@ export class AppDataStore {
         }
       };
     });
+    allGeneratedSlots.push(...doc1TodaySlots);
+
+    // 2. All doctors across upcoming dates (including doc-1 for tomorrow onwards, and doc-2, doc-hyd-1, doc-3 for all dates)
+    for (const doc of this.doctors) {
+      for (const dStr of upcomingDates) {
+        // Skip doc-1 on today because we already added doc1TodaySlots above
+        if (doc.id === doc1.id && dStr === today) continue;
+
+        const isTodayDate = dStr === today;
+        const slotsForDate: OpSlot[] = standardTimes.map((time, idx) => {
+          const tokenNumber = idx + 1;
+          let status: OpSlot['status'] = 'AVAILABLE';
+          let patientId: string | undefined = undefined;
+          let patientName: string | undefined = undefined;
+          let patientPhone: string | undefined = undefined;
+
+          if (isTodayDate) {
+            if (tokenNumber === 1) {
+              status = 'COMPLETED';
+              patientName = 'K. Ramanathan';
+              patientPhone = '9845012341';
+            } else if (tokenNumber === 2) {
+              status = 'IN_CONSULTATION';
+              patientName = 'S. Meena';
+              patientPhone = '9845012342';
+            } else if (tokenNumber === 3) {
+              status = 'BOOKED';
+              patientName = 'M. Karthik';
+              patientPhone = '9845012343';
+            }
+          } else {
+            // Tomorrow and future dates: tokens 1 & 2 booked, tokens 3-20 available
+            if (tokenNumber === 1) {
+              status = 'BOOKED';
+              patientName = 'R. Soundararajan';
+              patientPhone = '9845022221';
+            } else if (tokenNumber === 2) {
+              status = 'BOOKED';
+              patientName = 'P. Nithya';
+              patientPhone = '9845022222';
+            }
+          }
+
+          return {
+            id: `slot-${doc.id}-${dStr}-${tokenNumber}`,
+            doctorId: doc.id,
+            doctorName: doc.name,
+            hospitalId: doc.hospitalId,
+            hospitalName: doc.hospitalName,
+            specialty: doc.specialty,
+            date: dStr,
+            time,
+            tokenNumber,
+            status,
+            patientId,
+            patientName,
+            patientPhone,
+            feePaid: doc.opConsultationFee || 100,
+            feeSplit: {
+              doctor: this.revenueSplitConfig.doctorFee,
+              nurse: 0,
+              franchise: this.revenueSplitConfig.franchiseShare,
+              platform: this.revenueSplitConfig.platformShare + this.revenueSplitConfig.nurseReferralCommission,
+              gst: this.revenueSplitConfig.gstAmount
+            }
+          };
+        });
+
+        allGeneratedSlots.push(...slotsForDate);
+      }
+    }
+
+    this.opSlots = allGeneratedSlots;
   }
 }
 

@@ -784,45 +784,119 @@ export function App() {
   };
 
   // 1. Patient Action: Book Outpatient Slot
-  const handleBookSlot = async (slotId: string, patientName: string, patientPhone: string, referralCode?: string) => {
+  const handleBookSlot = async (
+    slotId: string, 
+    patientName: string, 
+    patientPhone: string, 
+    referralCode?: string,
+    slotFallback?: OpSlot
+  ) => {
     // Try API
     try {
       const res = await fetch('/api/op/book', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slotId, patientName, patientPhone, patientId: patientProfile.userId, nurseReferralCode: referralCode })
+        body: JSON.stringify({ 
+          slotId, 
+          patientName, 
+          patientPhone, 
+          patientId: patientProfile.userId, 
+          nurseReferralCode: referralCode,
+          doctorId: slotFallback?.doctorId,
+          doctorName: slotFallback?.doctorName,
+          hospitalId: slotFallback?.hospitalId,
+          hospitalName: slotFallback?.hospitalName,
+          specialty: slotFallback?.specialty,
+          date: slotFallback?.date,
+          time: slotFallback?.time,
+          tokenNumber: slotFallback?.tokenNumber
+        })
       });
       if (res.ok) {
         const data = await res.json();
-        setSlots(prev => prev.map(s => s.id === slotId ? data.slot : s));
+        setSlots(prev => {
+          const exists = prev.some(s => s.id === slotId);
+          if (exists) {
+            return prev.map(s => s.id === slotId ? data.slot : s);
+          } else {
+            return [...prev, data.slot];
+          }
+        });
         return data;
       }
     } catch (e) {
       // Fallback local update
     }
 
-    setSlots(prev => prev.map(s => {
-      if (s.id === slotId) {
-        const isNurse = !!referralCode;
-        return {
-          ...s,
-          status: 'BOOKED',
-          patientName,
-          patientPhone,
-          patientId: patientProfile.userId,
-          bookedByNurseId: isNurse ? 'nurse-1' : undefined,
-          nurseReferralCode: referralCode,
-          feeSplit: {
-            doctor: splitConfig.doctorFee,
-            nurse: isNurse ? splitConfig.nurseReferralCommission : 0,
-            franchise: splitConfig.franchiseShare,
-            platform: isNurse ? splitConfig.platformShare : (splitConfig.platformShare + splitConfig.nurseReferralCommission),
-            gst: splitConfig.gstAmount
+    setSlots(prev => {
+      const isNurse = !!referralCode;
+      const exists = prev.some(s => s.id === slotId);
+      if (exists) {
+        return prev.map(s => {
+          if (s.id === slotId) {
+            return {
+              ...s,
+              status: 'BOOKED' as const,
+              patientName,
+              patientPhone,
+              patientId: patientProfile.userId,
+              bookedByNurseId: isNurse ? 'nurse-1' : undefined,
+              nurseReferralCode: referralCode,
+              feeSplit: {
+                doctor: splitConfig.doctorFee,
+                nurse: isNurse ? splitConfig.nurseReferralCommission : 0,
+                franchise: splitConfig.franchiseShare,
+                platform: isNurse ? splitConfig.platformShare : (splitConfig.platformShare + splitConfig.nurseReferralCommission),
+                gst: splitConfig.gstAmount
+              }
+            };
           }
-        };
+          return s;
+        });
       }
-      return s;
-    }));
+
+      const newSlot: OpSlot = slotFallback ? {
+        ...slotFallback,
+        id: slotId,
+        status: 'BOOKED' as const,
+        patientName,
+        patientPhone,
+        patientId: patientProfile.userId,
+        bookedByNurseId: isNurse ? 'nurse-1' : undefined,
+        nurseReferralCode: referralCode,
+        feeSplit: {
+          doctor: splitConfig.doctorFee,
+          nurse: isNurse ? splitConfig.nurseReferralCommission : 0,
+          franchise: splitConfig.franchiseShare,
+          platform: isNurse ? splitConfig.platformShare : (splitConfig.platformShare + splitConfig.nurseReferralCommission),
+          gst: splitConfig.gstAmount
+        }
+      } : {
+        id: slotId,
+        doctorId: 'doc-1',
+        doctorName: 'Dr. Ananya Sharma',
+        hospitalId: 'hosp-1',
+        hospitalName: 'City Care Multi-Specialty Hospital',
+        specialty: 'Cardiology',
+        date: new Date().toISOString().split('T')[0],
+        time: '10:00 AM',
+        tokenNumber: 5,
+        status: 'BOOKED' as const,
+        patientName,
+        patientPhone,
+        patientId: patientProfile.userId,
+        feePaid: 100,
+        feeSplit: {
+          doctor: splitConfig.doctorFee,
+          nurse: isNurse ? splitConfig.nurseReferralCommission : 0,
+          franchise: splitConfig.franchiseShare,
+          platform: isNurse ? splitConfig.platformShare : (splitConfig.platformShare + splitConfig.nurseReferralCommission),
+          gst: splitConfig.gstAmount
+        }
+      };
+
+      return [...prev, newSlot];
+    });
 
     // Update nurse stats if referred
     if (referralCode) {

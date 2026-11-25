@@ -434,22 +434,52 @@ router.get('/doctors', (req: Request, res: Response) => {
 
 // OP Slots for Doctor & Date
 router.get('/op/slots', (req: Request, res: Response) => {
-  const { doctorId } = req.query;
+  const { doctorId, date } = req.query;
   let slots = store.opSlots;
   if (doctorId) {
     slots = slots.filter(s => s.doctorId === doctorId);
+  }
+  if (date) {
+    slots = slots.filter(s => s.date === date);
   }
   res.json(slots);
 });
 
 // Book Outpatient (OP) Token (Patient or Nurse-referred)
 router.post('/op/book', (req: Request, res: Response) => {
-  const { slotId, patientName, patientPhone, patientId, nurseReferralCode } = req.body;
-  const slot = store.opSlots.find(s => s.id === slotId);
+  const { slotId, patientName, patientPhone, patientId, nurseReferralCode, doctorId, date, time, tokenNumber } = req.body;
+  let slot = store.opSlots.find(s => s.id === slotId);
 
+  // If slot not found in pre-seeded pool, dynamically create or find matching doctor slot
   if (!slot) {
-    return res.status(404).json({ error: 'Slot not found' });
+    const targetDoc = store.doctors.find(d => d.id === doctorId) || store.doctors[0];
+    const targetDate = date || new Date().toISOString().split('T')[0];
+    const targetTokenNum = Number(tokenNumber) || (store.opSlots.filter(s => s.doctorId === targetDoc.id && s.date === targetDate).length + 1);
+    const targetTime = time || '10:00 AM';
+
+    slot = {
+      id: slotId || `slot-${targetDoc.id}-${targetDate}-${targetTokenNum}`,
+      doctorId: targetDoc.id,
+      doctorName: targetDoc.name,
+      hospitalId: targetDoc.hospitalId,
+      hospitalName: targetDoc.hospitalName,
+      specialty: targetDoc.specialty,
+      date: targetDate,
+      time: targetTime,
+      tokenNumber: targetTokenNum,
+      status: 'AVAILABLE',
+      feePaid: targetDoc.opConsultationFee || 100,
+      feeSplit: {
+        doctor: store.revenueSplitConfig.doctorFee,
+        nurse: 0,
+        franchise: store.revenueSplitConfig.franchiseShare,
+        platform: store.revenueSplitConfig.platformShare + store.revenueSplitConfig.nurseReferralCommission,
+        gst: store.revenueSplitConfig.gstAmount
+      }
+    };
+    store.opSlots.push(slot);
   }
+
   if (slot.status !== 'AVAILABLE') {
     return res.status(400).json({ error: `Slot is already ${slot.status}` });
   }

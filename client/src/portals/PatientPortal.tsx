@@ -105,7 +105,7 @@ interface PatientPortalProps {
   isMobile?: boolean;
   activeTab?: PatientPortalTab;
   onTabChange?: (tab: PatientPortalTab) => void;
-  onBookSlot: (slotId: string, patientName: string, patientPhone: string, referralCode?: string) => Promise<any>;
+  onBookSlot: (slotId: string, patientName: string, patientPhone: string, referralCode?: string, slotFallback?: OpSlot) => Promise<any>;
   onCancelSlot?: (slotId: string) => Promise<any>;
   onBookVideoConsultation?: (bookingData: any) => Promise<any>;
   onUpdateProfile: (updatedData: Partial<PatientProfile>) => Promise<void>;
@@ -591,12 +591,36 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
               });
             }
           } else {
-            const targetSlot = details.slotId 
+            let targetSlot = details.slotId 
               ? slots.find(s => s.id === details.slotId)
-              : slots.find(s => s.doctorId === details.doctorId && s.status === 'AVAILABLE') || slots[0];
-            if (targetSlot) {
-              await onBookSlot(targetSlot.id, patientProfile.name, patientProfile.phone, details.voucherCode);
+              : slots.find(s => s.doctorId === details.doctorId && (s.date === details.date || !s.date) && s.status === 'AVAILABLE');
+            
+            if (!targetSlot) {
+              const targetDoc = doctors.find(d => d.id === details.doctorId) || activeBookingTarget.doctor;
+              const targetHosp = hospitals.find(h => h.id === details.hospitalId) || activeBookingTarget.hospital;
+              targetSlot = {
+                id: details.slotId || `slot-${details.doctorId}-${details.date}-${details.tokenNumber || 1}`,
+                doctorId: details.doctorId,
+                doctorName: targetDoc.name,
+                hospitalId: details.hospitalId,
+                hospitalName: targetHosp.name,
+                specialty: targetDoc.specialty,
+                date: details.date,
+                time: details.timeSlot,
+                tokenNumber: details.tokenNumber || 1,
+                status: 'AVAILABLE',
+                feePaid: details.totalPaid,
+                feeSplit: {
+                  doctor: splitConfig?.doctorFee || 50,
+                  nurse: 0,
+                  franchise: splitConfig?.franchiseShare || 10,
+                  platform: (splitConfig?.platformShare || 20) + (splitConfig?.nurseReferralCommission || 15),
+                  gst: splitConfig?.gstAmount || 5
+                }
+              };
             }
+
+            await onBookSlot(targetSlot.id, patientProfile.name, patientProfile.phone, details.voucherCode, targetSlot);
           }
 
           setActiveBookingTarget(null);
