@@ -761,22 +761,6 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                       </div>
                     </div>
 
-                    {/* Live Queue Progress Bar */}
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold">
-                        <span>Queue Progress</span>
-                        <span className="text-blue-700 font-extrabold">
-                          {tokensAhead === 0 ? `Next in line to enter ${roomNumber}` : `Waiting for Token #${Math.max(1, token.tokenNumber - 1)}`}
-                        </span>
-                      </div>
-                      <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden flex">
-                        <div
-                          className="bg-blue-600 h-full rounded-full transition-all duration-500"
-                          style={{ width: `${Math.min(100, Math.max(15, (currentServingToken / token.tokenNumber) * 100))}%` }}
-                        />
-                      </div>
-                    </div>
-
                     {/* Physician & Booking Strip */}
                     <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 bg-slate-50/80 p-2.5 rounded-xl border border-slate-100">
                       <div>
@@ -1686,22 +1670,6 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                                 #{currentServingToken < 10 ? `0${currentServingToken}` : currentServingToken}
                               </span>
                               <span className="text-[9.5px] text-slate-300 block">~{estWait}m wait</span>
-                            </div>
-                          </div>
-
-                          {/* Real-time Queue Progress Bar */}
-                          <div className="space-y-1">
-                            <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold">
-                              <span>Queue Flow</span>
-                              <span className="text-blue-700 font-extrabold">
-                                {tokensAhead === 0 ? 'Next in line to enter Room ' + (doc?.roomNumber || '204') : `Waiting for Token #${Math.max(1, token.tokenNumber - 1)}`}
-                              </span>
-                            </div>
-                            <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden flex">
-                              <div
-                                className="bg-blue-600 h-full rounded-full transition-all duration-500"
-                                style={{ width: `${Math.min(100, Math.max(15, (currentServingToken / token.tokenNumber) * 100))}%` }}
-                              />
                             </div>
                           </div>
 
