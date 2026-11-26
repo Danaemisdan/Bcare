@@ -109,6 +109,7 @@ interface PatientPortalProps {
   onTabChange?: (tab: PatientPortalTab) => void;
   onBookSlot: (slotId: string, patientName: string, patientPhone: string, referralCode?: string, slotFallback?: OpSlot) => Promise<any>;
   onCancelSlot?: (slotId: string) => Promise<any>;
+  onCompleteSlot?: (slotId: string) => Promise<any>;
   onBookVideoConsultation?: (bookingData: any) => Promise<any>;
   onUpdateProfile: (updatedData: Partial<PatientProfile>) => Promise<void>;
   onAddCommunityPost: (post: { category: string; title: string; content: string }) => Promise<void>;
@@ -136,6 +137,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
   onTabChange,
   onBookSlot,
   onCancelSlot,
+  onCompleteSlot,
   onBookVideoConsultation,
   onUpdateProfile,
   onAddCommunityPost,
@@ -763,6 +765,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                     allSlots={slots}
                     onViewPassModal={() => setShowLivePassModal(true)}
                     onTriggerWhatsAppToast={onTriggerWhatsAppToast}
+                    onCompleteToken={onCompleteSlot}
                   />
                 </motion.div>
               );
@@ -1560,6 +1563,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                         allSlots={slots}
                         onViewPassModal={() => setShowLivePassModal(true)}
                         onTriggerWhatsAppToast={onTriggerWhatsAppToast}
+                        onCompleteToken={onCompleteSlot}
                       />
                     );
                   })}

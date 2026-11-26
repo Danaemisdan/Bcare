@@ -613,8 +613,9 @@ export class AppDataStore {
         patientPhone = '9845023456';
       } else if (tokenNumber === 3) {
         status = 'BOOKED';
-        patientName = 'K. Arumugam';
-        patientPhone = '9845034567';
+        patientId = 'user-patient-1';
+        patientName = 'Ramesh Kumar';
+        patientPhone = '9876543210';
         bookedByNurseId = 'nurse-1';
         nurseReferralCode = 'NURSE-PRIYA-782';
       } else if (tokenNumber >= 11 && tokenNumber <= 15) {

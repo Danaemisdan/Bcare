@@ -718,8 +718,9 @@ export function App() {
         patientPhone = '9845023456';
       } else if (tokenNumber === 3) {
         status = 'BOOKED';
-        patientName = 'K. Arumugam';
-        patientPhone = '9845034567';
+        patientId = 'user-patient-1';
+        patientName = 'Ramesh Kumar';
+        patientPhone = '9876543210';
         bookedByNurseId = 'nurse-1';
         nurseReferralCode = 'NURSE-PRIYA-782';
       } else if (tokenNumber >= 11 && tokenNumber <= 15) {
@@ -943,6 +944,34 @@ export function App() {
     }));
 
     return { message: 'Slot cancelled locally' };
+  };
+
+  const handleCompleteSlot = async (slotId: string) => {
+    try {
+      const res = await fetch('/api/op/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slotId })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSlots(prev => prev.map(s => s.id === slotId ? data.slot : s));
+        return data;
+      }
+    } catch (e) {}
+
+    setSlots(prev => prev.map(s => {
+      if (s.id === slotId) {
+        return {
+          ...s,
+          status: 'COMPLETED',
+          completedAt: new Date().toISOString()
+        };
+      }
+      return s;
+    }));
+
+    return { message: 'Slot marked as completed locally' };
   };
 
   // 2. Patient Action: Progressive Profile Update
@@ -1492,6 +1521,7 @@ export function App() {
             onTabChange={setPatientTab}
             onBookSlot={handleBookSlot}
             onCancelSlot={handleCancelSlot}
+            onCompleteSlot={handleCompleteSlot}
             onBookVideoConsultation={handleBookVideoConsultation}
             onUpdateProfile={handleUpdateProfile}
             onAddCommunityPost={handleAddCommunityPost}

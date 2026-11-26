@@ -90,6 +90,7 @@ export const ZomatoLocationPickerModal: React.FC<ZomatoLocationPickerModalProps>
   const [isGpsLoading, setIsGpsLoading] = useState(false);
   const [isMapDragging, setIsMapDragging] = useState(false);
   const [isGeocoding, setIsGeocoding] = useState(false);
+  const [showLocalityConfirm, setShowLocalityConfirm] = useState(false);
 
   // Active Pinned Location State
   const [pinnedLocation, setPinnedLocation] = useState<{
@@ -127,6 +128,7 @@ export const ZomatoLocationPickerModal: React.FC<ZomatoLocationPickerModalProps>
         lat: currentLocation.lat || 17.4947,
         lng: currentLocation.lng || 78.3996
       });
+      setShowLocalityConfirm(false);
     }
   }, [isOpen, currentLocation]);
 
@@ -308,6 +310,7 @@ export const ZomatoLocationPickerModal: React.FC<ZomatoLocationPickerModalProps>
       isLiveGps: true,
       timestamp: Date.now()
     });
+    setShowLocalityConfirm(false);
     onClose();
   };
 
@@ -349,35 +352,51 @@ export const ZomatoLocationPickerModal: React.FC<ZomatoLocationPickerModalProps>
           />
 
           {/* 
-            ZOMATO-STYLE FLOATING CENTER PIN:
-            Fixed dead-center of the screen.
-            Reacts dynamically to user panning.
+            PREMIUM REDESIGNED DROPPER PIN:
+            Authentic, sharp vector teardrop with crimson gradient,
+            white inner badge, medical care cross, and grounded target shadow.
           */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full z-[400] pointer-events-none flex flex-col items-center">
-            {/* Floating Speech Tooltip */}
-            <div className={`px-3 py-1 rounded-full bg-slate-900/95 text-white font-black text-[10.5px] shadow-2xl border border-white/20 whitespace-nowrap mb-1.5 flex items-center gap-1.5 transition-all duration-200 ${
+            {/* Sleek Floating Speech Bubble */}
+            <div className={`flex flex-col items-center transition-all duration-200 ${
               isMapDragging ? '-translate-y-2 opacity-90 scale-95' : 'translate-y-0 opacity-100 scale-100'
             }`}>
-              <span className={`w-2 h-2 rounded-full ${isMapDragging ? 'bg-amber-400 animate-ping' : 'bg-emerald-400'}`} />
-              <span>{isMapDragging ? 'Pinpointing address...' : (isGeocoding ? 'Detecting address...' : 'Care will be provided here')}</span>
-            </div>
-
-            {/* Google / Zomato Signature Red Pin Head */}
-            <div className={`relative flex items-center justify-center transition-transform duration-200 ${
-              isMapDragging ? '-translate-y-2 scale-110' : 'translate-y-0 scale-100'
-            }`}>
-              <div className="w-10 h-10 rounded-full bg-red-600 border-3 border-white shadow-2xl flex items-center justify-center text-white">
-                <MapPin className="w-5 h-5 fill-white text-red-600" />
+              <div className="px-3.5 py-1.5 rounded-full bg-slate-900/95 text-white font-black text-[11px] shadow-2xl border border-white/20 whitespace-nowrap flex items-center gap-1.5">
+                <span className={`w-2 h-2 rounded-full ${isMapDragging ? 'bg-amber-400 animate-ping' : 'bg-emerald-400'}`} />
+                <span>{isMapDragging ? 'Locating on Google Maps...' : (isGeocoding ? 'Detecting address...' : 'Care will be provided here')}</span>
               </div>
+              <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[6px] border-t-slate-900/95 -mt-px mb-1" />
             </div>
 
-            {/* Sharp Pin Point Arrow */}
-            <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[9px] border-t-red-600 -mt-0.5" />
-            
-            {/* Ground Contact Shadow */}
-            <div className={`rounded-full bg-black/40 blur-[1.5px] transition-all duration-200 ${
-              isMapDragging ? 'w-2 h-1 mt-3 opacity-25' : 'w-4 h-1.5 mt-0.5 opacity-60'
-            }`} />
+            {/* High-Precision Vector Teardrop Pin */}
+            <div className={`transition-transform duration-200 ${
+              isMapDragging ? '-translate-y-2.5 scale-105' : 'translate-y-0 scale-100'
+            }`}>
+              <svg width="40" height="50" viewBox="0 0 40 50" fill="none" xmlns="http://www.w3.org/2000/svg" className="filter drop-shadow-[0_4px_10px_rgba(220,38,38,0.45)]">
+                <defs>
+                  <linearGradient id="carePinGrad" x1="20" y1="0" x2="20" y2="50" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#EF4444" />
+                    <stop offset="1" stopColor="#DC2626" />
+                  </linearGradient>
+                </defs>
+                {/* Precision Teardrop Pin Path */}
+                <path d="M20 0C8.954 0 0 8.954 0 20C0 33.5 20 50 20 50C20 50 40 33.5 40 20C40 8.954 31.046 0 20 0Z" fill="url(#carePinGrad)" stroke="#FFFFFF" strokeWidth="2" />
+                {/* Inner Crisp White Badge Circle */}
+                <circle cx="20" cy="19" r="8" fill="#FFFFFF" />
+                {/* Clean Medical / Health Cross inside */}
+                <path d="M18.5 14H21.5V17.5H25V20.5H21.5V24H18.5V20.5H15V17.5H18.5V14Z" fill="#DC2626" />
+              </svg>
+            </div>
+
+            {/* Ground Contact Target & Shadow */}
+            <div className="relative flex items-center justify-center -mt-1 pointer-events-none">
+              {!isMapDragging && (
+                <div className="absolute w-2 h-2 rounded-full bg-red-600 ring-2 ring-white shadow-sm z-10" />
+              )}
+              <div className={`rounded-full bg-black/40 blur-[1px] transition-all duration-200 ${
+                isMapDragging ? 'w-2 h-1 opacity-20' : 'w-5 h-2 opacity-60'
+              }`} />
+            </div>
           </div>
 
           {/* TOP BAR: Floating Google Search Bar & Guaranteed Working Close Button */}
@@ -554,16 +573,79 @@ export const ZomatoLocationPickerModal: React.FC<ZomatoLocationPickerModalProps>
               </div>
             </div>
 
-            {/* Primary Confirm Button */}
+            {/* Primary Confirm Button: Triggers Locality Confirmation Dialog */}
             <button
               type="button"
-              onClick={handleConfirmLocation}
+              onClick={() => setShowLocalityConfirm(true)}
               className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-xs shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-98"
             >
               <span>Confirm Location & Show Hospitals</span>
               <ChevronRight className="w-4 h-4 stroke-[3]" />
             </button>
           </div>
+
+          {/* 
+            LOCALITY CONFIRMATION MODAL:
+            "Are you sure you're in this locality?"
+            Ensures patient intentionally confirms their healthcare area before proceeding.
+          */}
+          {showLocalityConfirm && (
+            <div className="absolute inset-0 z-[600] flex items-end sm:items-center justify-center p-3 bg-slate-950/65 backdrop-blur-xs animate-in fade-in duration-200">
+              <div className="w-full max-w-sm bg-white rounded-3xl p-5 shadow-2xl border border-slate-200 space-y-4 animate-in slide-in-from-bottom duration-250">
+                {/* Header */}
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200/80 text-blue-600 flex items-center justify-center shrink-0">
+                    <MapPin className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-blue-600">
+                      Locality Confirmation
+                    </span>
+                    <h3 className="text-base font-black text-slate-900 leading-tight">
+                      Are you sure you're in this locality?
+                    </h3>
+                  </div>
+                </div>
+
+                {/* Locality Details Card */}
+                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-1">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                    Selected Healthcare Locality
+                  </span>
+                  <h4 className="text-base font-black text-slate-900">
+                    {pinnedLocation.displayName}
+                  </h4>
+                  <p className="text-xs text-slate-600 font-medium">
+                    {pinnedLocation.landmark || `${pinnedLocation.city}, ${pinnedLocation.state}`}
+                  </p>
+                  <div className="pt-2 flex items-center gap-1.5 text-[11px] text-emerald-700 font-bold">
+                    <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>Hospitals, doctors & live OPD queues will be filtered here</span>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="space-y-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleConfirmLocation}
+                    className="w-full py-3.5 px-4 rounded-2xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-black text-xs shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-98"
+                  >
+                    <span>Yes, Confirm Locality & Show Hospitals</span>
+                    <ChevronRight className="w-4 h-4 stroke-[3]" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowLocalityConfirm(false)}
+                    className="w-full py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs flex items-center justify-center cursor-pointer transition-colors"
+                  >
+                    Change / Move Pin
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
         </div>
       </div>
     </PhoneModalPortal>

@@ -547,6 +547,23 @@ router.post('/op/cancel', (req: Request, res: Response) => {
   });
 });
 
+// Complete OP Token (consultation finished - moves to history)
+router.post('/op/complete', (req: Request, res: Response) => {
+  const { slotId } = req.body;
+  const slot = store.opSlots.find(s => s.id === slotId);
+  if (!slot) {
+    return res.status(404).json({ error: 'Slot not found' });
+  }
+
+  slot.status = 'COMPLETED';
+  (slot as any).completedAt = new Date().toISOString();
+
+  res.json({
+    message: 'Token marked as completed',
+    slot
+  });
+});
+
 // Nurse Portal: Bulk Slot Reservation (e.g. slots 11–15)
 router.post('/nurse/bulk-reserve', (req: Request, res: Response) => {
   const { nurseId, startToken, endToken, doctorId, date, time } = req.body;
