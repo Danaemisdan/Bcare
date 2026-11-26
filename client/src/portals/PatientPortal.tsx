@@ -1237,9 +1237,9 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                       delay={Math.min(idx * 0.05, 0.25)}
                       className="w-full"
                     >
-                      <div className="rounded-[24px] border border-slate-200/80 bg-white shadow-[0_4px_20px_-4px_rgba(15,23,42,0.05)] hover:shadow-[0_12px_32px_-4px_rgba(15,23,42,0.08)] transition-all p-3.5 space-y-2.5 relative group">
+                      <div className="rounded-[28px] border border-slate-200/80 bg-white shadow-[0_8px_30px_-6px_rgba(15,23,42,0.08)] hover:shadow-[0_16px_40px_-8px_rgba(15,23,42,0.12)] transition-all p-4 space-y-3 relative group">
                         {/* Doctor Avatar + Details */}
-                        <div className="flex items-start gap-3">
+                        <div className="flex items-start gap-3.5">
                           <div className="w-[74px] h-[74px] rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black text-lg shadow-xs shrink-0 relative ring-1 ring-slate-900/5">
                             {docInitials}
                             <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center">
@@ -1255,7 +1255,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                                 </h4>
                                 <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                               </div>
-                              <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-amber-50 border border-amber-200/60 text-slate-900 text-[10.5px] font-black shrink-0">
+                              <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-50 border border-amber-200/60 text-slate-900 text-[10.5px] font-black shrink-0">
                                 <Star className="w-2.5 h-2.5 text-amber-500 fill-amber-400" />
                                 <span>{doc.rating}</span>
                               </div>
@@ -1265,28 +1265,37 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                               {doc.specialty} • {doc.experienceYears} yrs exp
                             </p>
 
-                            <p className="text-[11px] text-slate-400 truncate">
-                              {hosp ? hosp.name : doc.hospitalName}
+                            <p className="text-xs text-slate-600 font-semibold truncate flex items-center gap-1">
+                              <MapPin className="w-3 h-3 text-blue-600 shrink-0" />
+                              <span>{hosp ? hosp.name : doc.hospitalName}</span>
                             </p>
                           </div>
                         </div>
 
-                        {/* Live Queue Banner */}
-                        <div className="rounded-xl bg-emerald-50/70 border border-emerald-200/70 p-2.5 flex items-center justify-between text-xs">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span className="relative flex h-2 w-2 shrink-0">
+                        {/* Live Queue Banner (Dynamic Island style) */}
+                        <div className="rounded-2xl bg-slate-950 text-white p-3 flex items-center justify-between shadow-xs">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <span className="relative flex h-2.5 w-2.5 shrink-0">
                               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                             </span>
-                            <span className="font-extrabold text-emerald-950 text-xs truncate">
-                              Token #{doc.nextAvailableToken || 4} Available
-                            </span>
-                            <span className="text-emerald-300">•</span>
-                            <span className="text-emerald-700 font-medium text-[11px] shrink-0">~{doc.estimatedWaitMins || 10}m wait</span>
+                            <div className="min-w-0">
+                              <div className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider leading-none">
+                                Live OPD Queue
+                              </div>
+                              <div className="text-xs font-black text-white leading-tight mt-0.5 truncate">
+                                Token #{doc.nextAvailableToken || 4} Available
+                              </div>
+                            </div>
                           </div>
-                          <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded-md shrink-0">
-                            Live Today
-                          </span>
+                          <div className="text-right shrink-0 pl-3 border-l border-slate-800">
+                            <div className="text-[11px] font-bold text-slate-200">
+                              ~{doc.estimatedWaitMins || 10}m wait
+                            </div>
+                            <div className="text-[10px] text-emerald-400 font-bold">
+                              Live OPD
+                            </div>
+                          </div>
                         </div>
 
                         {/* Modern Single Action Button */}
@@ -1295,14 +1304,14 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                             whileTap={{ scale: 0.985 }}
                             type="button"
                             onClick={() => handleOpenDoctorBooking(doc)}
-                            className="w-full py-2.5 px-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-xs flex items-center justify-between shadow-xs hover:shadow transition-all cursor-pointer"
+                            className="w-full py-3 px-4 rounded-2xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-xs flex items-center justify-between shadow-md shadow-blue-600/20 hover:shadow-lg transition-all cursor-pointer"
                           >
                             <div className="flex items-center gap-2">
                               <CalendarCheck className="w-4 h-4 text-blue-200 shrink-0" />
-                              <span className="font-extrabold text-xs">Book Consultation</span>
-                              <span className="text-blue-200 text-[10.5px] font-normal">• OPD & Video</span>
+                              <span className="font-extrabold text-xs text-white">Book Consultation</span>
+                              <span className="text-blue-200 text-[11px] font-medium">• OPD & Video</span>
                             </div>
-                            <div className="flex items-center gap-1 font-extrabold text-xs text-white bg-blue-700/60 px-2.5 py-1 rounded-lg">
+                            <div className="flex items-center gap-1 font-extrabold text-xs text-white">
                               <span>From ₹{doc.opConsultationFee || 100}</span>
                               <ChevronRight className="w-3.5 h-3.5 text-blue-200" />
                             </div>
@@ -1318,11 +1327,11 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
 
           {/* ============================================================== */}
           {/* VIEW B: ALL HOSPITALS & CLINICS NEAR YOU (DIRECT BOOKING)     */}
-          {/* Modern Luxury Healthcare Styling                              */}
+          {/* High-End Widescreen Editorial Layout (Zomato / Apple Standard) */}
           {/* ============================================================== */}
           {directoryMode === 'hospitals' && (
-            <div className="space-y-3">
-              <div className="grid grid-cols-1 gap-3">
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-4">
                 {allFilteredHospitals.map((hosp, idx) => {
                   const hospDoctors = doctors.filter(d => d.hospitalId === hosp.id);
                   const primaryDoc = hospDoctors[0] || doctors[0];
@@ -1334,122 +1343,139 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                       delay={Math.min(idx * 0.05, 0.25)}
                       className="w-full"
                     >
-                      <div className="rounded-[24px] border border-slate-200/80 bg-white shadow-[0_4px_20px_-4px_rgba(15,23,42,0.05)] hover:shadow-[0_12px_32px_-4px_rgba(15,23,42,0.08)] transition-all p-3.5 space-y-2.5 relative group">
-                        {/* Top Flex: Square Thumbnail on Left + Metadata on Right */}
-                        <div className="flex items-start gap-3">
-                          {/* Square Thumbnail with Floating Rating Badge */}
-                          <div className="relative w-20 h-20 min-w-[80px] min-h-[80px] aspect-square rounded-2xl overflow-hidden bg-slate-100 shrink-0 select-none shadow-xs ring-1 ring-slate-900/5">
-                            <img
-                              src={hosp.imageUrl}
-                              alt={hosp.name}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            />
-                            {/* Star Rating Badge on thumbnail */}
-                            <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-lg bg-white/95 backdrop-blur-md text-slate-900 border border-slate-200/60 shadow-xs flex items-center gap-1">
-                              <Star className="w-2.5 h-2.5 text-amber-500 fill-amber-500" />
-                              <span className="text-[10px] font-black">{hosp.rating}</span>
+                      <div className="rounded-[28px] border border-slate-200/80 bg-white shadow-[0_8px_30px_-6px_rgba(15,23,42,0.08)] hover:shadow-[0_16px_40px_-8px_rgba(15,23,42,0.12)] transition-all overflow-hidden group">
+                        {/* Widescreen Hero Photo with Glass Badges */}
+                        <div className="relative w-full h-36 bg-slate-100 select-none overflow-hidden">
+                          <img
+                            src={hosp.imageUrl}
+                            alt={hosp.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                          />
+                          {/* Soft Vignette Overlay */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-black/30" />
+
+                          {/* Top Badges Over Image: Star Rating & 24/7 Emergency */}
+                          <div className="absolute top-2.5 inset-x-2.5 flex items-center justify-between">
+                            <div className="px-2.5 py-1 rounded-xl bg-slate-950/65 backdrop-blur-md text-white border border-white/20 text-xs font-black flex items-center gap-1 shadow-xs">
+                              <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+                              <span>{hosp.rating}</span>
+                              <span className="text-[10px] text-slate-300 font-medium">(140+ reviews)</span>
                             </div>
+                            {hosp.emergencyAvailable && (
+                              <span className="px-2.5 py-1 rounded-xl bg-rose-950/65 backdrop-blur-md text-rose-200 border border-rose-400/30 text-[10.5px] font-bold flex items-center gap-1.5 shadow-xs">
+                                <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse" />
+                                <span>24/7 Emergency ICU</span>
+                              </span>
+                            )}
                           </div>
 
-                          {/* Hospital Details on Right */}
-                          <div className="min-w-0 flex-1 space-y-1">
-                            {/* Hospital Name + Verified Check */}
+                          {/* Bottom Badges Over Image: Address & Map Button */}
+                          <div className="absolute bottom-2.5 inset-x-2.5 flex items-end justify-between text-white">
+                            <div className="min-w-0 pr-2">
+                              <p className="text-xs font-bold text-white flex items-center gap-1 drop-shadow-md truncate">
+                                <MapPin className="w-3 h-3 text-blue-400 shrink-0" />
+                                <span>{hosp.address.split(',')[0]} • {hosp.districtName || 'Nearby'}</span>
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const mapUrl = hosp.googleMapsUrl || `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(hosp.address)}`;
+                                window.open(mapUrl, '_blank');
+                              }}
+                              className="px-2.5 py-0.5 rounded-lg bg-white/25 hover:bg-white/35 backdrop-blur-md text-white border border-white/25 text-[10px] font-bold flex items-center gap-1 transition-all shrink-0 cursor-pointer shadow-xs"
+                            >
+                              <Navigation className="w-2.5 h-2.5 text-blue-300 rotate-45" />
+                              <span>{hosp.distance || '1.2 km'} • Maps</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Card Body Content */}
+                        <div className="p-4 space-y-3">
+                          {/* Hospital Name & Accreditation */}
+                          <div className="space-y-1">
                             <div className="flex items-center gap-1.5">
-                              <h4 className="font-extrabold text-[14px] text-slate-900 tracking-tight leading-snug line-clamp-1 group-hover:text-blue-600 transition-colors">
+                              <h4 className="font-black text-base text-slate-900 tracking-tight leading-tight group-hover:text-blue-600 transition-colors">
                                 {hosp.name}
                               </h4>
-                              <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                              <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
                             </div>
-
-                            {/* Address & Distance */}
-                            <p className="text-xs text-slate-500 truncate font-medium">
-                              {hosp.address.split(',')[0]} • <span className="text-slate-700 font-semibold">{hosp.distance || '1.2 km'} away</span>
-                            </p>
-
-                            {/* Clinical Badges: 24/7 ICU + NABH + Maps */}
-                            <div className="flex items-center gap-1.5 pt-0.5 flex-wrap">
-                              {hosp.emergencyAvailable && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200/70 text-[9.5px] font-bold">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
-                                  <span>24/7 ICU</span>
-                                </span>
-                              )}
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200/70 text-[9.5px] font-bold">
-                                <ShieldCheck className="w-2.5 h-2.5 text-emerald-600" />
-                                <span>NABH</span>
+                            <p className="text-xs text-slate-500 font-medium flex items-center gap-2 min-w-0">
+                              <span className="text-emerald-800 font-bold bg-emerald-50 px-2 py-0.5 rounded-md text-[10px] border border-emerald-200/80 whitespace-nowrap shrink-0">
+                                NABH Accredited
                               </span>
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  const mapUrl = hosp.googleMapsUrl || `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(hosp.address)}`;
-                                  window.open(mapUrl, '_blank');
-                                }}
-                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50/80 hover:bg-blue-100 text-blue-700 border border-blue-200/70 text-[9.5px] font-bold cursor-pointer transition-colors shadow-2xs"
-                                title="Open route in Google Maps"
-                              >
-                                <Navigation className="w-2.5 h-2.5 text-blue-600 rotate-45" />
-                                <span>Maps</span>
-                              </button>
+                              <span className="text-slate-300">•</span>
+                              <span className="truncate">{hosp.specialties.slice(0, 3).join(' • ')}</span>
+                            </p>
+                          </div>
+
+                          {/* Live OPD Queue Telemetry Bar (Dynamic Island style) */}
+                          <div className="rounded-2xl bg-slate-950 text-white p-3 flex items-center justify-between shadow-xs">
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <span className="relative flex h-2.5 w-2.5 shrink-0">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                              </span>
+                              <div className="min-w-0">
+                                <div className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider leading-none">
+                                  Live OPD Queue
+                                </div>
+                                <div className="text-xs font-black text-white leading-tight mt-0.5 truncate">
+                                  Token #{primaryDoc?.nextAvailableToken || 5} Available
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="text-right shrink-0 pl-3 border-l border-slate-800">
+                              <div className="text-[11px] font-bold text-slate-200">
+                                ~10m wait
+                              </div>
+                              <div className="text-[10px] text-slate-400 truncate max-w-[120px]">
+                                {primaryDoc?.name.split(',')[0]}
+                              </div>
                             </div>
                           </div>
-                        </div>
 
-                        {/* Live Queue Strip Across Card */}
-                        <div className="rounded-xl bg-emerald-50/70 border border-emerald-200/70 py-2 px-2.5 flex items-center justify-between text-xs">
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            <span className="relative flex h-2 w-2 shrink-0">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                          {/* Specialists Count Link */}
+                          <div className="flex items-center justify-between text-xs text-slate-600 px-0.5">
+                            <span className="text-[11.5px] font-semibold text-slate-700 flex items-center gap-1.5">
+                              <Stethoscope className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                              <span>{hospDoctors.length || 3} Specialists On Duty Today</span>
                             </span>
-                            <span className="font-extrabold text-emerald-950 text-xs whitespace-nowrap">
-                              Live Token #{primaryDoc?.nextAvailableToken || 5}
-                            </span>
-                            <span className="text-emerald-300">•</span>
-                            <span className="text-emerald-700 font-semibold text-[11px] whitespace-nowrap">~10m wait</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setDirectoryMode('doctors');
+                                setSelectedSpecialty('ALL');
+                              }}
+                              className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-0.5 hover:underline cursor-pointer"
+                            >
+                              <span>View Doctors</span>
+                              <ChevronRight className="w-3.5 h-3.5 text-blue-600" />
+                            </button>
                           </div>
-                          <div className="flex items-center gap-1 text-slate-700 text-[11px] shrink-0 font-semibold">
-                            <Stethoscope className="w-3 h-3 text-slate-400 shrink-0" />
-                            <span className="truncate max-w-[120px]">{primaryDoc?.name.split(',')[0]}</span>
+
+                          {/* Modern Single Action Button */}
+                          <div className="pt-0.5">
+                            <motion.button
+                              whileTap={{ scale: 0.985 }}
+                              type="button"
+                              onClick={() => handleOpenHospitalBooking(hosp)}
+                              className="w-full py-3 px-4 rounded-2xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-xs flex items-center justify-between shadow-md shadow-blue-600/20 hover:shadow-lg transition-all cursor-pointer"
+                            >
+                              <div className="flex items-center gap-2">
+                                <CalendarCheck className="w-4 h-4 text-blue-200 shrink-0" />
+                                <span className="font-extrabold text-xs text-white">Book Appointment</span>
+                                <span className="text-blue-200 text-[11px] font-medium">• OPD & Video</span>
+                              </div>
+                              <div className="flex items-center gap-1 font-extrabold text-xs text-white">
+                                <span>From ₹{hosp.baseOpFee || 100}</span>
+                                <ChevronRight className="w-3.5 h-3.5 text-blue-200" />
+                              </div>
+                            </motion.button>
                           </div>
-                        </div>
-
-                        {/* Doctor Specialty Preview & Specialists Link */}
-                        <div className="flex items-center justify-between text-xs text-slate-500 px-0.5">
-                          <span className="text-[11px] font-medium text-slate-500 truncate">
-                            {primaryDoc?.specialty} • {hospDoctors.length || 3} Doctors Available
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setDirectoryMode('doctors');
-                              setSelectedSpecialty('ALL');
-                            }}
-                            className="text-[11px] font-bold text-blue-600 hover:text-blue-700 flex items-center gap-0.5 shrink-0 hover:underline cursor-pointer"
-                          >
-                            <span>View All</span>
-                            <ChevronRight className="w-3 h-3 text-blue-600" />
-                          </button>
-                        </div>
-
-                        {/* Modern Single Action Button */}
-                        <div className="pt-0.5">
-                          <motion.button
-                            whileTap={{ scale: 0.985 }}
-                            type="button"
-                            onClick={() => handleOpenHospitalBooking(hosp)}
-                            className="w-full py-2.5 px-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-xs flex items-center justify-between shadow-xs hover:shadow transition-all cursor-pointer"
-                          >
-                            <div className="flex items-center gap-2">
-                              <CalendarCheck className="w-4 h-4 text-blue-200 shrink-0" />
-                              <span className="font-extrabold text-xs">Book Appointment</span>
-                              <span className="text-blue-200 text-[10.5px] font-medium">• OPD & Video</span>
-                            </div>
-                            <div className="flex items-center gap-1 font-extrabold text-xs text-white">
-                              <span>From ₹{hosp.baseOpFee || 100}</span>
-                              <ChevronRight className="w-3.5 h-3.5 text-blue-200" />
-                            </div>
-                          </motion.button>
                         </div>
                       </div>
                     </SlapBlock>
@@ -1949,98 +1975,125 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                 return (
                   <div
                     key={hosp.id}
-                    className="rounded-[24px] border border-slate-200/80 bg-white shadow-[0_4px_20px_-4px_rgba(15,23,42,0.05)] hover:shadow-[0_12px_32px_-4px_rgba(15,23,42,0.08)] transition-all p-3.5 space-y-2.5 relative group"
+                    className="rounded-[28px] border border-slate-200/80 bg-white shadow-[0_8px_30px_-6px_rgba(15,23,42,0.08)] hover:shadow-[0_16px_40px_-8px_rgba(15,23,42,0.12)] transition-all overflow-hidden group"
                   >
-                    <div className="flex items-start gap-3">
-                      <div className="relative w-20 h-20 min-w-[80px] min-h-[80px] aspect-square rounded-2xl overflow-hidden bg-slate-100 shrink-0 select-none shadow-xs ring-1 ring-slate-900/5">
-                        <img
-                          src={hosp.imageUrl}
-                          alt={hosp.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                        <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-lg bg-white/95 backdrop-blur-md text-slate-900 border border-slate-200/60 shadow-xs flex items-center gap-1">
-                          <Star className="w-2.5 h-2.5 text-amber-500 fill-amber-500 shrink-0" />
-                          <span className="text-[10px] font-black">{hosp.rating}</span>
+                    {/* Widescreen Hero Photo with Glass Badges */}
+                    <div className="relative w-full h-36 bg-slate-100 select-none overflow-hidden">
+                      <img
+                        src={hosp.imageUrl}
+                        alt={hosp.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-black/30" />
+
+                      {/* Top Badges */}
+                      <div className="absolute top-2.5 inset-x-2.5 flex items-center justify-between">
+                        <div className="px-2.5 py-1 rounded-xl bg-slate-950/65 backdrop-blur-md text-white border border-white/20 text-xs font-black flex items-center gap-1 shadow-xs">
+                          <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+                          <span>{hosp.rating}</span>
+                          <span className="text-[10px] text-slate-300 font-medium">(140+ reviews)</span>
                         </div>
+                        {hosp.emergencyAvailable && (
+                          <span className="px-2.5 py-1 rounded-xl bg-rose-950/65 backdrop-blur-md text-rose-200 border border-rose-400/30 text-[10.5px] font-bold flex items-center gap-1.5 shadow-xs">
+                            <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse" />
+                            <span>24/7 ICU</span>
+                          </span>
+                        )}
                       </div>
 
-                      <div className="min-w-0 flex-1 space-y-1">
+                      {/* Bottom Overlay on Image */}
+                      <div className="absolute bottom-2.5 inset-x-2.5 flex items-end justify-between text-white">
+                        <div className="min-w-0 pr-2">
+                          <p className="text-xs font-bold text-white flex items-center gap-1 drop-shadow-md truncate">
+                            <MapPin className="w-3 h-3 text-blue-400 shrink-0" />
+                            <span>{hosp.address.split(',')[0]} • {hosp.districtName || 'Nearby'}</span>
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(googleMapsUrl, '_blank');
+                          }}
+                          className="px-2.5 py-0.5 rounded-lg bg-white/25 hover:bg-white/35 backdrop-blur-md text-white border border-white/25 text-[10px] font-bold flex items-center gap-1 transition-all shrink-0 cursor-pointer shadow-xs"
+                        >
+                          <Navigation className="w-2.5 h-2.5 text-blue-300 rotate-45" />
+                          <span>{hosp.distance || '1.2 km'} • Maps</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Card Body */}
+                    <div className="p-4 space-y-3">
+                      <div className="space-y-1">
                         <div className="flex items-center gap-1.5">
-                          <h3 className="font-extrabold text-[15px] text-slate-900 tracking-tight leading-snug truncate group-hover:text-blue-600 transition-colors">
+                          <h3 className="font-black text-base text-slate-900 tracking-tight leading-tight group-hover:text-blue-600 transition-colors">
                             {hosp.name}
                           </h3>
-                          <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                          <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
                         </div>
-
-                        <p className="text-xs text-slate-500 truncate font-medium">
-                          {hosp.address.split(',')[0]} • <span className="text-slate-700 font-semibold">{hosp.distance || '1.2 km'} away</span>
-                        </p>
-                        
-                        {/* Clinical Badges: 24/7 ICU + NABH + Maps */}
-                        <div className="flex items-center gap-1.5 pt-0.5 flex-wrap">
-                          {hosp.emergencyAvailable && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200/70 text-[9.5px] font-bold">
-                              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
-                              <span>24/7 ICU</span>
-                            </span>
-                          )}
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200/70 text-[9.5px] font-bold">
-                            <ShieldCheck className="w-2.5 h-2.5 text-emerald-600" />
-                            <span>NABH</span>
+                        <p className="text-xs text-slate-500 font-medium flex items-center gap-2 min-w-0">
+                          <span className="text-emerald-800 font-bold bg-emerald-50 px-2 py-0.5 rounded-md text-[10px] border border-emerald-200/80 whitespace-nowrap shrink-0">
+                            NABH Accredited
                           </span>
+                          <span className="text-slate-300">•</span>
+                          <span className="truncate">{hosp.specialties.slice(0, 3).join(' • ')}</span>
+                        </p>
+                      </div>
+
+                      {/* Live Queue Banner (Dynamic Island style) */}
+                      <div className="rounded-2xl bg-slate-950 text-white p-3 flex items-center justify-between shadow-xs">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span className="relative flex h-2.5 w-2.5 shrink-0">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                          </span>
+                          <div className="min-w-0">
+                            <div className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider leading-none">
+                              Live OPD Queue
+                            </div>
+                            <div className="text-xs font-black text-white leading-tight mt-0.5 truncate">
+                              Token #{primaryDoc?.nextAvailableToken || 4} Available
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0 pl-3 border-l border-slate-800">
+                          <div className="text-[11px] font-bold text-slate-200">
+                            ~10m wait
+                          </div>
+                          <div className="text-[10px] text-slate-400 truncate max-w-[120px]">
+                            {primaryDoc?.name.split(',')[0]}
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Live Queue Banner */}
-                    <div className="rounded-xl bg-emerald-50/70 border border-emerald-200/70 p-2.5 flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="relative flex h-2 w-2 shrink-0">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                        </span>
-                        <span className="font-extrabold text-emerald-950 text-xs truncate">Next: Token #{primaryDoc?.nextAvailableToken || 4}</span>
-                        <span className="text-emerald-300">•</span>
-                        <span className="text-emerald-700 font-medium text-[11px] shrink-0">~10m wait</span>
+                      {/* Action Bar */}
+                      <div className="flex items-center gap-2 pt-0.5">
+                        <a
+                          href={`tel:${hosp.phone || '+914222570100'}`}
+                          className="py-3 px-3.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0"
+                          title="Call Hospital"
+                        >
+                          <PhoneCall className="w-3.5 h-3.5 text-slate-600" />
+                          <span>Call</span>
+                        </a>
+
+                        <motion.button
+                          whileTap={{ scale: 0.985 }}
+                          type="button"
+                          onClick={() => handleOpenHospitalBooking(hosp)}
+                          className="flex-1 py-3 px-4 rounded-2xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-xs flex items-center justify-between shadow-md shadow-blue-600/20 hover:shadow-lg transition-all cursor-pointer"
+                        >
+                          <div className="flex items-center gap-1.5">
+                            <CalendarCheck className="w-4 h-4 text-blue-200 shrink-0" />
+                            <span className="font-extrabold text-xs">Book Appointment</span>
+                          </div>
+                          <div className="flex items-center gap-1 font-extrabold text-xs text-white">
+                            <span>From ₹{hosp.baseOpFee || 100}</span>
+                            <ChevronRight className="w-3.5 h-3.5 text-blue-200" />
+                          </div>
+                        </motion.button>
                       </div>
-                      <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded-md shrink-0">
-                        Live OPD
-                      </span>
-                    </div>
-
-                    {/* Action Bar: Directions, Call, and Modern Booking Button */}
-                    <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
-                      <button
-                        type="button"
-                        onClick={() => window.open(googleMapsUrl, '_blank')}
-                        className="py-2.5 px-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center gap-1 border border-slate-200/70 transition-colors cursor-pointer shrink-0"
-                        title="Directions"
-                      >
-                        <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                        <span>Maps</span>
-                      </button>
-
-                      <a
-                        href={`tel:${hosp.phone || '+914222570100'}`}
-                        className="py-2.5 px-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center gap-1 border border-slate-200/70 transition-colors cursor-pointer shrink-0"
-                        title="Call Hospital"
-                      >
-                        <PhoneCall className="w-3.5 h-3.5 text-slate-600 shrink-0" />
-                        <span>Call</span>
-                      </a>
-
-                      <motion.button
-                        whileTap={{ scale: 0.985 }}
-                        type="button"
-                        onClick={() => handleOpenHospitalBooking(hosp)}
-                        className="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs flex items-center justify-between shadow-xs transition-all cursor-pointer"
-                      >
-                        <span className="font-extrabold text-xs">Book Appointment</span>
-                        <span className="text-[11px] font-semibold text-blue-100 flex items-center gap-1">
-                          <span>₹{hosp.baseOpFee || 100}</span>
-                          <ChevronRight className="w-3.5 h-3.5" />
-                        </span>
-                      </motion.button>
                     </div>
                   </div>
                 );
