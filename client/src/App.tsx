@@ -1752,7 +1752,7 @@ export function App() {
                   {/* Screen Content Container (Strict Overflow Protection) */}
                   <div className={`flex-1 ${
                     currentRole === 'PATIENT' && patientTab === 'ai_assist'
-                      ? 'overflow-hidden flex flex-col px-3 pt-1 pb-2 h-full'
+                      ? 'overflow-hidden flex flex-col p-0 h-full w-full'
                       : isPatientBookingActive 
                       ? 'overflow-y-auto overflow-x-hidden p-0' 
                       : isAuthOpen || !currentUser 
@@ -1942,7 +1942,7 @@ export function App() {
                   {/* Screen Content Container */}
                   <div className={`flex-1 ${
                     currentRole === 'PATIENT' && patientTab === 'ai_assist'
-                      ? 'overflow-hidden flex flex-col px-3 pt-1 pb-2 h-full'
+                      ? 'overflow-hidden flex flex-col p-0 h-full w-full'
                       : isPatientBookingActive 
                       ? 'overflow-y-auto overflow-x-hidden p-0' 
                       : isAuthOpen || !currentUser 

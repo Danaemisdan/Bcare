@@ -473,7 +473,7 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full w-full bg-slate-50 select-none overflow-hidden rounded-[28px] border border-slate-200/90 shadow-sm relative">
+    <div className="flex flex-col h-full w-full bg-[#f8fafc] select-none overflow-hidden relative">
       {/* ========================================================================= */}
       {/* 1. SLEEK MINIMAL HEADER                                                  */}
       {/* ========================================================================= */}
@@ -729,7 +729,7 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
       {/* ========================================================================= */}
       {/* 4. CHAT INPUT BAR WITH MICROPHONE & SEND                                 */}
       {/* ========================================================================= */}
-      <div className="p-3 bg-white border-t border-slate-200/90 shrink-0">
+      <div className="p-3 bg-white border-t border-slate-200/80 shrink-0 pb-5">
         <form
           onSubmit={(e) => {
             e.preventDefault();

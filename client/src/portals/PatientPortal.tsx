@@ -698,6 +698,23 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
     );
   }
 
+  // Full-bleed edge-to-edge layout for AI Health Assistant on mobile (no space-y-4 or pb-28 margins)
+  if (isMobile && activeTab === 'ai_assist') {
+    return (
+      <div className="h-full w-full flex-1 flex flex-col overflow-hidden">
+        <AiHealthAssistant
+          patientProfile={patientProfile}
+          hospitals={hospitals}
+          doctors={doctors}
+          slots={slots}
+          userLocation={userLocation}
+          onOpenCheckout={(doc, type, explicitSlot) => handleOpenCheckout(doc, type, explicitSlot)}
+          onClose={() => setActiveTab('op_booking')}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 pb-28 sm:pb-16">
       
@@ -1869,17 +1886,11 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
       )}
 
       
-      {/* ============================================================== */}
-      {/* TAB 3: TINY LOCAL AI HEALTH ASSISTANT                          */}
-      {/* ============================================================== */}
-      {activeTab === 'ai_assist' && (
-        <motion.div
-          key="ai_assist"
-          initial={{ opacity: 0, y: 8, filter: 'blur(3px)' }}
-          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-          exit={{ opacity: 0, y: -6, filter: 'blur(2px)' }}
-          transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-        >
+
+
+      {/* Desktop AI Health Assistant tab */}
+      {!isMobile && activeTab === 'ai_assist' && (
+        <div className="h-[680px] w-full flex flex-col overflow-hidden rounded-3xl border border-slate-200 shadow-sm bg-white">
           <AiHealthAssistant
             patientProfile={patientProfile}
             hospitals={hospitals}
@@ -1889,11 +1900,8 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
             onOpenCheckout={(doc, type, explicitSlot) => handleOpenCheckout(doc, type, explicitSlot)}
             onClose={() => setActiveTab('op_booking')}
           />
-        </motion.div>
+        </div>
       )}
-
-      {/* ============================================================== */}
-      {/* TAB 4: HOSPITALS & 24/7 EMERGENCY DIRECTORY                   */}
       {/* ============================================================== */}
       {activeTab === 'hospitals' && (
         <motion.div
