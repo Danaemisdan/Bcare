@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { DoctorProfile, Hospital, OpSlot, PatientProfile } from '../types';
 import { ConsultationType } from './BookingConsultationScreen';
+import { SiriOrb } from './SiriOrb';
 
 // ============================================================================
 // ALL 10 INDIAN REGIONAL LANGUAGES (PREMIUM STT & TTS ENGINE)
@@ -312,42 +313,109 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
     }
   };
 
-  // Multi-Language Clinical Triage Matching
+  // Automatic Multi-Language Detection (Native Script + Transliteration)
+  const detectLanguage = (text: string): IndianLanguage => {
+    const lower = text.toLowerCase();
+    // 1. Telugu (Script + Latin transliterations like "kadupu noppi", "jwaram")
+    if (
+      /[\u0C00-\u0C7F]/.test(text) || 
+      /\b(kadupu|kadupulo|noppi|gunde|chati|jwaram|vaanthulu|vikaram|neerasam|talanopi|chali|kaalla|vennu|undhi|undi)\b/i.test(lower)
+    ) {
+      return SUPPORTED_INDIAN_LANGUAGES.find(l => l.code === 'te-IN') || SUPPORTED_INDIAN_LANGUAGES[1];
+    }
+
+    // 2. Hindi (Devanagari + Latin transliterations like "pet dard", "bukhar hai", "sir dard")
+    if (
+      /[\u0900-\u097F]/.test(text) || 
+      /\b(dard|pet|bukhar|khansi|chhati|sir|seene|ulti|dast|kamzori|hai|ho raha|raha hai|tabiyat|kamar)\b/i.test(lower)
+    ) {
+      return SUPPORTED_INDIAN_LANGUAGES.find(l => l.code === 'hi-IN') || SUPPORTED_INDIAN_LANGUAGES[2];
+    }
+
+    // 3. Tamil (Script + Latin transliterations like "vayiru vali", "nenju vali")
+    if (
+      /[\u0B80-\u0BFF]/.test(text) || 
+      /\b(vali|vayiru|kaichal|irumal|nenju|thalai|vaanthi|romba|iruku)\b/i.test(lower)
+    ) {
+      return SUPPORTED_INDIAN_LANGUAGES.find(l => l.code === 'ta-IN') || SUPPORTED_INDIAN_LANGUAGES[3];
+    }
+
+    // 4. Kannada (Script + Latin transliterations like "hotte novu")
+    if (
+      /[\u0C80-\u0CFF]/.test(text) || 
+      /\b(novu|hotte|jwara|kemmu|ede|tale|idhe)\b/i.test(lower)
+    ) {
+      return SUPPORTED_INDIAN_LANGUAGES.find(l => l.code === 'kn-IN') || SUPPORTED_INDIAN_LANGUAGES[4];
+    }
+
+    // 5. Malayalam
+    if (/[\u0D00-\u0D7F]/.test(text)) {
+      return SUPPORTED_INDIAN_LANGUAGES.find(l => l.code === 'ml-IN') || SUPPORTED_INDIAN_LANGUAGES[5];
+    }
+
+    // 6. Marathi
+    if (/\b(dokedukhi|julab|kambar)\b/i.test(lower)) {
+      return SUPPORTED_INDIAN_LANGUAGES.find(l => l.code === 'mr-IN') || SUPPORTED_INDIAN_LANGUAGES[6];
+    }
+
+    // Default to currently selected language or English
+    return selectedLanguage;
+  };
+
+  // Multi-Language Clinical Triage Matching (Handles ANY Language)
   const analyzeSymptoms = (query: string) => {
     const q = query.toLowerCase();
 
-    // 1. Cardiac / Heart / Chest
+    // 1. Cardiac / Heart / Chest (English + All Regional + Transliterations)
     const isCardiac = 
       q.includes('chest') || q.includes('heart') || q.includes('cardiac') ||
       q.includes('palpitation') || q.includes('breath') || q.includes('bp') ||
-      q.includes('గుండె') || q.includes('ఛాతీ') || q.includes('दिल') || q.includes('छाती') ||
-      q.includes('நெஞ்சு') || q.includes('இதயம்') || q.includes('ಉಸಿರಾಟ') || q.includes('हार्ट');
+      q.includes('blood pressure') || q.includes('suffocat') ||
+      q.includes('గుండె') || q.includes('ఛాతీ') || q.includes('శ్వాస') || q.includes('దడ') ||
+      q.includes('gunde') || q.includes('chati') || q.includes('swasa') ||
+      q.includes('दिल') || q.includes('छाती') || q.includes('सीने') || q.includes('सांस') || q.includes('धड़कन') ||
+      q.includes('seene') || q.includes('chhati') || q.includes('saans') || q.includes('dhadkan') ||
+      q.includes('நெஞ்சு') || q.includes('இதயம்') || q.includes('மூச்சு') ||
+      q.includes('nenju') || q.includes('idhayam') || q.includes('moochu') ||
+      q.includes('ಎದೆ') || q.includes('ಹೃದಯ') || q.includes('ede') || q.includes('hrudaya');
 
     // 2. Stomach / GI / Digestion / Vomiting (Checked before Ortho so stomach pain routes correctly)
     const isGastro = 
       q.includes('stomach') || q.includes('abdomen') || q.includes('vomit') ||
       q.includes('nausea') || q.includes('acidity') || q.includes('gastric') ||
-      q.includes('diarrhea') || q.includes('motion') || q.includes('food') ||
-      q.includes('కడుపు') || q.includes('వాంతులు') || q.includes('వికారం') ||
-      q.includes('पेट') || q.includes('उल्टी') || q.includes('दस्त') ||
-      q.includes('வயிறு') || q.includes('வாந்தி') || q.includes('ಹೊಟ್ಟೆ');
+      q.includes('diarrhea') || q.includes('motion') || q.includes('food') || q.includes('belly') ||
+      q.includes('కడుపు') || q.includes('వాంతులు') || q.includes('వికారం') || q.includes('మోషన్స్') ||
+      q.includes('kadupu') || q.includes('kadupulo') || q.includes('vaanthulu') || q.includes('vikaram') ||
+      q.includes('पेट') || q.includes('उल्टी') || q.includes('दस्त') || q.includes('मतली') || q.includes('गैस') ||
+      q.includes('pet') || q.includes('ulti') || q.includes('dast') || q.includes('gas') ||
+      q.includes('வயிறு') || q.includes('வாந்தி') || q.includes('பேதி') ||
+      q.includes('vayiru') || q.includes('vaanthi') ||
+      q.includes('ಹೊಟ್ಟೆ') || q.includes('hotte') || q.includes('vaanti');
 
     // 3. Bone / Joint / Ortho / Spine
     const isOrtho = 
       q.includes('bone') || q.includes('joint') || q.includes('knee') ||
-      q.includes('back') || q.includes('spine') || q.includes('fracture') ||
-      q.includes('మోకాలు') || q.includes('వెన్ను') || q.includes('కీలు') ||
-      q.includes('घुटने') || q.includes('कमर') || q.includes('हड्डी') || q.includes('जोड़ों') ||
-      q.includes('முழங்கால்') || q.includes('முதுகு') || q.includes('ಕೀಲು') || q.includes('ಕುತ್ತಿಗೆ');
+      q.includes('back') || q.includes('spine') || q.includes('fracture') || q.includes('shoulder') ||
+      q.includes('మోకాలు') || q.includes('వెన్ను') || q.includes('కీలు') || q.includes('మోకాళ్ల') ||
+      q.includes('mokalu') || q.includes('vennu') || q.includes('keelu') || q.includes('mokaalla') ||
+      q.includes('हड्डी') || q.includes('जोड़') || q.includes('घुटने') || q.includes('कमर') || q.includes('पीठ') ||
+      q.includes('haddi') || q.includes('jod') || q.includes('ghutne') || q.includes('kamar') || q.includes('peeth') ||
+      q.includes('முழங்கால்') || q.includes('முதுகு') || q.includes('எலும்பு') ||
+      q.includes('muzhangal') || q.includes('mudhugu') || q.includes('elumbu') ||
+      q.includes('ಮೂಳೆ') || q.includes('ಕೀಲು') || q.includes('ಮೊಣಕಾಲು') || q.includes('moole');
 
     // 4. Fever / Infection / General Medicine
     const isFever = 
       q.includes('fever') || q.includes('cold') || q.includes('cough') ||
       q.includes('infection') || q.includes('headache') || q.includes('weakness') ||
-      q.includes('temperature') || q.includes('জ্বর') || q.includes('ताप') ||
-      q.includes('జ్వరం') || q.includes('దగ్గు') || q.includes('తలనొప్పి') ||
-      q.includes('बुखार') || q.includes('खांसी') || q.includes('सिरदर्द') ||
-      q.includes('காய்ச்சல்') || q.includes('இருமல்') || q.includes('தலைவலி');
+      q.includes('chills') || q.includes('throat') || q.includes('temperature') ||
+      q.includes('జ్వరం') || q.includes('దగ్గు') || q.includes('తలనొప్పి') || q.includes('జలుబు') || q.includes('గొంతు') ||
+      q.includes('jwaram') || q.includes('daggu') || q.includes('talanopi') || q.includes('jalubu') ||
+      q.includes('बुखार') || q.includes('खांसी') || q.includes('सिरदर्द') || q.includes('जुकाम') || q.includes('गले') ||
+      q.includes('bukhar') || q.includes('khansi') || q.includes('sirdard') || q.includes('sar dard') ||
+      q.includes('காய்ச்சல்') || q.includes('இருமல்') || q.includes('தலைவலி') ||
+      q.includes('kaichal') || q.includes('irumal') || q.includes('thalai') ||
+      q.includes('ಜ್ವರ') || q.includes('ಕೆಮ್ಮು') || q.includes('jwara') || q.includes('kemmu');
 
     // Select matching doctor & specialty
     let matchedDoctor = cardiologistDoc;
@@ -375,12 +443,6 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
       urgencyLabel = 'Orthopedic Specialist Needed';
       advice = `For joint, spine, or bone pain, I suggest you consult ${orthoDoc.name} (Orthopedic Specialist) at ${primaryHospital.name}.`;
     } else if (isFever) {
-      matchedDoctor = cardiologistDoc; // Dual qualified or general physician
-      specialty = 'Gastroenterology & General Medicine';
-      urgency = 'PRIORITY';
-      urgencyLabel = 'Digestive Clinical Care';
-      advice = `For acute abdominal symptoms and digestion, I suggest you consult ${cardiologistDoc.name} at ${primaryHospital.name} for an immediate physical exam.`;
-    } else if (isFever) {
       matchedDoctor = cardiologistDoc;
       specialty = 'General Medicine';
       urgency = 'ROUTINE';
@@ -404,10 +466,16 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
     };
   };
 
-  // Send message
+  // Send message with automatic language response
   const handleSendMessage = (textToSend?: string) => {
     const text = (textToSend || inputText).trim();
     if (!text) return;
+
+    // Detect language of the input
+    const detectedLang = detectLanguage(text);
+    if (detectedLang.code !== selectedLanguage.code) {
+      setSelectedLanguage(detectedLang);
+    }
 
     // Add user message
     const userMsg: ChatMessage = {
@@ -421,18 +489,20 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
     setInputText('');
     setIsAnalyzing(true);
 
-    // AI Response synthesis
+    // AI Response synthesis in the patient's language
     setTimeout(() => {
       const triage = analyzeSymptoms(text);
 
-      let aiResponseText = `I understand your concern regarding "${text}".\n\nI suggest you consult **${triage.doctor.name}** (${triage.specialty}) at **${triage.hospital.name}**, located at ${triage.hospital.address}.\n\nHere are the doctor's details and instant appointment options:`;
+      let aiResponseText = `I suggest you consult **${triage.doctor.name}** (${triage.specialty}) at **${triage.hospital.name}**, Peelamedu.`;
 
-      if (selectedLanguage.code === 'te-IN') {
-        aiResponseText = `మీరు పేర్కొన్న సమస్యను నేను అర్థం చేసుకున్నాను.\n\nనేను మీకు **${triage.hospital.name}** లోని **${triage.doctor.name}** (${triage.specialty}) గారిని సంప్రదించమని సూచిస్తున్నాను.\n\nలైవ్ టోకెన్ మరియు తక్షణ బుకింగ్ వివరాలు కింద ఉన్నాయి:`;
-      } else if (selectedLanguage.code === 'hi-IN') {
-        aiResponseText = `मैंने आपकी परेशानी को समझ लिया है।\n\nमैं आपको **${triage.hospital.name}** में **${triage.doctor.name}** (${triage.specialty}) से मिलने की सलाह देता हूँ।\n\nडॉक्टर का लाइव टोकन और अपॉइंटमेंट नीचे देखें:`;
-      } else if (selectedLanguage.code === 'ta-IN') {
-        aiResponseText = `உங்கள் உடல்நல பிரச்சனையை நான் புரிந்துகொண்டேன்.\n\n**${triage.hospital.name}** இல் உள்ள **${triage.doctor.name}** (${triage.specialty}) மருத்துவரை பார்க்குமாறு பரிந்துரைக்கிறேன்.\n\nடோக்கன் மற்றும் முன்பதிவு விவரங்கள் கீழே:`;
+      if (detectedLang.code === 'te-IN') {
+        aiResponseText = `నేను మీకు **${triage.hospital.name}** లోని **${triage.doctor.name}** (${triage.specialty}) గారిని సంప్రదించమని సూచిస్తున్నాను.`;
+      } else if (detectedLang.code === 'hi-IN') {
+        aiResponseText = `मैं आपको **${triage.hospital.name}** में **${triage.doctor.name}** (${triage.specialty}) से मिलने की सलाह देता हूँ।`;
+      } else if (detectedLang.code === 'ta-IN') {
+        aiResponseText = `நான் உங்களுக்கு **${triage.hospital.name}** இல் உள்ள **${triage.doctor.name}** (${triage.specialty}) மருத்துவரை பரிந்துரைக்கிறேன்.`;
+      } else if (detectedLang.code === 'kn-IN') {
+        aiResponseText = `ನಾನು ನಿಮಗೆ **${triage.hospital.name}** ನಲ್ಲಿರುವ **${triage.doctor.name}** (${triage.specialty}) ಅವರನ್ನು ಭೇಟಿ ಮಾಡಲು ಶಿಫಾರಸು ಮಾಡುತ್ತೇನೆ.`;
       }
 
       const aiMsg: ChatMessage = {
@@ -447,7 +517,13 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
       setIsAnalyzing(false);
 
       if (isVoiceEnabled) {
-        speakText(`I suggest you to see ${triage.doctor.name} at ${triage.hospital.name}`);
+        speakText(
+          detectedLang.code === 'te-IN' 
+            ? `${triage.doctor.name} గారిని సంప్రదించండి`
+            : detectedLang.code === 'hi-IN'
+            ? `${triage.doctor.name} से संपर्क करें`
+            : `I suggest you to see ${triage.doctor.name} at ${triage.hospital.name}`
+        );
       }
     }, 600);
   };
@@ -491,8 +567,8 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
           )}
 
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-sm">
-              <Sparkles className="w-4 h-4 text-cyan-200" />
+            <div className="shrink-0 flex items-center justify-center">
+              <SiriOrb size={32} state={isAnalyzing ? 'thinking' : isListening ? 'listening' : 'idle'} />
             </div>
             <div>
               <div className="flex items-center gap-1.5">
@@ -563,143 +639,143 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
               className={`flex flex-col ${isAi ? 'items-start' : 'items-end'}`}
             >
               {/* Message Bubble with AI Avatar */}
-              <div className={`flex items-start gap-2 max-w-[90%] ${isAi ? 'flex-row' : 'flex-row-reverse self-end'}`}>
+              <div className={`flex items-start gap-2.5 max-w-[96%] ${isAi ? 'flex-row' : 'flex-row-reverse self-end'}`}>
                 {isAi && (
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shrink-0 shadow-xs mt-0.5">
-                    <Sparkles className="w-3.5 h-3.5 text-cyan-200" />
+                  <div className="shrink-0 mt-1">
+                    <SiriOrb size={28} state="idle" />
                   </div>
                 )}
 
-                <div
-                  className={`rounded-2xl p-3.5 text-xs leading-relaxed shadow-xs ${
-                    isAi
-                      ? 'bg-white text-slate-800 rounded-tl-xs border border-slate-200/90'
-                      : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-tr-xs font-medium'
-                  }`}
-                >
-                  <p className="whitespace-pre-line">
-                    {msg.text.split('**').map((part, i) => 
-                      i % 2 === 1 ? <strong key={i} className={isAi ? "font-extrabold text-slate-900" : "font-black text-white"}>{part}</strong> : part
-                    )}
-                  </p>
+                <div className={`space-y-2.5 ${isAi ? 'flex-1' : ''}`}>
+                  <div
+                    className={`rounded-2xl p-3.5 text-xs leading-relaxed shadow-xs ${
+                      isAi
+                        ? 'bg-white text-slate-800 rounded-tl-xs border border-slate-200/90'
+                        : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-tr-xs font-medium'
+                    }`}
+                  >
+                    <p className="whitespace-pre-line">
+                      {msg.text.split('**').map((part, i) => 
+                        i % 2 === 1 ? <strong key={i} className={isAi ? "font-extrabold text-slate-900" : "font-black text-white"}>{part}</strong> : part
+                      )}
+                    </p>
 
-                  {/* Suggested Chips (Only on initial welcome message) */}
-                  {msg.suggestedChips && (
-                    <div className="mt-3 pt-2.5 border-t border-slate-100 space-y-1.5">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                        Quick Questions:
-                      </span>
-                      <div className="flex flex-wrap gap-1.5">
-                        {msg.suggestedChips.map((chip, idx) => (
-                          <button
-                            key={idx}
-                            type="button"
-                            onClick={() => handleSendMessage(chip)}
-                            className="px-2.5 py-1 rounded-full bg-slate-50 hover:bg-blue-50 hover:border-blue-300 border border-slate-200 text-[11px] font-semibold text-slate-700 hover:text-blue-700 transition-all cursor-pointer text-left"
-                          >
-                            ⚡ {chip}
-                          </button>
-                        ))}
+                    {/* Suggested Chips (Only on initial welcome message) */}
+                    {msg.suggestedChips && (
+                      <div className="mt-3 pt-2.5 border-t border-slate-100 space-y-1.5">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                          Quick Questions:
+                        </span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {msg.suggestedChips.map((chip, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => handleSendMessage(chip)}
+                              className="px-2.5 py-1 rounded-full bg-slate-50 hover:bg-blue-50 hover:border-blue-300 border border-slate-200 text-[11px] font-semibold text-slate-700 hover:text-blue-700 transition-all cursor-pointer text-left"
+                            >
+                              ⚡ {chip}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* DIRECT DOCTOR & LOCATION CARD (When AI suggests a doctor) */}
+                  {msg.doctorRecommendation && (
+                    <div className="rounded-2xl bg-white border border-slate-200/90 shadow-md p-3.5 space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                      {/* Doctor Info */}
+                      <div className="flex items-start gap-3">
+                        <img
+                          src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=200"
+                          alt={msg.doctorRecommendation.doctor.name}
+                          className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1">
+                            <h4 className="font-extrabold text-sm text-slate-900 truncate">
+                              {msg.doctorRecommendation.doctor.name}
+                            </h4>
+                            <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                          </div>
+                          <span className="inline-block px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-bold text-[10px] mt-0.5">
+                            {msg.doctorRecommendation.specialty}
+                          </span>
+                          <p className="text-[11px] text-slate-500 font-medium truncate mt-0.5">
+                            {msg.doctorRecommendation.doctor.experienceYears || 12}+ yrs experience • Reg: {msg.doctorRecommendation.doctor.registrationNumber || 'NMC-84920'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Hospital & Location */}
+                      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Building2 className="w-4 h-4 text-slate-500 shrink-0" />
+                          <div className="min-w-0">
+                            <span className="font-bold text-slate-900 block truncate text-[11.5px]">
+                              {msg.doctorRecommendation.hospital.name}
+                            </span>
+                            <div className="flex items-center gap-1 text-[10.5px] text-slate-500">
+                              <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                              <span className="truncate">{msg.doctorRecommendation.hospital.address.split(',')[0]} • Peelamedu</span>
+                            </div>
+                          </div>
+                        </div>
+                        <span className="text-[11px] font-bold text-blue-600 shrink-0 ml-2">
+                          {msg.doctorRecommendation.hospital.distance || '1.2 km'}
+                        </span>
+                      </div>
+
+                      {/* Live OPD Status Badge */}
+                      <div className="flex items-center justify-between py-1.5 px-3 rounded-lg bg-emerald-50 border border-emerald-200/80 text-xs">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                          <span className="font-extrabold text-emerald-900 text-[11px]">
+                            Token #{msg.doctorRecommendation.doctor.nextAvailableToken || 5} Ready
+                          </span>
+                          <span className="text-emerald-400">•</span>
+                          <span className="text-emerald-700 font-medium text-[10.5px]">Room 204</span>
+                        </div>
+                        <span className="text-emerald-700 font-bold text-[11px]">~10m wait</span>
+                      </div>
+
+                      {/* Action Buttons: 1-Click Open */}
+                      <div className="grid grid-cols-2 gap-2 pt-0.5">
+                        <button
+                          type="button"
+                          onClick={() => handleBookNow(msg.doctorRecommendation!.doctor, 'IN_PERSON_OPD')}
+                          className="py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                        >
+                          <Calendar className="w-3.5 h-3.5 text-blue-200" />
+                          <span>Book OPD (₹{msg.doctorRecommendation.doctor.opConsultationFee || 100})</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleBookNow(msg.doctorRecommendation!.doctor, 'VIDEO_CONSULTATION')}
+                          className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                        >
+                          <Video className="w-3.5 h-3.5 text-emerald-200" />
+                          <span>Video Call (₹{msg.doctorRecommendation.doctor.teleConsultationFee || 250})</span>
+                        </button>
                       </div>
                     </div>
                   )}
                 </div>
               </div>
-
-              {/* DIRECT DOCTOR & LOCATION CARD (When AI suggests a doctor) */}
-              {msg.doctorRecommendation && (
-                <div className="w-[calc(100%-2.25rem)] max-w-[92%] ml-9 mt-2.5 rounded-2xl bg-white border border-slate-200/90 shadow-md p-3.5 space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                  {/* Doctor Info */}
-                  <div className="flex items-start gap-3">
-                    <img
-                      src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=200"
-                      alt={msg.doctorRecommendation.doctor.name}
-                      className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1">
-                        <h4 className="font-extrabold text-sm text-slate-900 truncate">
-                          {msg.doctorRecommendation.doctor.name}
-                        </h4>
-                        <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                      </div>
-                      <span className="inline-block px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-bold text-[10px] mt-0.5">
-                        {msg.doctorRecommendation.specialty}
-                      </span>
-                      <p className="text-[11px] text-slate-500 font-medium truncate mt-0.5">
-                        {msg.doctorRecommendation.doctor.experienceYears || 12}+ yrs experience • Reg: {msg.doctorRecommendation.doctor.registrationNumber || 'NMC-84920'}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Hospital & Location */}
-                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <Building2 className="w-4 h-4 text-slate-500 shrink-0" />
-                      <div className="min-w-0">
-                        <span className="font-bold text-slate-900 block truncate text-[11.5px]">
-                          {msg.doctorRecommendation.hospital.name}
-                        </span>
-                        <div className="flex items-center gap-1 text-[10.5px] text-slate-500">
-                          <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
-                          <span className="truncate">{msg.doctorRecommendation.hospital.address.split(',')[0]} • Peelamedu</span>
-                        </div>
-                      </div>
-                    </div>
-                    <span className="text-[11px] font-bold text-blue-600 shrink-0 ml-2">
-                      {msg.doctorRecommendation.hospital.distance || '1.2 km'}
-                    </span>
-                  </div>
-
-                  {/* Live OPD Status Badge */}
-                  <div className="flex items-center justify-between py-1.5 px-3 rounded-lg bg-emerald-50 border border-emerald-200/80 text-xs">
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                      <span className="font-extrabold text-emerald-900 text-[11px]">
-                        Token #{msg.doctorRecommendation.doctor.nextAvailableToken || 5} Ready
-                      </span>
-                      <span className="text-emerald-400">•</span>
-                      <span className="text-emerald-700 font-medium text-[10.5px]">Room 204</span>
-                    </div>
-                    <span className="text-emerald-700 font-bold text-[11px]">~10m wait</span>
-                  </div>
-
-                  {/* Action Buttons: 1-Click Open */}
-                  <div className="grid grid-cols-2 gap-2 pt-0.5">
-                    <button
-                      type="button"
-                      onClick={() => handleBookNow(msg.doctorRecommendation!.doctor, 'IN_PERSON_OPD')}
-                      className="py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer"
-                    >
-                      <Calendar className="w-3.5 h-3.5 text-blue-200" />
-                      <span>Book OPD (₹{msg.doctorRecommendation.doctor.opConsultationFee || 100})</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleBookNow(msg.doctorRecommendation!.doctor, 'VIDEO_CONSULTATION')}
-                      className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer"
-                    >
-                      <Video className="w-3.5 h-3.5 text-emerald-200" />
-                      <span>Video Call (₹{msg.doctorRecommendation.doctor.teleConsultationFee || 250})</span>
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
           );
         })}
 
         {/* Analyzing / Typing Indicator */}
         {isAnalyzing && (
-          <div className="flex items-center gap-2 p-3 rounded-2xl bg-white border border-slate-200 shadow-xs max-w-[240px] animate-in fade-in duration-200">
-            <div className="flex space-x-1">
-              <span className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '0ms' }} />
-              <span className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '150ms' }} />
-              <span className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '300ms' }} />
+          <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-white border border-slate-200/90 shadow-xs max-w-[260px] animate-in fade-in duration-200">
+            <div className="shrink-0 flex items-center justify-center">
+              <SiriOrb size={22} state="thinking" />
             </div>
-            <span className="text-[11px] text-slate-500 font-medium">
-              Finding the right doctor...
+            <span className="text-[11.5px] text-slate-600 font-semibold animate-pulse">
+              Finding the right specialist...
             </span>
           </div>
         )}
@@ -711,31 +787,71 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
       {/* 3. LISTENING PULSE BANNER (WHEN MICROPHONE IS ACTIVE)                     */}
       {/* ========================================================================= */}
       {isListening && (
-        <div className="px-4 py-2.5 bg-rose-50 border-t border-rose-200 flex items-center justify-between text-xs text-rose-800 animate-pulse">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-rose-600 animate-ping" />
-            <span className="font-bold">{selectedLanguage.listeningText}</span>
+        <div className="px-4 py-2.5 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-t border-blue-200/80 flex items-center justify-between text-xs text-slate-800">
+          <div className="flex items-center gap-2.5">
+            <div className="shrink-0 flex items-center justify-center">
+              <SiriOrb size={24} state="listening" />
+            </div>
+            <div>
+              <p className="font-bold text-slate-900 leading-tight">Listening to your voice...</p>
+              <p className="text-[10px] text-slate-500 font-medium">Speak in any language (English, Telugu, Hindi, Tamil...)</p>
+            </div>
           </div>
           <button
             type="button"
             onClick={toggleListening}
-            className="text-[11px] font-extrabold text-rose-700 underline cursor-pointer"
+            className="px-2.5 py-1 rounded-full bg-rose-100 hover:bg-rose-200 text-[11px] font-bold text-rose-700 transition-colors cursor-pointer"
           >
-            Stop
+            Done Speaking
           </button>
         </div>
       )}
 
       {/* ========================================================================= */}
-      {/* 4. CHAT INPUT BAR WITH MICROPHONE & SEND                                 */}
+      {/* 4. CHAT INPUT BAR WITH MICROPHONE & QUICK LANGUAGE SELECTOR               */}
       {/* ========================================================================= */}
-      <div className="p-3 bg-white border-t border-slate-200/80 shrink-0 pb-5">
+      <div className="bg-white border-t border-slate-200/80 shrink-0 pb-5">
+        {/* Quick Language Switcher Pills (1-tap speech & text language toggle) */}
+        <div className="px-3 py-1.5 bg-slate-50/80 border-b border-slate-100 flex items-center gap-1.5 overflow-x-auto scrollbar-none no-scrollbar">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 shrink-0">Lang:</span>
+          {SUPPORTED_INDIAN_LANGUAGES.slice(0, 6).map((lang) => (
+            <button
+              key={lang.code}
+              type="button"
+              onClick={() => {
+                setSelectedLanguage(lang);
+                if (isListening && recognitionRef.current) {
+                  try {
+                    recognitionRef.current.lang = lang.code;
+                  } catch {
+                    // ignore
+                  }
+                }
+              }}
+              className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
+                selectedLanguage.code === lang.code
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'bg-white text-slate-600 border border-slate-200 hover:border-blue-300'
+              }`}
+            >
+              {lang.flag} {lang.name}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => setShowLanguageModal(true)}
+            className="px-2 py-0.5 rounded-full text-[10.5px] font-semibold text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 shrink-0 cursor-pointer"
+          >
+            More +
+          </button>
+        </div>
+
         <form
           onSubmit={(e) => {
             e.preventDefault();
             handleSendMessage();
           }}
-          className="flex items-center gap-2"
+          className="p-3 flex items-center gap-2"
         >
           {/* Microphone Button */}
           <button
@@ -746,7 +862,7 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                 ? 'bg-rose-600 text-white animate-pulse'
                 : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
             }`}
-            title={isListening ? "Listening... Tap to stop" : "Tap to speak in any language"}
+            title={isListening ? "Listening... Tap to stop" : `Tap to speak in ${selectedLanguage.name} or any language`}
           >
             {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5 text-blue-600" />}
           </button>
