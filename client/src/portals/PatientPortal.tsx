@@ -1215,6 +1215,10 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
           {/* ============================================================== */}
           {/* VIEW A: ALL DOCTORS IN THE AREA */}
           {/* ============================================================== */}
+          {/* ============================================================== */}
+          {/* VIEW A: ALL DOCTORS IN THE AREA                               */}
+          {/* Modern Luxury Healthcare Styling                              */}
+          {/* ============================================================== */}
           {directoryMode === 'doctors' && (
             <div className="space-y-3">
               <div className="grid grid-cols-1 gap-3">
@@ -1229,10 +1233,10 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                       delay={Math.min(idx * 0.05, 0.25)}
                       className="w-full"
                     >
-                      <div className="rounded-[26px] border border-slate-200/80 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] transition-all p-4 space-y-3 relative overflow-hidden">
+                      <div className="rounded-[24px] border border-slate-100 bg-white shadow-[0_4px_24px_-4px_rgba(15,23,42,0.06),0_2px_6px_-1px_rgba(15,23,42,0.02)] hover:shadow-[0_12px_36px_-6px_rgba(15,23,42,0.1)] transition-all p-3.5 space-y-3 relative group overflow-hidden">
                         {/* Doctor Avatar + Details */}
-                        <div className="flex items-start gap-3.5">
-                          <div className="w-16 h-16 rounded-2xl bg-slate-950 text-white flex items-center justify-center font-bold text-lg shadow-sm shrink-0 relative">
+                        <div className="flex items-start gap-3">
+                          <div className="w-[74px] h-[74px] rounded-[18px] bg-slate-900 text-white flex items-center justify-center font-black text-lg shadow-sm shrink-0 relative ring-1 ring-black/5">
                             {docInitials}
                             <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center">
                               <Check className="w-2.5 h-2.5 text-white stroke-[3]" />
@@ -1241,45 +1245,60 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
 
                           <div className="min-w-0 flex-1 space-y-1">
                             <div className="flex items-start justify-between gap-1.5">
-                              <h4 className="font-extrabold text-base text-slate-900 tracking-tight leading-snug line-clamp-1">
+                              <h4 className="font-black text-sm text-slate-900 tracking-tight leading-snug line-clamp-1 group-hover:text-blue-600 transition-colors">
                                 {doc.name.split(',')[0]}
                               </h4>
-                              <div className="flex items-center gap-1 text-slate-900 text-xs font-bold shrink-0 pt-0.5">
-                                <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+                              <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-50 border border-amber-200/60 text-slate-900 text-[10.5px] font-black shrink-0">
+                                <Star className="w-2.5 h-2.5 text-amber-500 fill-amber-400" />
                                 <span>{doc.rating}</span>
                               </div>
                             </div>
 
-                            <p className="text-xs text-slate-500 truncate">
+                            <p className="text-[11px] text-slate-500 font-medium truncate">
                               {doc.specialty} • {doc.experienceYears} yrs exp • {hosp ? hosp.name.replace(/Multi-Specialty Hospital|Hospital/i, 'Hosp.').trim() : doc.hospitalName}
                             </p>
 
-                            <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-800 pt-0.5">
-                              <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-                              <span className="font-bold">Token #{doc.nextAvailableToken || 4} available</span>
-                              <span className="text-slate-400">•</span>
-                              <span className="text-slate-500">~{doc.estimatedWaitMins || 10}m wait</span>
+                            {/* Live Token Status Pill with Pulsing Radar Beacon */}
+                            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-xl bg-emerald-50/90 border border-emerald-200/80 text-[10.5px] whitespace-nowrap shadow-2xs">
+                              <span className="relative flex h-2 w-2 shrink-0">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                              </span>
+                              <span className="font-black text-emerald-950">
+                                Token #{doc.nextAvailableToken || 4} available
+                              </span>
+                              <span className="text-emerald-300">•</span>
+                              <span className="text-emerald-700 font-semibold">~{doc.estimatedWaitMins || 10}m wait</span>
                             </div>
                           </div>
                         </div>
 
                         {/* Modern Single Action Button */}
-                        <div className="pt-2 border-t border-slate-100">
+                        <div className="pt-0.5">
                           <motion.button
-                            whileTap={{ scale: 0.98 }}
+                            whileTap={{ scale: 0.985 }}
                             type="button"
                             onClick={() => handleOpenDoctorBooking(doc)}
-                            className="w-full py-2.5 px-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-xs flex items-center justify-between shadow-xs hover:shadow transition-all cursor-pointer"
+                            className="w-full py-3 px-3.5 rounded-2xl bg-gradient-to-r from-blue-600 via-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs flex items-center justify-between shadow-[0_4px_16px_rgba(37,99,235,0.25)] hover:shadow-[0_6px_22px_rgba(37,99,235,0.35)] transition-all cursor-pointer group"
                           >
-                            <div className="flex items-center gap-2">
-                              <CalendarCheck className="w-4 h-4 text-blue-100 shrink-0" />
-                              <span className="font-bold text-xs">Book Consultation</span>
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-7 h-7 rounded-xl bg-white/15 backdrop-blur-xs flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition-transform">
+                                <CalendarCheck className="w-4 h-4 text-white" />
+                              </div>
+                              <div className="text-left">
+                                <div className="font-extrabold text-[13px] leading-tight text-white tracking-tight">
+                                  Book Consultation
+                                </div>
+                                <div className="text-[10px] text-blue-100/90 font-medium leading-tight">
+                                  Instant Token • OPD & Video
+                                </div>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-1.5 text-blue-100 text-[11px] font-semibold">
-                              <span>In-Person & Video</span>
-                              <span className="opacity-60">•</span>
-                              <span className="text-white font-bold">From ₹{doc.opConsultationFee || 100}</span>
-                              <ChevronRight className="w-3.5 h-3.5 text-blue-200 shrink-0" />
+                            <div className="flex items-center gap-1.5 py-1 px-2.5 rounded-xl bg-white/15 backdrop-blur-xs border border-white/20 text-white shadow-2xs">
+                              <span className="text-[11px] font-bold text-white">
+                                From ₹{doc.opConsultationFee || 100}
+                              </span>
+                              <ChevronRight className="w-3.5 h-3.5 text-blue-200 group-hover:translate-x-0.5 transition-transform shrink-0" />
                             </div>
                           </motion.button>
                         </div>
@@ -1293,7 +1312,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
 
           {/* ============================================================== */}
           {/* VIEW B: ALL HOSPITALS & CLINICS NEAR YOU (DIRECT BOOKING)     */}
-          {/* Compact, Luxury Layout Exactly Matching Reference (Image 4)   */}
+          {/* Modern Luxury Healthcare Styling                              */}
           {/* ============================================================== */}
           {directoryMode === 'hospitals' && (
             <div className="space-y-3">
@@ -1309,25 +1328,28 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                       delay={Math.min(idx * 0.05, 0.25)}
                       className="w-full"
                     >
-                      <div className="rounded-[22px] border border-slate-200/80 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.07)] transition-all p-3 space-y-2 relative group">
+                      <div className="rounded-[24px] border border-slate-100 bg-white shadow-[0_4px_24px_-4px_rgba(15,23,42,0.06),0_2px_6px_-1px_rgba(15,23,42,0.02)] hover:shadow-[0_12px_36px_-6px_rgba(15,23,42,0.1)] transition-all p-3.5 space-y-3 relative group overflow-hidden">
                         {/* Top Flex: Square Thumbnail on Left + Metadata on Right */}
-                        <div className="flex items-start gap-2.5">
-                          {/* Square Thumbnail with Rating Badge */}
-                          <div className="relative w-20 h-20 min-w-[80px] min-h-[80px] max-h-[80px] aspect-square rounded-2xl overflow-hidden bg-slate-100 shrink-0 select-none shadow-xs">
+                        <div className="flex items-start gap-3">
+                          {/* Square Thumbnail with Rating Badge + NABH Tag */}
+                          <div className="relative w-[84px] h-[84px] min-w-[84px] min-h-[84px] aspect-square rounded-[20px] overflow-hidden bg-slate-100 shrink-0 select-none shadow-xs ring-1 ring-black/5">
                             <img
                               src={hosp.imageUrl}
                               alt={hosp.name}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                             />
                             {/* Star Rating Badge on thumbnail */}
-                            <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-lg bg-black/60 backdrop-blur-md border border-white/20 text-white text-[10px] font-bold flex items-center gap-0.5 shadow-xs">
+                            <div className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-lg bg-slate-950/75 backdrop-blur-md border border-white/20 text-white text-[10px] font-black flex items-center gap-1 shadow-xs">
                               <Star className="w-2.5 h-2.5 text-amber-400 fill-amber-400" />
                               <span>{hosp.rating}</span>
+                            </div>
+                            <div className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-slate-950/70 backdrop-blur-md text-emerald-300 text-[8.5px] font-extrabold tracking-wider uppercase border border-white/10">
+                              NABH
                             </div>
                           </div>
 
                           {/* Hospital Details on Right */}
-                          <div className="min-w-0 flex-1 space-y-0.5">
+                          <div className="min-w-0 flex-1 space-y-1">
                             {/* Badges: Distance & 24/7 Emergency */}
                             <div className="flex items-center gap-1.5 flex-wrap">
                               <button
@@ -1337,44 +1359,60 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                                   const mapUrl = hosp.googleMapsUrl || `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(hosp.address)}`;
                                   window.open(mapUrl, '_blank');
                                 }}
-                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/80 text-[9.5px] font-bold whitespace-nowrap shrink-0 cursor-pointer transition-colors"
+                                className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50/80 hover:bg-blue-100 text-blue-700 border border-blue-200/60 text-[10px] font-bold whitespace-nowrap shrink-0 cursor-pointer transition-colors shadow-2xs"
                                 title="Open route in Google Maps"
                               >
-                                <MapPin className="w-2.5 h-2.5 text-blue-600 shrink-0" />
+                                <Navigation className="w-2.5 h-2.5 text-blue-600 rotate-45 shrink-0" />
                                 <span>{hosp.distance || '1.2 km'} • Maps</span>
                               </button>
-                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200/80 text-[9.5px] font-semibold whitespace-nowrap shrink-0">
-                                <span>24/7 Emergency</span>
-                              </span>
+                              {hosp.emergencyAvailable && (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200/60 text-[10px] font-bold whitespace-nowrap shrink-0">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+                                  <span>24/7 Emergency</span>
+                                </span>
+                              )}
                             </div>
 
                             {/* Hospital Name */}
-                            <h4 className="font-extrabold text-sm text-slate-900 tracking-tight leading-snug line-clamp-1">
+                            <h4 className="font-black text-sm text-slate-900 tracking-tight leading-snug line-clamp-1 group-hover:text-blue-600 transition-colors">
                               {hosp.name}
                             </h4>
 
                             {/* Address */}
-                            <p className="text-[10.5px] text-slate-500 truncate leading-tight">
+                            <p className="text-[11px] text-slate-500 font-medium truncate leading-tight">
                               {hosp.address}
                             </p>
 
-                            {/* Live Token Status */}
-                            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50/80 border border-emerald-200/70 text-[10px] font-medium text-emerald-800 whitespace-nowrap">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                              <span className="font-bold">Next: Token #{primaryDoc?.nextAvailableToken || 4}</span>
-                              <span className="text-slate-400">•</span>
-                              <span className="text-slate-500">~10m wait</span>
+                            {/* Live Token Status Pill with Pulsing Radar Beacon */}
+                            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-xl bg-emerald-50/90 border border-emerald-200/80 text-[10.5px] whitespace-nowrap shadow-2xs">
+                              <span className="relative flex h-2 w-2 shrink-0">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                              </span>
+                              <span className="font-black text-emerald-950">
+                                Next: Token #{primaryDoc?.nextAvailableToken || 4}
+                              </span>
+                              <span className="text-emerald-300">•</span>
+                              <span className="text-emerald-700 font-semibold">~10m wait</span>
                             </div>
                           </div>
                         </div>
 
-                        {/* Middle Row: Doctor Info + Specialist count link */}
-                        <div className="flex items-center justify-between text-xs px-0.5 pt-0.5 text-slate-600 border-t border-slate-100">
-                          <div className="flex items-center gap-1.5 truncate">
-                            <Stethoscope className="w-3 h-3 text-slate-400 shrink-0" />
-                            <span className="font-semibold text-slate-800 text-[11px] truncate">{primaryDoc?.name.split(',')[0]}</span>
-                            <span className="text-slate-400">•</span>
-                            <span className="text-slate-500 text-[11px] truncate">{primaryDoc?.specialty}</span>
+                        {/* Middle Row: Doctor Micro-Strip + Specialist Link */}
+                        <div className="flex items-center justify-between p-2 rounded-2xl bg-slate-50/80 border border-slate-100/90 gap-2">
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <div className="w-6 h-6 rounded-lg bg-blue-100/80 text-blue-700 font-extrabold text-[10px] flex items-center justify-center shrink-0">
+                              <Stethoscope className="w-3.5 h-3.5 text-blue-600" />
+                            </div>
+                            <div className="min-w-0 flex-1 truncate">
+                              <span className="font-bold text-slate-900 text-xs truncate">
+                                {primaryDoc?.name.split(',')[0]}
+                              </span>
+                              <span className="text-slate-300 text-xs mx-1.5">•</span>
+                              <span className="text-slate-500 text-[11px] font-medium truncate">
+                                {primaryDoc?.specialty}
+                              </span>
+                            </div>
                           </div>
                           <button 
                             type="button"
@@ -1382,30 +1420,39 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                               setDirectoryMode('doctors');
                               setSelectedSpecialty('ALL');
                             }}
-                            className="text-[10.5px] font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-0.5 shrink-0 hover:underline cursor-pointer"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white hover:bg-blue-50 text-blue-700 border border-slate-200/70 hover:border-blue-200 text-[10.5px] font-bold shrink-0 shadow-2xs transition-all cursor-pointer"
                           >
                             <span>{hospDoctors.length || 3} Specialists</span>
-                            <ArrowRight className="w-2.5 h-2.5" />
+                            <ArrowRight className="w-3 h-3 text-blue-600" />
                           </button>
                         </div>
 
-                        {/* Modern Single Action Button Matching Reference */}
+                        {/* Modern Single Action Button */}
                         <div className="pt-0.5">
                           <motion.button
-                            whileTap={{ scale: 0.98 }}
+                            whileTap={{ scale: 0.985 }}
                             type="button"
                             onClick={() => handleOpenHospitalBooking(hosp)}
-                            className="w-full py-2.5 px-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-xs flex items-center justify-between shadow-xs hover:shadow transition-all cursor-pointer"
+                            className="w-full py-3 px-3.5 rounded-2xl bg-gradient-to-r from-blue-600 via-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs flex items-center justify-between shadow-[0_4px_16px_rgba(37,99,235,0.25)] hover:shadow-[0_6px_22px_rgba(37,99,235,0.35)] transition-all cursor-pointer group"
                           >
-                            <div className="flex items-center gap-2">
-                              <CalendarCheck className="w-4 h-4 text-blue-100 shrink-0" />
-                              <span className="font-bold text-xs">Book an Appointment</span>
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-7 h-7 rounded-xl bg-white/15 backdrop-blur-xs flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition-transform">
+                                <CalendarCheck className="w-4 h-4 text-white" />
+                              </div>
+                              <div className="text-left">
+                                <div className="font-extrabold text-[13px] leading-tight text-white tracking-tight">
+                                  Book an Appointment
+                                </div>
+                                <div className="text-[10px] text-blue-100/90 font-medium leading-tight">
+                                  Instant Token • OPD & Video
+                                </div>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-1.5 text-blue-100 text-[11px] font-semibold">
-                              <span>OPD & Video</span>
-                              <span className="opacity-60">•</span>
-                              <span className="text-white font-bold">From ₹{hosp.baseOpFee || 100}</span>
-                              <ChevronRight className="w-3.5 h-3.5 text-blue-200 shrink-0" />
+                            <div className="flex items-center gap-1.5 py-1 px-2.5 rounded-xl bg-white/15 backdrop-blur-xs border border-white/20 text-white shadow-2xs">
+                              <span className="text-[11px] font-bold text-white">
+                                From ₹{hosp.baseOpFee || 100}
+                              </span>
+                              <ChevronRight className="w-3.5 h-3.5 text-blue-200 group-hover:translate-x-0.5 transition-transform shrink-0" />
                             </div>
                           </motion.button>
                         </div>
@@ -1907,18 +1954,21 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                 return (
                   <div
                     key={hosp.id}
-                    className="rounded-[24px] border border-slate-200/80 bg-white p-4 shadow-sm hover:shadow-md transition-all space-y-3"
+                    className="rounded-[24px] border border-slate-100 bg-white shadow-[0_4px_24px_-4px_rgba(15,23,42,0.06),0_2px_6px_-1px_rgba(15,23,42,0.02)] hover:shadow-[0_12px_36px_-6px_rgba(15,23,42,0.1)] transition-all p-3.5 space-y-3 relative group overflow-hidden"
                   >
                     <div className="flex items-start gap-3">
-                      <div className="relative w-20 h-20 rounded-2xl overflow-hidden bg-slate-100 shrink-0 shadow-2xs">
+                      <div className="relative w-[84px] h-[84px] min-w-[84px] min-h-[84px] aspect-square rounded-[20px] overflow-hidden bg-slate-100 shrink-0 select-none shadow-xs ring-1 ring-black/5">
                         <img
                           src={hosp.imageUrl}
                           alt={hosp.name}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
-                        <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-lg bg-black/60 text-white text-[10px] font-bold flex items-center gap-0.5 whitespace-nowrap">
+                        <div className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-lg bg-slate-950/75 backdrop-blur-md border border-white/20 text-white text-[10px] font-black flex items-center gap-1 shadow-xs">
                           <Star className="w-2.5 h-2.5 text-amber-400 fill-amber-400 shrink-0" />
                           <span>{hosp.rating}</span>
+                        </div>
+                        <div className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-slate-950/70 backdrop-blur-md text-emerald-300 text-[8.5px] font-extrabold tracking-wider uppercase border border-white/10">
+                          NABH
                         </div>
                       </div>
 
@@ -1927,62 +1977,73 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                           <button
                             type="button"
                             onClick={() => window.open(googleMapsUrl, '_blank')}
-                            className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/80 text-[10px] font-bold cursor-pointer transition-colors whitespace-nowrap shrink-0"
+                            className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50/80 hover:bg-blue-100 text-blue-700 border border-blue-200/60 text-[10px] font-bold cursor-pointer transition-colors whitespace-nowrap shrink-0 shadow-2xs"
                             title="Open Google Maps Route"
                           >
-                            <MapPin className="w-3 h-3 text-blue-600 shrink-0" />
+                            <Navigation className="w-2.5 h-2.5 text-blue-600 rotate-45 shrink-0" />
                             <span>{hosp.distance || '1.2 km'} away • Maps</span>
                           </button>
                           {hosp.emergencyAvailable && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200/80 text-[10px] font-bold whitespace-nowrap shrink-0">
-                              24/7 Emergency
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200/60 text-[10px] font-bold whitespace-nowrap shrink-0">
+                              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+                              <span>24/7 Emergency</span>
                             </span>
                           )}
                         </div>
 
-                        <h3 className="font-extrabold text-sm text-slate-900 tracking-tight leading-snug">
+                        <h3 className="font-black text-sm text-slate-900 tracking-tight leading-snug group-hover:text-blue-600 transition-colors">
                           {hosp.name}
                         </h3>
-                        <p className="text-xs text-slate-500 truncate">
+                        <p className="text-[11px] text-slate-500 font-medium truncate leading-tight">
                           {hosp.address}
                         </p>
-                        <p className="text-[11px] text-slate-400 font-medium">
-                          {hosp.specialties.slice(0, 3).join(' • ')} • {hospDoctors.length || 3} Specialists
-                        </p>
+                        
+                        {/* Live Token Status */}
+                        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-xl bg-emerald-50/90 border border-emerald-200/80 text-[10.5px] whitespace-nowrap shadow-2xs">
+                          <span className="relative flex h-2 w-2 shrink-0">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                          </span>
+                          <span className="font-black text-emerald-950">Next: Token #{primaryDoc?.nextAvailableToken || 4}</span>
+                          <span className="text-emerald-300">•</span>
+                          <span className="text-emerald-700 font-semibold">~10m wait</span>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Action Buttons: Navigate in Google Maps + Call + Book */}
-                    <div className="grid grid-cols-3 gap-2 pt-1 border-t border-slate-100">
+                    {/* Action Bar: Directions, Call, and Modern Booking Button */}
+                    <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
                       <button
                         type="button"
                         onClick={() => window.open(googleMapsUrl, '_blank')}
-                        className="py-2 px-2.5 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center gap-1 border border-blue-200/80 transition-colors cursor-pointer whitespace-nowrap"
+                        className="py-2.5 px-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center gap-1 border border-slate-200/70 transition-colors cursor-pointer shrink-0"
+                        title="Directions"
                       >
                         <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                        <span>Directions</span>
+                        <span>Maps</span>
                       </button>
 
                       <a
                         href={`tel:${hosp.phone || '+914222570100'}`}
-                        className="py-2 px-2.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-1 transition-colors cursor-pointer whitespace-nowrap"
+                        className="py-2.5 px-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center gap-1 border border-slate-200/70 transition-colors cursor-pointer shrink-0"
+                        title="Call Hospital"
                       >
                         <PhoneCall className="w-3.5 h-3.5 text-slate-600 shrink-0" />
                         <span>Call</span>
                       </a>
 
-                      <button
+                      <motion.button
+                        whileTap={{ scale: 0.985 }}
                         type="button"
-                        onClick={() => {
-                          setSelectedHospital(hosp);
-                          setSelectedDoctor(primaryDoc);
-                          handleOpenCheckout(primaryDoc, 'IN_PERSON_OPD');
-                        }}
-                        className="py-2 px-2.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-1 shadow-xs transition-colors cursor-pointer whitespace-nowrap"
+                        onClick={() => handleOpenHospitalBooking(hosp)}
+                        className="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs flex items-center justify-between shadow-xs transition-all cursor-pointer"
                       >
-                        <Ticket className="w-3.5 h-3.5 shrink-0" />
-                        <span>Book • ₹{hosp.baseOpFee}</span>
-                      </button>
+                        <span className="font-extrabold text-xs">Book Appointment</span>
+                        <span className="text-[11px] font-semibold text-blue-100 flex items-center gap-1">
+                          <span>₹{hosp.baseOpFee || 100}</span>
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </span>
+                      </motion.button>
                     </div>
                   </div>
                 );
