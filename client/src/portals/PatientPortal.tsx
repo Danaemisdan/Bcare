@@ -1219,6 +1219,10 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
           {/* VIEW A: ALL DOCTORS IN THE AREA                               */}
           {/* Modern Luxury Healthcare Styling                              */}
           {/* ============================================================== */}
+          {/* ============================================================== */}
+          {/* VIEW A: ALL DOCTORS IN THE AREA                               */}
+          {/* Modern Luxury Healthcare Styling                              */}
+          {/* ============================================================== */}
           {directoryMode === 'doctors' && (
             <div className="space-y-3">
               <div className="grid grid-cols-1 gap-3">
@@ -1233,10 +1237,10 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                       delay={Math.min(idx * 0.05, 0.25)}
                       className="w-full"
                     >
-                      <div className="rounded-[24px] border border-slate-100 bg-white shadow-[0_4px_24px_-4px_rgba(15,23,42,0.06),0_2px_6px_-1px_rgba(15,23,42,0.02)] hover:shadow-[0_12px_36px_-6px_rgba(15,23,42,0.1)] transition-all p-3.5 space-y-3 relative group overflow-hidden">
+                      <div className="rounded-[24px] border border-slate-200/80 bg-white shadow-[0_4px_20px_-4px_rgba(15,23,42,0.05)] hover:shadow-[0_12px_32px_-4px_rgba(15,23,42,0.08)] transition-all p-3.5 space-y-2.5 relative group">
                         {/* Doctor Avatar + Details */}
                         <div className="flex items-start gap-3">
-                          <div className="w-[74px] h-[74px] rounded-[18px] bg-slate-900 text-white flex items-center justify-center font-black text-lg shadow-sm shrink-0 relative ring-1 ring-black/5">
+                          <div className="w-[74px] h-[74px] rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black text-lg shadow-xs shrink-0 relative ring-1 ring-slate-900/5">
                             {docInitials}
                             <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center">
                               <Check className="w-2.5 h-2.5 text-white stroke-[3]" />
@@ -1245,32 +1249,44 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
 
                           <div className="min-w-0 flex-1 space-y-1">
                             <div className="flex items-start justify-between gap-1.5">
-                              <h4 className="font-black text-sm text-slate-900 tracking-tight leading-snug line-clamp-1 group-hover:text-blue-600 transition-colors">
-                                {doc.name.split(',')[0]}
-                              </h4>
-                              <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-50 border border-amber-200/60 text-slate-900 text-[10.5px] font-black shrink-0">
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <h4 className="font-extrabold text-[15px] text-slate-900 tracking-tight leading-snug truncate group-hover:text-blue-600 transition-colors">
+                                  {doc.name.split(',')[0]}
+                                </h4>
+                                <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                              </div>
+                              <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-amber-50 border border-amber-200/60 text-slate-900 text-[10.5px] font-black shrink-0">
                                 <Star className="w-2.5 h-2.5 text-amber-500 fill-amber-400" />
                                 <span>{doc.rating}</span>
                               </div>
                             </div>
 
-                            <p className="text-[11px] text-slate-500 font-medium truncate">
-                              {doc.specialty} • {doc.experienceYears} yrs exp • {hosp ? hosp.name.replace(/Multi-Specialty Hospital|Hospital/i, 'Hosp.').trim() : doc.hospitalName}
+                            <p className="text-xs text-slate-500 truncate font-medium">
+                              {doc.specialty} • {doc.experienceYears} yrs exp
                             </p>
 
-                            {/* Live Token Status Pill with Pulsing Radar Beacon */}
-                            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-xl bg-emerald-50/90 border border-emerald-200/80 text-[10.5px] whitespace-nowrap shadow-2xs">
-                              <span className="relative flex h-2 w-2 shrink-0">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                              </span>
-                              <span className="font-black text-emerald-950">
-                                Token #{doc.nextAvailableToken || 4} available
-                              </span>
-                              <span className="text-emerald-300">•</span>
-                              <span className="text-emerald-700 font-semibold">~{doc.estimatedWaitMins || 10}m wait</span>
-                            </div>
+                            <p className="text-[11px] text-slate-400 truncate">
+                              {hosp ? hosp.name : doc.hospitalName}
+                            </p>
                           </div>
+                        </div>
+
+                        {/* Live Queue Banner */}
+                        <div className="rounded-xl bg-emerald-50/70 border border-emerald-200/70 p-2.5 flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="relative flex h-2 w-2 shrink-0">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                            </span>
+                            <span className="font-extrabold text-emerald-950 text-xs truncate">
+                              Token #{doc.nextAvailableToken || 4} Available
+                            </span>
+                            <span className="text-emerald-300">•</span>
+                            <span className="text-emerald-700 font-medium text-[11px] shrink-0">~{doc.estimatedWaitMins || 10}m wait</span>
+                          </div>
+                          <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded-md shrink-0">
+                            Live Today
+                          </span>
                         </div>
 
                         {/* Modern Single Action Button */}
@@ -1279,26 +1295,16 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                             whileTap={{ scale: 0.985 }}
                             type="button"
                             onClick={() => handleOpenDoctorBooking(doc)}
-                            className="w-full py-3 px-3.5 rounded-2xl bg-gradient-to-r from-blue-600 via-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs flex items-center justify-between shadow-[0_4px_16px_rgba(37,99,235,0.25)] hover:shadow-[0_6px_22px_rgba(37,99,235,0.35)] transition-all cursor-pointer group"
+                            className="w-full py-2.5 px-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-xs flex items-center justify-between shadow-xs hover:shadow transition-all cursor-pointer"
                           >
-                            <div className="flex items-center gap-2.5">
-                              <div className="w-7 h-7 rounded-xl bg-white/15 backdrop-blur-xs flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition-transform">
-                                <CalendarCheck className="w-4 h-4 text-white" />
-                              </div>
-                              <div className="text-left">
-                                <div className="font-extrabold text-[13px] leading-tight text-white tracking-tight">
-                                  Book Consultation
-                                </div>
-                                <div className="text-[10px] text-blue-100/90 font-medium leading-tight">
-                                  Instant Token • OPD & Video
-                                </div>
-                              </div>
+                            <div className="flex items-center gap-2">
+                              <CalendarCheck className="w-4 h-4 text-blue-200 shrink-0" />
+                              <span className="font-extrabold text-xs">Book Consultation</span>
+                              <span className="text-blue-200 text-[10.5px] font-normal">• OPD & Video</span>
                             </div>
-                            <div className="flex items-center gap-1.5 py-1 px-2.5 rounded-xl bg-white/15 backdrop-blur-xs border border-white/20 text-white shadow-2xs">
-                              <span className="text-[11px] font-bold text-white">
-                                From ₹{doc.opConsultationFee || 100}
-                              </span>
-                              <ChevronRight className="w-3.5 h-3.5 text-blue-200 group-hover:translate-x-0.5 transition-transform shrink-0" />
+                            <div className="flex items-center gap-1 font-extrabold text-xs text-white bg-blue-700/60 px-2.5 py-1 rounded-lg">
+                              <span>From ₹{doc.opConsultationFee || 100}</span>
+                              <ChevronRight className="w-3.5 h-3.5 text-blue-200" />
                             </div>
                           </motion.button>
                         </div>
@@ -1328,30 +1334,50 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                       delay={Math.min(idx * 0.05, 0.25)}
                       className="w-full"
                     >
-                      <div className="rounded-[24px] border border-slate-100 bg-white shadow-[0_4px_24px_-4px_rgba(15,23,42,0.06),0_2px_6px_-1px_rgba(15,23,42,0.02)] hover:shadow-[0_12px_36px_-6px_rgba(15,23,42,0.1)] transition-all p-3.5 space-y-3 relative group overflow-hidden">
+                      <div className="rounded-[24px] border border-slate-200/80 bg-white shadow-[0_4px_20px_-4px_rgba(15,23,42,0.05)] hover:shadow-[0_12px_32px_-4px_rgba(15,23,42,0.08)] transition-all p-3.5 space-y-2.5 relative group">
                         {/* Top Flex: Square Thumbnail on Left + Metadata on Right */}
                         <div className="flex items-start gap-3">
-                          {/* Square Thumbnail with Rating Badge + NABH Tag */}
-                          <div className="relative w-[84px] h-[84px] min-w-[84px] min-h-[84px] aspect-square rounded-[20px] overflow-hidden bg-slate-100 shrink-0 select-none shadow-xs ring-1 ring-black/5">
+                          {/* Square Thumbnail with Floating Rating Badge */}
+                          <div className="relative w-20 h-20 min-w-[80px] min-h-[80px] aspect-square rounded-2xl overflow-hidden bg-slate-100 shrink-0 select-none shadow-xs ring-1 ring-slate-900/5">
                             <img
                               src={hosp.imageUrl}
                               alt={hosp.name}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                             />
                             {/* Star Rating Badge on thumbnail */}
-                            <div className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-lg bg-slate-950/75 backdrop-blur-md border border-white/20 text-white text-[10px] font-black flex items-center gap-1 shadow-xs">
-                              <Star className="w-2.5 h-2.5 text-amber-400 fill-amber-400" />
-                              <span>{hosp.rating}</span>
-                            </div>
-                            <div className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-slate-950/70 backdrop-blur-md text-emerald-300 text-[8.5px] font-extrabold tracking-wider uppercase border border-white/10">
-                              NABH
+                            <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-lg bg-white/95 backdrop-blur-md text-slate-900 border border-slate-200/60 shadow-xs flex items-center gap-1">
+                              <Star className="w-2.5 h-2.5 text-amber-500 fill-amber-500" />
+                              <span className="text-[10px] font-black">{hosp.rating}</span>
                             </div>
                           </div>
 
                           {/* Hospital Details on Right */}
                           <div className="min-w-0 flex-1 space-y-1">
-                            {/* Badges: Distance & 24/7 Emergency */}
-                            <div className="flex items-center gap-1.5 flex-wrap">
+                            {/* Hospital Name + Verified Check */}
+                            <div className="flex items-center gap-1.5">
+                              <h4 className="font-extrabold text-[14px] text-slate-900 tracking-tight leading-snug line-clamp-1 group-hover:text-blue-600 transition-colors">
+                                {hosp.name}
+                              </h4>
+                              <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                            </div>
+
+                            {/* Address & Distance */}
+                            <p className="text-xs text-slate-500 truncate font-medium">
+                              {hosp.address.split(',')[0]} • <span className="text-slate-700 font-semibold">{hosp.distance || '1.2 km'} away</span>
+                            </p>
+
+                            {/* Clinical Badges: 24/7 ICU + NABH + Maps */}
+                            <div className="flex items-center gap-1.5 pt-0.5 flex-wrap">
+                              {hosp.emergencyAvailable && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200/70 text-[9.5px] font-bold">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+                                  <span>24/7 ICU</span>
+                                </span>
+                              )}
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200/70 text-[9.5px] font-bold">
+                                <ShieldCheck className="w-2.5 h-2.5 text-emerald-600" />
+                                <span>NABH</span>
+                              </span>
                               <button
                                 type="button"
                                 onClick={(e) => {
@@ -1359,71 +1385,50 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                                   const mapUrl = hosp.googleMapsUrl || `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(hosp.address)}`;
                                   window.open(mapUrl, '_blank');
                                 }}
-                                className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50/80 hover:bg-blue-100 text-blue-700 border border-blue-200/60 text-[10px] font-bold whitespace-nowrap shrink-0 cursor-pointer transition-colors shadow-2xs"
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50/80 hover:bg-blue-100 text-blue-700 border border-blue-200/70 text-[9.5px] font-bold cursor-pointer transition-colors shadow-2xs"
                                 title="Open route in Google Maps"
                               >
-                                <Navigation className="w-2.5 h-2.5 text-blue-600 rotate-45 shrink-0" />
-                                <span>{hosp.distance || '1.2 km'} • Maps</span>
+                                <Navigation className="w-2.5 h-2.5 text-blue-600 rotate-45" />
+                                <span>Maps</span>
                               </button>
-                              {hosp.emergencyAvailable && (
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200/60 text-[10px] font-bold whitespace-nowrap shrink-0">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
-                                  <span>24/7 Emergency</span>
-                                </span>
-                              )}
-                            </div>
-
-                            {/* Hospital Name */}
-                            <h4 className="font-black text-sm text-slate-900 tracking-tight leading-snug line-clamp-1 group-hover:text-blue-600 transition-colors">
-                              {hosp.name}
-                            </h4>
-
-                            {/* Address */}
-                            <p className="text-[11px] text-slate-500 font-medium truncate leading-tight">
-                              {hosp.address}
-                            </p>
-
-                            {/* Live Token Status Pill with Pulsing Radar Beacon */}
-                            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-xl bg-emerald-50/90 border border-emerald-200/80 text-[10.5px] whitespace-nowrap shadow-2xs">
-                              <span className="relative flex h-2 w-2 shrink-0">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                              </span>
-                              <span className="font-black text-emerald-950">
-                                Next: Token #{primaryDoc?.nextAvailableToken || 4}
-                              </span>
-                              <span className="text-emerald-300">•</span>
-                              <span className="text-emerald-700 font-semibold">~10m wait</span>
                             </div>
                           </div>
                         </div>
 
-                        {/* Middle Row: Doctor Micro-Strip + Specialist Link */}
-                        <div className="flex items-center justify-between p-2 rounded-2xl bg-slate-50/80 border border-slate-100/90 gap-2">
-                          <div className="flex items-center gap-2 min-w-0 flex-1">
-                            <div className="w-6 h-6 rounded-lg bg-blue-100/80 text-blue-700 font-extrabold text-[10px] flex items-center justify-center shrink-0">
-                              <Stethoscope className="w-3.5 h-3.5 text-blue-600" />
-                            </div>
-                            <div className="min-w-0 flex-1 truncate">
-                              <span className="font-bold text-slate-900 text-xs truncate">
-                                {primaryDoc?.name.split(',')[0]}
-                              </span>
-                              <span className="text-slate-300 text-xs mx-1.5">•</span>
-                              <span className="text-slate-500 text-[11px] font-medium truncate">
-                                {primaryDoc?.specialty}
-                              </span>
-                            </div>
+                        {/* Live Queue Strip Across Card */}
+                        <div className="rounded-xl bg-emerald-50/70 border border-emerald-200/70 py-2 px-2.5 flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className="relative flex h-2 w-2 shrink-0">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                            </span>
+                            <span className="font-extrabold text-emerald-950 text-xs whitespace-nowrap">
+                              Live Token #{primaryDoc?.nextAvailableToken || 5}
+                            </span>
+                            <span className="text-emerald-300">•</span>
+                            <span className="text-emerald-700 font-semibold text-[11px] whitespace-nowrap">~10m wait</span>
                           </div>
-                          <button 
+                          <div className="flex items-center gap-1 text-slate-700 text-[11px] shrink-0 font-semibold">
+                            <Stethoscope className="w-3 h-3 text-slate-400 shrink-0" />
+                            <span className="truncate max-w-[120px]">{primaryDoc?.name.split(',')[0]}</span>
+                          </div>
+                        </div>
+
+                        {/* Doctor Specialty Preview & Specialists Link */}
+                        <div className="flex items-center justify-between text-xs text-slate-500 px-0.5">
+                          <span className="text-[11px] font-medium text-slate-500 truncate">
+                            {primaryDoc?.specialty} • {hospDoctors.length || 3} Doctors Available
+                          </span>
+                          <button
                             type="button"
                             onClick={() => {
                               setDirectoryMode('doctors');
                               setSelectedSpecialty('ALL');
                             }}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white hover:bg-blue-50 text-blue-700 border border-slate-200/70 hover:border-blue-200 text-[10.5px] font-bold shrink-0 shadow-2xs transition-all cursor-pointer"
+                            className="text-[11px] font-bold text-blue-600 hover:text-blue-700 flex items-center gap-0.5 shrink-0 hover:underline cursor-pointer"
                           >
-                            <span>{hospDoctors.length || 3} Specialists</span>
-                            <ArrowRight className="w-3 h-3 text-blue-600" />
+                            <span>View All</span>
+                            <ChevronRight className="w-3 h-3 text-blue-600" />
                           </button>
                         </div>
 
@@ -1433,26 +1438,16 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                             whileTap={{ scale: 0.985 }}
                             type="button"
                             onClick={() => handleOpenHospitalBooking(hosp)}
-                            className="w-full py-3 px-3.5 rounded-2xl bg-gradient-to-r from-blue-600 via-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs flex items-center justify-between shadow-[0_4px_16px_rgba(37,99,235,0.25)] hover:shadow-[0_6px_22px_rgba(37,99,235,0.35)] transition-all cursor-pointer group"
+                            className="w-full py-2.5 px-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-xs flex items-center justify-between shadow-xs hover:shadow transition-all cursor-pointer"
                           >
-                            <div className="flex items-center gap-2.5">
-                              <div className="w-7 h-7 rounded-xl bg-white/15 backdrop-blur-xs flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition-transform">
-                                <CalendarCheck className="w-4 h-4 text-white" />
-                              </div>
-                              <div className="text-left">
-                                <div className="font-extrabold text-[13px] leading-tight text-white tracking-tight">
-                                  Book an Appointment
-                                </div>
-                                <div className="text-[10px] text-blue-100/90 font-medium leading-tight">
-                                  Instant Token • OPD & Video
-                                </div>
-                              </div>
+                            <div className="flex items-center gap-2">
+                              <CalendarCheck className="w-4 h-4 text-blue-200 shrink-0" />
+                              <span className="font-extrabold text-xs">Book Appointment</span>
+                              <span className="text-blue-200 text-[10.5px] font-medium">• OPD & Video</span>
                             </div>
-                            <div className="flex items-center gap-1.5 py-1 px-2.5 rounded-xl bg-white/15 backdrop-blur-xs border border-white/20 text-white shadow-2xs">
-                              <span className="text-[11px] font-bold text-white">
-                                From ₹{hosp.baseOpFee || 100}
-                              </span>
-                              <ChevronRight className="w-3.5 h-3.5 text-blue-200 group-hover:translate-x-0.5 transition-transform shrink-0" />
+                            <div className="flex items-center gap-1 font-extrabold text-xs text-white">
+                              <span>From ₹{hosp.baseOpFee || 100}</span>
+                              <ChevronRight className="w-3.5 h-3.5 text-blue-200" />
                             </div>
                           </motion.button>
                         </div>
@@ -1954,61 +1949,63 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                 return (
                   <div
                     key={hosp.id}
-                    className="rounded-[24px] border border-slate-100 bg-white shadow-[0_4px_24px_-4px_rgba(15,23,42,0.06),0_2px_6px_-1px_rgba(15,23,42,0.02)] hover:shadow-[0_12px_36px_-6px_rgba(15,23,42,0.1)] transition-all p-3.5 space-y-3 relative group overflow-hidden"
+                    className="rounded-[24px] border border-slate-200/80 bg-white shadow-[0_4px_20px_-4px_rgba(15,23,42,0.05)] hover:shadow-[0_12px_32px_-4px_rgba(15,23,42,0.08)] transition-all p-3.5 space-y-2.5 relative group"
                   >
                     <div className="flex items-start gap-3">
-                      <div className="relative w-[84px] h-[84px] min-w-[84px] min-h-[84px] aspect-square rounded-[20px] overflow-hidden bg-slate-100 shrink-0 select-none shadow-xs ring-1 ring-black/5">
+                      <div className="relative w-20 h-20 min-w-[80px] min-h-[80px] aspect-square rounded-2xl overflow-hidden bg-slate-100 shrink-0 select-none shadow-xs ring-1 ring-slate-900/5">
                         <img
                           src={hosp.imageUrl}
                           alt={hosp.name}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
-                        <div className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-lg bg-slate-950/75 backdrop-blur-md border border-white/20 text-white text-[10px] font-black flex items-center gap-1 shadow-xs">
-                          <Star className="w-2.5 h-2.5 text-amber-400 fill-amber-400 shrink-0" />
-                          <span>{hosp.rating}</span>
-                        </div>
-                        <div className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-slate-950/70 backdrop-blur-md text-emerald-300 text-[8.5px] font-extrabold tracking-wider uppercase border border-white/10">
-                          NABH
+                        <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-lg bg-white/95 backdrop-blur-md text-slate-900 border border-slate-200/60 shadow-xs flex items-center gap-1">
+                          <Star className="w-2.5 h-2.5 text-amber-500 fill-amber-500 shrink-0" />
+                          <span className="text-[10px] font-black">{hosp.rating}</span>
                         </div>
                       </div>
 
                       <div className="min-w-0 flex-1 space-y-1">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <button
-                            type="button"
-                            onClick={() => window.open(googleMapsUrl, '_blank')}
-                            className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50/80 hover:bg-blue-100 text-blue-700 border border-blue-200/60 text-[10px] font-bold cursor-pointer transition-colors whitespace-nowrap shrink-0 shadow-2xs"
-                            title="Open Google Maps Route"
-                          >
-                            <Navigation className="w-2.5 h-2.5 text-blue-600 rotate-45 shrink-0" />
-                            <span>{hosp.distance || '1.2 km'} away • Maps</span>
-                          </button>
-                          {hosp.emergencyAvailable && (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200/60 text-[10px] font-bold whitespace-nowrap shrink-0">
-                              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
-                              <span>24/7 Emergency</span>
-                            </span>
-                          )}
+                        <div className="flex items-center gap-1.5">
+                          <h3 className="font-extrabold text-[15px] text-slate-900 tracking-tight leading-snug truncate group-hover:text-blue-600 transition-colors">
+                            {hosp.name}
+                          </h3>
+                          <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                         </div>
 
-                        <h3 className="font-black text-sm text-slate-900 tracking-tight leading-snug group-hover:text-blue-600 transition-colors">
-                          {hosp.name}
-                        </h3>
-                        <p className="text-[11px] text-slate-500 font-medium truncate leading-tight">
-                          {hosp.address}
+                        <p className="text-xs text-slate-500 truncate font-medium">
+                          {hosp.address.split(',')[0]} • <span className="text-slate-700 font-semibold">{hosp.distance || '1.2 km'} away</span>
                         </p>
                         
-                        {/* Live Token Status */}
-                        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-xl bg-emerald-50/90 border border-emerald-200/80 text-[10.5px] whitespace-nowrap shadow-2xs">
-                          <span className="relative flex h-2 w-2 shrink-0">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        {/* Clinical Badges: 24/7 ICU + NABH + Maps */}
+                        <div className="flex items-center gap-1.5 pt-0.5 flex-wrap">
+                          {hosp.emergencyAvailable && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200/70 text-[9.5px] font-bold">
+                              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+                              <span>24/7 ICU</span>
+                            </span>
+                          )}
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200/70 text-[9.5px] font-bold">
+                            <ShieldCheck className="w-2.5 h-2.5 text-emerald-600" />
+                            <span>NABH</span>
                           </span>
-                          <span className="font-black text-emerald-950">Next: Token #{primaryDoc?.nextAvailableToken || 4}</span>
-                          <span className="text-emerald-300">•</span>
-                          <span className="text-emerald-700 font-semibold">~10m wait</span>
                         </div>
                       </div>
+                    </div>
+
+                    {/* Live Queue Banner */}
+                    <div className="rounded-xl bg-emerald-50/70 border border-emerald-200/70 p-2.5 flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="relative flex h-2 w-2 shrink-0">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        <span className="font-extrabold text-emerald-950 text-xs truncate">Next: Token #{primaryDoc?.nextAvailableToken || 4}</span>
+                        <span className="text-emerald-300">•</span>
+                        <span className="text-emerald-700 font-medium text-[11px] shrink-0">~10m wait</span>
+                      </div>
+                      <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded-md shrink-0">
+                        Live OPD
+                      </span>
                     </div>
 
                     {/* Action Bar: Directions, Call, and Modern Booking Button */}
