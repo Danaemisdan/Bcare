@@ -10,7 +10,8 @@ import {
   DigitalPrescription, 
   CommunityPost,
   PlatformSettings,
-  VideoAppointment
+  VideoAppointment,
+  IncomingCallNotification
 } from './types.js';
 
 export class AppDataStore {
@@ -344,6 +345,9 @@ export class AppDataStore {
       nurseId: 'nurse-1'
     }
   ];
+
+  // Active Incoming Video Call Notifications (Doctor ringing queue)
+  incomingCalls: IncomingCallNotification[] = [];
 
   // OP Slots / Tokens for Today
   opSlots: OpSlot[] = [];

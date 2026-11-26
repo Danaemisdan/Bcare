@@ -45,15 +45,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   const [otpCode, setOtpCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  // Signup form state (Patient & Doctor)
+  // Signup form state (Patients / Customers Only)
   const [signUpStep, setSignUpStep] = useState<'MOBILE' | 'OTP' | 'DETAILS'>('MOBILE');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [otpInput, setOtpInput] = useState('');
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(['English', 'Tamil']);
-  const [doctorSpecialty, setDoctorSpecialty] = useState('General Medicine');
-  const [doctorRegNo, setDoctorRegNo] = useState('');
-  const [doctorHospitalId, setDoctorHospitalId] = useState('hosp-1');
 
   const availableLanguages = [
     { id: 'English', label: 'English', flag: '🇬🇧', native: 'English' },
@@ -175,7 +172,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
     setSignUpStep('DETAILS');
   };
 
-  // Step 3: Complete Sign Up with Name & Comfortable Languages
+  // Step 3: Complete Customer Registration with Name & Preferred Consultation Languages
   const handlePatientSignUpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
@@ -191,15 +188,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
     setErrorMessage(null);
 
     try {
-      const isDoctor = selectedRole === 'DOCTOR';
-      const payload: any = {
+      const payload = {
         name: name.trim(),
         phone: phone.trim(),
-        role: isDoctor ? 'DOCTOR' : 'PATIENT',
-        languages: selectedLanguages,
-        specialty: isDoctor ? doctorSpecialty : undefined,
-        registrationNumber: isDoctor ? (doctorRegNo || 'NMC-TN-88219') : undefined,
-        hospitalId: isDoctor ? doctorHospitalId : undefined
+        role: 'PATIENT',
+        languages: selectedLanguages
       };
 
       const res = await fetch('/api/auth/signup', {
@@ -209,7 +202,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || `Failed to create ${isDoctor ? 'doctor' : 'patient'} account`);
+      if (!res.ok) throw new Error(data.error || 'Failed to create customer account');
 
       setSuccessToast(`Welcome, ${name.trim()}! Entering B Care...`);
       setTimeout(() => {
@@ -532,26 +525,33 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               </form>
 
               {/* ----------------------------------------------------------------- */}
-              {/* ACCOUNT CREATION POLICY (PATIENTS ONLY) */}
+              {/* ACCOUNT CREATION POLICY (CUSTOMERS / PATIENTS ONLY) */}
               {/* ----------------------------------------------------------------- */}
-              <div className="pt-3 border-t border-zinc-100 text-center">
-                {selectedRole === 'PATIENT' || selectedRole === 'DOCTOR' ? (
-                  <div className="text-xs text-zinc-600">
-                    New {selectedRole === 'DOCTOR' ? 'Doctor' : 'Patient'}?{' '}
+              <div className="pt-3 border-t border-zinc-100">
+                {selectedRole === 'PATIENT' ? (
+                  <div className="text-center text-xs text-zinc-600">
+                    New to Bcare?{' '}
                     <button
                       type="button"
                       onClick={() => { setView('PATIENT_SIGNUP'); setErrorMessage(null); }}
-                      className="font-semibold text-emerald-600 hover:text-emerald-700 underline underline-offset-2 cursor-pointer"
+                      className="font-bold text-emerald-600 hover:text-emerald-700 underline underline-offset-2 cursor-pointer"
                     >
-                      Register as a {selectedRole === 'DOCTOR' ? 'Doctor' : 'Patient'}
+                      Create Customer Account
                     </button>
                   </div>
                 ) : (
-                  <div className="text-[11px] text-zinc-400 font-medium flex items-center justify-center gap-1.5 px-2 leading-relaxed">
-                    <Lock className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-                    <span>
-                      {rolesConfig.find(r => r.role === selectedRole)?.label} accounts are provisioned by Network Administration.
-                    </span>
+                  <div className="p-3 rounded-2xl bg-amber-50/80 border border-amber-200/90 flex items-start gap-2.5 text-left">
+                    <div className="w-6 h-6 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 mt-0.5">
+                      <Lock className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="space-y-0.5 min-w-0">
+                      <p className="text-[11.5px] font-bold text-amber-950">
+                        {rolesConfig.find(r => r.role === selectedRole)?.label} Accounts Are Admin-Provisioned
+                      </p>
+                      <p className="text-[10.5px] text-amber-800/90 leading-relaxed">
+                        Only customers can register on their own. Doctors, Nurses, and Staff accounts are created and managed by System Administration.
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>
@@ -559,7 +559,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
             </div>
           ) : (
             /* ========================================================================= */
-            /* VIEW: STREAMLINED PATIENT SIGN UP (MOBILE -> OTP -> NAME & LANGUAGES)    */
+            /* VIEW: STREAMLINED CUSTOMER SIGN UP (MOBILE -> OTP -> NAME & LANGUAGES)   */
             /* ========================================================================= */
             <div className="space-y-4">
               {/* Back navigation & Step Badge */}
@@ -587,8 +587,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               {signUpStep === 'MOBILE' && (
                 <form onSubmit={handleSendOtp} className="space-y-3.5">
                   <div className="text-left space-y-1">
-                    <h3 className="text-base font-bold text-zinc-900">Enter your mobile number</h3>
-                    <p className="text-xs text-zinc-500">We will send a 4-digit verification code to verify your phone.</p>
+                    <h3 className="text-base font-bold text-zinc-900">Create Customer Account</h3>
+                    <p className="text-xs text-zinc-500">Only customers can register on their own. Enter your mobile number to get started.</p>
                   </div>
 
                   <div>
@@ -681,12 +681,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                 <form onSubmit={handlePatientSignUpSubmit} className="space-y-3.5">
                   <div className="text-left space-y-1">
                     <h3 className="text-base font-bold text-zinc-900">What's your name?</h3>
-                    <p className="text-xs text-zinc-500">Enter your name and the languages you feel comfortable speaking.</p>
+                    <p className="text-xs text-zinc-500">Enter your name and preferred languages. Doctor and staff accounts are provisioned by admin.</p>
                   </div>
 
                   <div>
                     <label className="block text-[11px] font-semibold text-zinc-700 mb-1">
-                      {selectedRole === 'DOCTOR' ? 'Doctor Full Name & Degree' : 'Full Name'}
+                      Customer Full Name
                     </label>
                     <div className="relative group">
                       <input
@@ -694,63 +694,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                         required
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        placeholder={selectedRole === 'DOCTOR' ? 'e.g. Dr. Vikram Raman, MD' : 'e.g. Ramesh Kumar'}
+                        placeholder="e.g. Ramesh Kumar"
                         className="w-full text-xs p-3 pl-9 rounded-2xl border border-zinc-200/90 bg-zinc-50/80 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all font-sans text-zinc-900 placeholder:text-zinc-400 font-medium"
                       />
                       <UserIcon className="w-4 h-4 text-zinc-400 absolute left-3 top-3.5 pointer-events-none group-focus-within:text-blue-600 transition-colors" />
                     </div>
                   </div>
-
-                  {selectedRole === 'DOCTOR' && (
-                    <>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="block text-[11px] font-semibold text-zinc-700 mb-1">
-                            Clinical Specialty
-                          </label>
-                          <select
-                            value={doctorSpecialty}
-                            onChange={(e) => setDoctorSpecialty(e.target.value)}
-                            className="w-full text-xs p-2.5 rounded-xl border border-zinc-200/90 bg-zinc-50/80 focus:bg-white focus:outline-none text-zinc-900 font-medium cursor-pointer"
-                          >
-                            <option value="Cardiology">Cardiology</option>
-                            <option value="Orthopedics">Orthopedics</option>
-                            <option value="Neurology">Neurology</option>
-                            <option value="General Medicine">General Medicine</option>
-                            <option value="Pediatrics">Pediatrics</option>
-                            <option value="Dermatology">Dermatology</option>
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="block text-[11px] font-semibold text-zinc-700 mb-1">
-                            NMC / Council Reg #
-                          </label>
-                          <input
-                            type="text"
-                            value={doctorRegNo}
-                            onChange={(e) => setDoctorRegNo(e.target.value)}
-                            placeholder="e.g. TMC-88219"
-                            className="w-full text-xs p-2.5 rounded-xl border border-zinc-200/90 bg-zinc-50/80 focus:bg-white focus:outline-none text-zinc-900 font-medium"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-[11px] font-semibold text-zinc-700 mb-1">
-                          Affiliated Accredited Hospital
-                        </label>
-                        <select
-                          value={doctorHospitalId}
-                          onChange={(e) => setDoctorHospitalId(e.target.value)}
-                          className="w-full text-xs p-2.5 rounded-xl border border-zinc-200/90 bg-zinc-50/80 focus:bg-white focus:outline-none text-zinc-900 font-medium cursor-pointer"
-                        >
-                          <option value="hosp-1">City Care Multi-Specialty Hospital</option>
-                          <option value="hosp-2">Kovai Medical & Research Centre</option>
-                        </select>
-                      </div>
-                    </>
-                  )}
 
                   <div>
                     <div className="flex items-center justify-between mb-1.5 px-0.5">

@@ -12,6 +12,7 @@ interface TeleconsultRoomModalProps {
   patientName: string;
   doctorName: string;
   specialty: string;
+  currentRole?: 'PATIENT' | 'DOCTOR';
   patientLanguages?: string[];
   onPrescriptionGenerated?: (rx: any) => void;
 }
@@ -22,6 +23,7 @@ export const TeleconsultRoomModal: React.FC<TeleconsultRoomModalProps> = ({
   patientName,
   doctorName,
   specialty,
+  currentRole = 'PATIENT',
   patientLanguages = ['English', 'Tamil'],
   onPrescriptionGenerated
 }) => {
@@ -49,6 +51,23 @@ export const TeleconsultRoomModal: React.FC<TeleconsultRoomModalProps> = ({
   ]);
   const [inputMsg, setInputMsg] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  // Cross-tab / Multi-device Room Sync
+  useEffect(() => {
+    let bc: BroadcastChannel | null = null;
+    try {
+      bc = new BroadcastChannel('bcare_teleconsult_room');
+      bc.onmessage = (e) => {
+        if (e.data?.type === 'CHAT_MSG' && e.data.msg) {
+          setMessages(prev => [...prev, e.data.msg]);
+        }
+      };
+    } catch (e) {}
+
+    return () => {
+      if (bc) bc.close();
+    };
+  }, []);
 
   // Initialize Real User Media (Camera & Mic)
   useEffect(() => {
@@ -176,40 +195,71 @@ export const TeleconsultRoomModal: React.FC<TeleconsultRoomModalProps> = ({
     e.preventDefault();
     if (!inputMsg.trim() && !selectedImage) return;
 
+    const senderRole = currentRole === 'DOCTOR' ? 'Doctor' : 'Patient';
     const newM = {
-      sender: 'Patient',
-      text: inputMsg,
+      sender: senderRole,
+      text: inputMsg.trim(),
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       image: selectedImage || undefined
     };
     setMessages(prev => [...prev, newM]);
+
+    // Broadcast across tabs/windows
+    try {
+      const bc = new BroadcastChannel('bcare_teleconsult_room');
+      bc.postMessage({ type: 'CHAT_MSG', msg: newM });
+      setTimeout(() => bc.close(), 400);
+    } catch (e) {}
+
     const sentText = inputMsg;
     setInputMsg('');
     setSelectedImage(null);
 
-    // Realistic intelligent Doctor response
-    setDoctorSpeaking(true);
-    setTimeout(() => {
-      let reply = `Thank you for sharing, ${patientName}. Based on what you describe, I am prescribing a standard regimen and ordering a quick baseline test.`;
-      const lower = sentText.toLowerCase();
-      if (lower.includes('chest') || lower.includes('heart') || lower.includes('pain')) {
-        reply = `I understand. Let's keep your posture relaxed and breathe gently. I am noting down your symptoms and issuing a digital prescription with a follow-up advisory.`;
-      } else if (lower.includes('fever') || lower.includes('cough') || lower.includes('cold')) {
-        reply = `Understood. Stay hydrated with warm fluids. I am adding an antipyretic and symptomatic relief medicine to your digital prescription now.`;
-      } else if (lower.includes('stomach') || lower.includes('vomit') || lower.includes('cramp')) {
-        reply = `Please avoid oily or heavy foods. Take plenty of ORS or electral. I have prepared your digital prescription.`;
-      }
+    // Contextual intelligent responses if single-user testing
+    if (currentRole === 'PATIENT') {
+      setDoctorSpeaking(true);
+      setTimeout(() => {
+        let reply = `Thank you for sharing, ${patientName}. Based on what you describe, I am prescribing a standard regimen and ordering a quick baseline test.`;
+        const lower = sentText.toLowerCase();
+        if (lower.includes('chest') || lower.includes('heart') || lower.includes('pain')) {
+          reply = `I understand. Let's keep your posture relaxed and breathe gently. I am noting down your symptoms and issuing a digital prescription with a follow-up advisory.`;
+        } else if (lower.includes('fever') || lower.includes('cough') || lower.includes('cold')) {
+          reply = `Understood. Stay hydrated with warm fluids. I am adding an antipyretic and symptomatic relief medicine to your digital prescription now.`;
+        } else if (lower.includes('stomach') || lower.includes('vomit') || lower.includes('cramp')) {
+          reply = `Please avoid oily or heavy foods. Take plenty of ORS or electral. I have prepared your digital prescription.`;
+        }
 
-      setMessages(prev => [
-        ...prev,
-        {
+        const replyMsg = {
           sender: 'Doctor',
           text: reply,
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        }
-      ]);
-      setDoctorSpeaking(false);
-    }, 1500);
+        };
+        setMessages(prev => [...prev, replyMsg]);
+        setDoctorSpeaking(false);
+
+        try {
+          const bc = new BroadcastChannel('bcare_teleconsult_room');
+          bc.postMessage({ type: 'CHAT_MSG', msg: replyMsg });
+          setTimeout(() => bc.close(), 400);
+        } catch (e) {}
+      }, 1500);
+    } else {
+      // Doctor sent message -> simulate patient acknowledgment
+      setTimeout(() => {
+        const patientAck = {
+          sender: 'Patient',
+          text: 'Thank you doctor, understood. Following these instructions now.',
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+        setMessages(prev => [...prev, patientAck]);
+
+        try {
+          const bc = new BroadcastChannel('bcare_teleconsult_room');
+          bc.postMessage({ type: 'CHAT_MSG', msg: patientAck });
+          setTimeout(() => bc.close(), 400);
+        } catch (e) {}
+      }, 1500);
+    }
   };
 
   const handleEndCall = () => {
@@ -260,47 +310,93 @@ export const TeleconsultRoomModal: React.FC<TeleconsultRoomModalProps> = ({
               </div>
             </div>
 
-            <button
-              onClick={onClose}
-              className="p-1.5 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-2">
+              {currentRole === 'DOCTOR' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const rx = {
+                      id: `rx-${Date.now()}`,
+                      patientName,
+                      doctorName,
+                      diagnosis: 'Acute Symptomatic Care (I20.9)',
+                      medicines: [
+                        { id: 'med-1', name: 'Telmisartan 40mg', dosage: '40mg', frequency: '1-0-0', duration: '14 Days' },
+                        { id: 'med-2', name: 'Atorvastatin 20mg', dosage: '20mg', frequency: '0-0-1', duration: '14 Days' }
+                      ],
+                      issuedAt: new Date().toISOString()
+                    };
+                    if (onPrescriptionGenerated) onPrescriptionGenerated(rx);
+                    setMessages(prev => [
+                      ...prev,
+                      {
+                        sender: 'Doctor',
+                        text: `📋 Digital Prescription Signed & Dispatched for ${patientName}. Saved to records and sent via WhatsApp.`,
+                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                      }
+                    ]);
+                  }}
+                  className="px-2.5 py-1 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] flex items-center gap-1 shadow-xs transition-colors cursor-pointer shrink-0"
+                  title="Issue Digital Prescription Now"
+                >
+                  <FileText className="w-3 h-3" />
+                  <span>Issue Rx</span>
+                </button>
+              )}
+
+              <button
+                onClick={onClose}
+                className="p-1.5 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           {!callEnded ? (
             /* Main Video & Chat View */
             <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 min-h-0 relative">
-              {/* Main Doctor Screen */}
+              {/* Main Participant Screen */}
               <div className="lg:col-span-2 relative bg-black flex items-center justify-center overflow-hidden">
-                {/* Doctor Visual Feed */}
+                {/* Visual Feed */}
                 <div className="w-full h-full relative flex items-center justify-center">
                   <img
-                    src="https://images.unsplash.com/photo-1594824813580-e83cb49f3e46?w=1000"
-                    alt="Doctor Stream"
+                    src={currentRole === 'DOCTOR' 
+                      ? "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=1000"
+                      : "https://images.unsplash.com/photo-1594824813580-e83cb49f3e46?w=1000"
+                    }
+                    alt={currentRole === 'DOCTOR' ? 'Patient Stream' : 'Doctor Stream'}
                     className="w-full h-full object-cover filter brightness-95"
                   />
 
-                  {/* Doctor Status Badge */}
+                  {/* Status Badge */}
                   <div className="absolute top-3 left-3 bg-slate-950/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 flex items-center gap-2 text-xs">
                     <span className={`w-2 h-2 rounded-full ${doctorSpeaking ? 'bg-amber-400' : 'bg-emerald-400'}`} />
-                    <span className="font-bold text-white">{doctorName}</span>
-                    <span className="text-[10px] text-slate-400">• {specialty}</span>
+                    <span className="font-bold text-white">
+                      {currentRole === 'DOCTOR' ? patientName : doctorName}
+                    </span>
+                    <span className="text-[10px] text-slate-400">
+                      • {currentRole === 'DOCTOR' ? 'Patient (Age 32)' : specialty}
+                    </span>
                   </div>
 
-                  {/* Doctor Speaking Caption Indicator */}
+                  {/* Speaking Caption Indicator */}
                   {doctorSpeaking && (
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       className="absolute bottom-20 left-4 right-4 bg-black/75 backdrop-blur-md border border-white/20 p-2.5 rounded-xl text-center text-xs text-white font-medium"
                     >
-                      <span className="text-emerald-400 font-bold mr-1.5">Doctor speaking:</span>
-                      "Reviewing symptoms & generating clinical notes..."
+                      <span className="text-emerald-400 font-bold mr-1.5">
+                        {currentRole === 'DOCTOR' ? 'Patient speaking:' : 'Doctor speaking:'}
+                      </span>
+                      {currentRole === 'DOCTOR' 
+                        ? '"Describing symptoms & current medications..."'
+                        : '"Reviewing symptoms & generating clinical notes..."'}
                     </motion.div>
                   )}
 
-                  {/* Local Patient Self-View (Picture-in-Picture) */}
+                  {/* Local Self-View (Picture-in-Picture) */}
                   <div className="absolute bottom-4 right-4 w-32 sm:w-36 h-40 sm:h-44 rounded-2xl overflow-hidden border-2 border-emerald-400/80 shadow-2xl bg-slate-900 group">
                     {videoActive && !cameraError ? (
                       <video
@@ -319,9 +415,11 @@ export const TeleconsultRoomModal: React.FC<TeleconsultRoomModalProps> = ({
                       </div>
                     )}
 
-                    {/* Patient Label & Real-time Mic Level */}
+                    {/* Local Label & Real-time Mic Level */}
                     <div className="absolute bottom-1.5 inset-x-1.5 flex items-center justify-between bg-black/75 backdrop-blur-md px-2 py-1 rounded-lg text-[9.5px]">
-                      <span className="font-bold text-white truncate">You</span>
+                      <span className="font-bold text-white truncate">
+                        {currentRole === 'DOCTOR' ? `Dr. ${doctorName} (You)` : `You (${patientName})`}
+                      </span>
                       {micActive && (
                         <div className="flex items-center gap-0.5">
                           <span
@@ -405,30 +503,37 @@ export const TeleconsultRoomModal: React.FC<TeleconsultRoomModalProps> = ({
 
                 {/* Messages Feed */}
                 <div className="flex-1 overflow-y-auto p-3 space-y-2.5">
-                  {messages.map((m, idx) => (
-                    <div
-                      key={idx}
-                      className={`flex flex-col ${m.sender === 'Patient' ? 'items-end' : 'items-start'}`}
-                    >
-                      <span className="text-[10px] text-slate-400 mb-0.5">
-                        {m.sender === 'Patient' ? 'You' : doctorName} • {m.time}
-                      </span>
+                  {messages.map((m, idx) => {
+                    const isMe = (currentRole === 'DOCTOR' && m.sender === 'Doctor') || (currentRole === 'PATIENT' && m.sender === 'Patient');
+                    const senderLabel = m.sender === 'Doctor'
+                      ? (currentRole === 'DOCTOR' ? 'You (Doctor)' : doctorName)
+                      : (currentRole === 'PATIENT' ? 'You' : patientName);
+
+                    return (
                       <div
-                        className={`p-2.5 rounded-2xl max-w-[88%] leading-relaxed ${
-                          m.sender === 'Patient'
-                            ? 'bg-blue-600 text-white rounded-tr-xs'
-                            : 'bg-slate-800 text-slate-100 rounded-tl-xs border border-slate-700/80'
-                        }`}
+                        key={idx}
+                        className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}
                       >
-                        <p>{m.text}</p>
-                        {m.image && (
-                          <div className="mt-2 rounded-xl overflow-hidden border border-slate-700">
-                            <img src={m.image} alt="Symptom" className="w-full h-28 object-cover" />
-                          </div>
-                        )}
+                        <span className="text-[10px] text-slate-400 mb-0.5">
+                          {senderLabel} • {m.time}
+                        </span>
+                        <div
+                          className={`p-2.5 rounded-2xl max-w-[88%] leading-relaxed ${
+                            isMe
+                              ? 'bg-blue-600 text-white rounded-tr-xs'
+                              : 'bg-slate-800 text-slate-100 rounded-tl-xs border border-slate-700/80'
+                          }`}
+                        >
+                          <p>{m.text}</p>
+                          {m.image && (
+                            <div className="mt-2 rounded-xl overflow-hidden border border-slate-700">
+                              <img src={m.image} alt="Symptom" className="w-full h-28 object-cover" />
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 {/* Chat Input Bar */}
@@ -448,7 +553,7 @@ export const TeleconsultRoomModal: React.FC<TeleconsultRoomModalProps> = ({
                     type="text"
                     value={inputMsg}
                     onChange={(e) => setInputMsg(e.target.value)}
-                    placeholder="Describe symptoms to doctor..."
+                    placeholder={currentRole === 'DOCTOR' ? 'Type clinical advice or questions...' : 'Describe symptoms to doctor...'}
                     className="flex-1 bg-slate-900 text-white text-xs px-3 py-2 rounded-full border border-slate-700 focus:outline-none focus:border-blue-500 transition-colors"
                   />
                   <button

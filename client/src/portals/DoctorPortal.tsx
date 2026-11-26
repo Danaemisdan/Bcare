@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   DoctorProfile, 
@@ -7,7 +7,8 @@ import {
   AiDiagnosticResult, 
   PrescriptionMedicine,
   RevenueSplitConfig,
-  VideoAppointment
+  VideoAppointment,
+  IncomingCallNotification
 } from '../types';
 import { generatePrescriptionPdf } from '../utils/pdfGenerator';
 import { RollingCounter } from '../components/RollingCounter';
@@ -39,6 +40,8 @@ import {
   ZoomIn,
   X,
   Phone,
+  PhoneOff,
+  PhoneCall,
   Calendar,
   AlertCircle,
   ExternalLink,
@@ -95,6 +98,233 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
   // Queue sub-tab: In-person OPD vs Scheduled Video Teleconsultations
   const [queueMode, setQueueMode] = useState<'IN_PERSON' | 'VIDEO'>('IN_PERSON');
   const [activeVideoRoomApt, setActiveVideoRoomApt] = useState<VideoAppointment | null>(null);
+
+  // Active Incoming Video Call from Patient (Phone Ringing Alert & Chime)
+  const [incomingCall, setIncomingCall] = useState<IncomingCallNotification | null>(null);
+  const ringIntervalRef = useRef<any>(null);
+  const ringAudioCtxRef = useRef<AudioContext | null>(null);
+
+  // Synthesize realistic dual-tone hospital telephone ringing chime
+  const playRingingChime = () => {
+    try {
+      if (ringAudioCtxRef.current && ringAudioCtxRef.current.state !== 'closed') {
+        ringAudioCtxRef.current.close().catch(() => {});
+      }
+      const AudioCtxClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtxClass) return;
+      const ctx = new AudioCtxClass();
+      ringAudioCtxRef.current = ctx;
+
+      const triggerDoubleBeep = () => {
+        if (!ringAudioCtxRef.current || ringAudioCtxRef.current.state === 'closed') return;
+        const now = ringAudioCtxRef.current.currentTime;
+
+        // Frequencies for smooth dual telephone tone (523.25Hz & 659.25Hz)
+        [523.25, 659.25].forEach(freq => {
+          // Pulse 1
+          const osc1 = ctx.createOscillator();
+          const gain1 = ctx.createGain();
+          osc1.type = 'sine';
+          osc1.frequency.setValueAtTime(freq, now);
+
+          gain1.gain.setValueAtTime(0, now);
+          gain1.gain.linearRampToValueAtTime(0.12, now + 0.04);
+          gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
+
+          osc1.connect(gain1);
+          gain1.connect(ctx.destination);
+          osc1.start(now);
+          osc1.stop(now + 0.7);
+
+          // Pulse 2 (300ms later)
+          const osc2 = ctx.createOscillator();
+          const gain2 = ctx.createGain();
+          osc2.type = 'sine';
+          osc2.frequency.setValueAtTime(freq, now + 0.3);
+
+          gain2.gain.setValueAtTime(0, now + 0.3);
+          gain2.gain.linearRampToValueAtTime(0.12, now + 0.34);
+          gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.95);
+
+          osc2.connect(gain2);
+          gain2.connect(ctx.destination);
+          osc2.start(now + 0.3);
+          osc2.stop(now + 1.0);
+        });
+      };
+
+      triggerDoubleBeep();
+      ringIntervalRef.current = setInterval(triggerDoubleBeep, 2400);
+    } catch (e) {
+      console.warn('Audio chime start warning:', e);
+    }
+  };
+
+  const stopRingingChime = () => {
+    if (ringIntervalRef.current) {
+      clearInterval(ringIntervalRef.current);
+      ringIntervalRef.current = null;
+    }
+    if (ringAudioCtxRef.current && ringAudioCtxRef.current.state !== 'closed') {
+      ringAudioCtxRef.current.close().catch(() => {});
+      ringAudioCtxRef.current = null;
+    }
+  };
+
+  // BroadcastChannel + Server Polling for incoming video calls
+  useEffect(() => {
+    let bc: BroadcastChannel | null = null;
+    try {
+      bc = new BroadcastChannel('bcare_telehealth');
+      bc.onmessage = (event) => {
+        if (event.data?.type === 'INCOMING_VIDEO_CALL') {
+          const targetDocId = event.data.doctorId;
+          if (!targetDocId || targetDocId === doctor.id) {
+            const raw = event.data.call;
+            setIncomingCall({
+              id: raw.id || `call-${Date.now()}`,
+              doctorId: doctor.id,
+              doctorName: doctor.name,
+              patientId: raw.patientId || 'user-patient-1',
+              patientName: raw.patientName || 'Ramesh Kumar',
+              patientPhone: raw.patientPhone || '9876543210',
+              feePaid: raw.feePaid || raw.consultationFee || 250,
+              time: raw.time || raw.scheduledTime || '11:00 AM',
+              appointmentId: raw.appointmentId || raw.id || `vid-${Date.now()}`,
+              status: 'RINGING',
+              createdAt: raw.createdAt || new Date().toISOString()
+            });
+          }
+        }
+      };
+    } catch (e) {}
+
+    const checkIncoming = async () => {
+      try {
+        const res = await fetch(`/api/doctor/${doctor.id}/incoming-calls`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.incomingCalls && data.incomingCalls.length > 0) {
+            setIncomingCall(data.incomingCalls[0]);
+          }
+        }
+      } catch (e) {}
+    };
+
+    checkIncoming();
+    const timer = setInterval(checkIncoming, 2500);
+
+    return () => {
+      clearInterval(timer);
+      if (bc) bc.close();
+    };
+  }, [doctor.id, doctor.name]);
+
+  // Handle Ringing Chime, Vibration & OS Push Notification
+  useEffect(() => {
+    if (incomingCall) {
+      playRingingChime();
+      if ('vibrate' in navigator) {
+        try { navigator.vibrate([400, 200, 400, 200, 600]); } catch (e) {}
+      }
+      if ('Notification' in window && Notification.permission === 'granted') {
+        try {
+          new Notification(`📲 Incoming Video Call from ${incomingCall.patientName}`, {
+            body: `Fee: ₹${incomingCall.feePaid} paid. Tap to answer consultation room.`,
+            icon: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150'
+          });
+        } catch (e) {}
+      }
+    } else {
+      stopRingingChime();
+    }
+
+    return () => {
+      stopRingingChime();
+    };
+  }, [incomingCall]);
+
+  const handleAnswerIncomingCall = async () => {
+    if (!incomingCall) return;
+    stopRingingChime();
+    const current = incomingCall;
+    try {
+      await fetch(`/api/doctor/${doctor.id}/call/${current.id}/respond`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'ANSWER' })
+      });
+    } catch (e) {}
+
+    const answeredApt: VideoAppointment = {
+      id: current.appointmentId || `vid-${Date.now()}`,
+      doctorId: doctor.id,
+      doctorName: doctor.name,
+      doctorSpecialty: doctor.specialty,
+      hospitalName: doctor.hospitalName,
+      patientId: current.patientId,
+      patientName: current.patientName,
+      patientPhone: current.patientPhone,
+      date: new Date().toISOString().split('T')[0],
+      time: current.time,
+      meetingLink: `https://meet.bcare.health/room/bc-vid-${doctor.id}`,
+      feePaid: current.feePaid,
+      status: 'IN_ROOM',
+      paymentMethod: 'UPI',
+      createdAt: current.createdAt
+    };
+
+    setIncomingCall(null);
+    setLocalVideoAppointments(prev => [answeredApt, ...prev]);
+    setActiveVideoRoomApt(answeredApt);
+  };
+
+  const handleDeclineIncomingCall = async () => {
+    if (!incomingCall) return;
+    stopRingingChime();
+    const current = incomingCall;
+    try {
+      await fetch(`/api/doctor/${doctor.id}/call/${current.id}/respond`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'DECLINE' })
+      });
+    } catch (e) {}
+    setIncomingCall(null);
+  };
+
+  const handleTriggerSimulatedIncomingCall = async () => {
+    try {
+      const res = await fetch(`/api/doctor/${doctor.id}/simulate-incoming-call`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          patientName: 'Ramesh Kumar',
+          patientPhone: '+91 98765 43210',
+          feePaid: 250
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setIncomingCall(data.call);
+        return;
+      }
+    } catch (e) {}
+
+    setIncomingCall({
+      id: `call-sim-${Date.now()}`,
+      doctorId: doctor.id,
+      doctorName: doctor.name,
+      patientId: 'user-patient-1',
+      patientName: 'Ramesh Kumar',
+      patientPhone: '+91 98765 43210',
+      feePaid: 250,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      appointmentId: `vid-sim-${Date.now()}`,
+      status: 'RINGING',
+      createdAt: new Date().toISOString()
+    });
+  };
 
   // Diagnostic Media & Chat States
   const diagnosticMedia = [
@@ -576,9 +806,20 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
                         <p className="text-[11px] text-slate-400">Certified WebRTC video appointments with digital Rx capability</p>
                       </div>
                     </div>
-                    <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-800 font-semibold tabular-nums whitespace-nowrap shrink-0">
-                      {combinedVideoAppointments.length} Booked
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleTriggerSimulatedIncomingCall}
+                        className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] transition-colors cursor-pointer inline-flex items-center gap-1.5 shadow-xs"
+                        title="Simulate patient video call with phone ringing chime"
+                      >
+                        <PhoneCall className="w-3.5 h-3.5 animate-pulse" />
+                        <span>Test Ringing Call</span>
+                      </button>
+                      <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-800 font-semibold tabular-nums whitespace-nowrap shrink-0">
+                        {combinedVideoAppointments.length} Booked
+                      </span>
+                    </div>
                   </div>
 
                   {combinedVideoAppointments.length === 0 ? (
@@ -1220,6 +1461,81 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
         </PhoneModalPortal>
       )}
 
+      {/* Full-Fidelity Incoming Video Call Phone Ringing Modal */}
+      <AnimatePresence>
+        {incomingCall && (
+          <PhoneModalPortal>
+            <div className="absolute inset-0 z-[100] flex flex-col justify-end sm:justify-center items-center bg-slate-950/90 backdrop-blur-xl p-4 pointer-events-auto">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 30 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="w-full max-w-sm rounded-[32px] bg-gradient-to-b from-slate-900 to-slate-950 border border-emerald-500/30 p-6 text-center text-white shadow-2xl relative overflow-hidden space-y-6"
+              >
+                {/* Animated Glowing Ring Radar Waves */}
+                <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-72 h-72 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none animate-pulse" />
+
+                {/* Top Ringing Status */}
+                <div className="flex items-center justify-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+                  <span className="text-[11px] font-extrabold tracking-widest text-emerald-400 uppercase">
+                    Incoming Video Call
+                  </span>
+                </div>
+
+                {/* Caller Profile Avatar with Radar Rings */}
+                <div className="relative flex justify-center items-center py-2">
+                  <div className="absolute w-28 h-28 rounded-full border-2 border-emerald-400/40 animate-ping pointer-events-none" />
+                  <div className="absolute w-24 h-24 rounded-full border border-emerald-400/60 animate-pulse pointer-events-none" />
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-400 p-1 shadow-lg shadow-emerald-500/20 relative z-10 flex items-center justify-center">
+                    <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center overflow-hidden">
+                      <User className="w-10 h-10 text-emerald-300" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Caller Details */}
+                <div className="space-y-1">
+                  <h3 className="text-xl font-black text-white">{incomingCall.patientName}</h3>
+                  <p className="text-xs text-slate-400">{incomingCall.patientPhone}</p>
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-[11px] font-bold text-emerald-300 mt-2">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>₹{incomingCall.feePaid} Paid via UPI • Instant Telehealth</span>
+                  </div>
+                </div>
+
+                {/* Audio Ringing Notice */}
+                <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
+                  <Bell className="w-3.5 h-3.5 text-emerald-400 animate-bounce" />
+                  <span>Dual-tone chime active • Phone vibrating</span>
+                </div>
+
+                {/* Call Actions: Decline or Answer */}
+                <div className="grid grid-cols-2 gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={handleDeclineIncomingCall}
+                    className="py-3 px-4 rounded-2xl bg-rose-950/60 hover:bg-rose-900/80 border border-rose-500/40 text-rose-300 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm active:scale-95"
+                  >
+                    <PhoneOff className="w-4 h-4 text-rose-400" />
+                    <span>Decline</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleAnswerIncomingCall}
+                    className="relative group overflow-hidden py-3 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-emerald-500/30 active:scale-95"
+                  >
+                    <Video className="w-4 h-4 text-slate-950" />
+                    <span>Answer & Join</span>
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          </PhoneModalPortal>
+        )}
+      </AnimatePresence>
+
       {/* Teleconsultation Video Room Modal */}
       {activeVideoRoomApt && (
         <TeleconsultRoomModal
@@ -1228,6 +1544,7 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
           patientName={activeVideoRoomApt.patientName}
           doctorName={doctor.name}
           specialty={doctor.specialty}
+          currentRole="DOCTOR"
           patientLanguages={['English', 'Tamil', 'Hindi']}
           onPrescriptionGenerated={(rx) => {
             setActiveVideoRoomApt(null);

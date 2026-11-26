@@ -292,3 +292,17 @@ export interface VideoAppointment {
   bookedByNurseId?: string;
   nurseId?: string;
 }
+
+export interface IncomingCallNotification {
+  id: string;
+  doctorId: string;
+  doctorName?: string;
+  patientId: string;
+  patientName: string;
+  patientPhone: string;
+  feePaid: number;
+  time: string;
+  appointmentId: string;
+  status: 'RINGING' | 'ACCEPTED' | 'DECLINED' | 'MISSED';
+  createdAt: string;
+}

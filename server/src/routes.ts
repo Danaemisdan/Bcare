@@ -13,7 +13,8 @@ import {
   FranchiseTerritory,
   LoginRequest,
   SignUpRequest,
-  AuthResponse
+  AuthResponse,
+  IncomingCallNotification
 } from './types.js';
 
 const router = Router();
@@ -134,10 +135,12 @@ router.post('/auth/signup', (req: Request, res: Response) => {
     districtName
   } = req.body as SignUpRequest;
 
-  // Allow self-registration for Patients and Registered Doctors
-  if (role && role !== 'PATIENT' && role !== 'DOCTOR') {
+  // Strict Customer-Only Registration Policy:
+  // Only Customers (Patients) can sign up on their own.
+  // Doctors, Nurses, and Staff accounts are created and managed by the System Admin.
+  if (role && role !== 'PATIENT') {
     return res.status(403).json({ 
-      error: 'Self-registration is permitted for Patients and Doctors. Nurse and franchise administrative accounts must be provisioned by Network Administration.' 
+      error: 'Self-registration is permitted for Customers (Patients) only. Doctors, Nurses, and Staff accounts are created and managed by the System Admin.' 
     });
   }
 
@@ -153,137 +156,42 @@ router.post('/auth/signup', (req: Request, res: Response) => {
     });
   }
 
-  const userId = `user-${role.toLowerCase().replace('_', '-')}-${Date.now()}`;
+  const userId = `user-patient-${Date.now()}`;
   const newUser: User = {
     id: userId,
     phone: cleanPhone,
     email: email?.trim().toLowerCase() || `${cleanPhone}@bcare.in`,
     name: name.trim(),
-    role: role as UserRole,
-    avatarUrl: role === 'DOCTOR' 
-      ? 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150' 
-      : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+    role: 'PATIENT',
+    avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
     createdAt: new Date().toISOString()
   };
 
   store.users.push(newUser);
 
-  // Initialize Role-Specific Profile
-  let profile: any = null;
-
-  if (role === 'PATIENT') {
-    const patientProfile: PatientProfile = {
-      userId,
-      name: newUser.name,
-      phone: newUser.phone,
-      email: newUser.email,
-      age: Number(age) || 32,
-      dob: '1994-05-12',
-      gender: gender || 'MALE',
-      bloodGroup: bloodGroup || undefined,
-      languages: (req.body as any).languages || ['English', 'Tamil'],
-      profileCompletionPct: bloodGroup ? 75 : 60
-    };
-    store.patientProfiles.set(userId, patientProfile);
-    profile = patientProfile;
-  } else if (role === 'DOCTOR') {
-    const matchedHosp = store.hospitals.find(h => h.id === hospitalId) || store.hospitals[0];
-    const docProfile: DoctorProfile = {
-      id: `doc-${Date.now()}`,
-      userId,
-      name: newUser.name.startsWith('Dr.') ? newUser.name : `Dr. ${newUser.name}`,
-      specialty: specialty || 'General Medicine',
-      hospitalId: matchedHosp.id,
-      hospitalName: matchedHosp.name,
-      experienceYears: 8,
-      opConsultationFee: 100,
-      teleConsultationFee: 200,
-      availableDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-      rating: 5.0,
-      totalConsultations: 0,
-      status: 'ACTIVE',
-      distance: matchedHosp.distance || '1.2 km',
-      nextAvailableToken: 1,
-      roomNumber: '106',
-      estimatedWaitMins: 5,
-      videoAvailable: true,
-      registrationNumber: registrationNumber || 'NMC-TN-88219',
-      isAccountVerified: true
-    };
-    store.doctors.push(docProfile);
-    profile = docProfile;
-
-    // Seed slots for this new doctor today
-    const today = new Date().toISOString().split('T')[0];
-    const newDocTimes = ['10:00 AM', '10:15 AM', '10:30 AM', '10:45 AM', '11:00 AM', '11:15 AM'];
-    newDocTimes.forEach((t, i) => {
-      store.opSlots.push({
-        id: `slot-${docProfile.id}-${i + 1}`,
-        doctorId: docProfile.id,
-        doctorName: docProfile.name,
-        hospitalId: docProfile.hospitalId,
-        hospitalName: docProfile.hospitalName,
-        specialty: docProfile.specialty,
-        date: today,
-        time: t,
-        tokenNumber: i + 1,
-        status: 'AVAILABLE',
-        feePaid: 100,
-        feeSplit: {
-          doctor: store.revenueSplitConfig.doctorFee,
-          nurse: 0,
-          franchise: store.revenueSplitConfig.franchiseShare,
-          platform: store.revenueSplitConfig.platformShare + store.revenueSplitConfig.nurseReferralCommission,
-          gst: store.revenueSplitConfig.gstAmount
-        }
-      });
-    });
-  } else if (role === 'NURSE') {
-    const defaultHosp = store.hospitals[0];
-    const nurseCode = referralCode || `NURSE-${newUser.name.slice(0, 4).toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`;
-    const nurseProf: NurseProfile = {
-      id: `nurse-${Date.now()}`,
-      userId,
-      name: `Sister ${newUser.name}`,
-      phone: newUser.phone,
-      referralCode: nurseCode,
-      districtId: districtId || 'dist-coimbatore-south',
-      districtName: 'Coimbatore South',
-      affiliatedHospitalId: defaultHosp.id,
-      totalReferrals: 0,
-      walletBalance: 0,
-      totalEarnings: 0
-    };
-    store.nurses.push(nurseProf);
-    profile = nurseProf;
-  } else if (role === 'FRANCHISE_ADMIN') {
-    const franchiseProf: FranchiseTerritory = {
-      id: `franchise-${Date.now()}`,
-      districtName: districtName || 'Coimbatore Rural',
-      state: 'Tamil Nadu',
-      agencyName: agencyName || `${newUser.name} Healthcare Logistics`,
-      assignedAdminName: newUser.name,
-      annualFranchiseFee: 50000,
-      totalHospitals: 1,
-      totalNurses: 3,
-      monthlyRevenue: 0,
-      cashCollectedToday: 0,
-      cashDepositedToday: 0,
-      pendingReconciliation: 0
-    };
-    store.franchises.push(franchiseProf);
-    profile = franchiseProf;
-  } else {
-    profile = { id: userId, name: newUser.name, role: 'SUPER_ADMIN' };
-  }
+  // Initialize Customer / Patient Profile
+  const patientProfile: PatientProfile = {
+    userId,
+    name: newUser.name,
+    phone: newUser.phone,
+    email: newUser.email,
+    age: Number(age) || 32,
+    dob: '1994-05-12',
+    gender: gender || 'MALE',
+    bloodGroup: bloodGroup || undefined,
+    languages: (req.body as any).languages || ['English', 'Tamil'],
+    profileCompletionPct: bloodGroup ? 75 : 60
+  };
+  store.patientProfiles.set(userId, patientProfile);
+  const profile = patientProfile;
 
   const token = `bcare_tok_${userId}_${Date.now()}`;
   const response: AuthResponse = {
     user: newUser,
     token,
-    role: newUser.role,
+    role: 'PATIENT',
     profile,
-    message: 'Account created successfully'
+    message: 'Customer account created successfully'
   };
 
   res.status(201).json(response);
@@ -1055,13 +963,88 @@ router.post('/telehealth/book', (req: Request, res: Response) => {
 
   store.videoAppointments.unshift(newAppointment);
 
+  // Trigger Incoming Video Call Alert on Doctor's Portal / Phone
+  const callNotification: IncomingCallNotification = {
+    id: `call-${Date.now()}`,
+    doctorId: doc.id,
+    doctorName: doc.name,
+    patientId: newAppointment.patientId,
+    patientName: newAppointment.patientName,
+    patientPhone: newAppointment.patientPhone,
+    feePaid: newAppointment.feePaid,
+    time: newAppointment.time,
+    appointmentId: newAppointment.id,
+    status: 'RINGING',
+    createdAt: new Date().toISOString()
+  };
+  store.incomingCalls = store.incomingCalls || [];
+  store.incomingCalls.unshift(callNotification);
+
   res.status(201).json({
     message: 'HD Video Consultation scheduled successfully!',
     appointment: newAppointment,
+    callNotification,
     whatsAppNotificationSent: {
       to: newAppointment.patientPhone,
       text: `B care Video Teleconsult Confirmed with ${doc.name} (${doc.specialty}) for ${newAppointment.time} on ${newAppointment.date}. Room Link: ${newAppointment.meetingLink}. Fee Paid: ₹${newAppointment.feePaid} via ${newAppointment.paymentMethod}.`
     }
+  });
+});
+
+// Doctor Phone Notification: Get active ringing calls for doctor
+router.get('/doctor/:doctorId/incoming-calls', (req: Request, res: Response) => {
+  const { doctorId } = req.params;
+  const calls = (store.incomingCalls || []).filter(
+    c => c.doctorId === doctorId && c.status === 'RINGING'
+  );
+  res.json({ incomingCalls: calls });
+});
+
+// Doctor Phone Notification: Respond to incoming call (Answer or Decline)
+router.post('/doctor/:doctorId/call/:callId/respond', (req: Request, res: Response) => {
+  const { doctorId, callId } = req.params;
+  const { action } = req.body; // 'ANSWER' | 'DECLINE'
+  const call = (store.incomingCalls || []).find(c => c.id === callId && c.doctorId === doctorId);
+  if (!call) {
+    return res.status(404).json({ error: 'Call not found or already concluded' });
+  }
+
+  if (action === 'ANSWER') {
+    call.status = 'ACCEPTED';
+    const appointment = store.videoAppointments.find(v => v.id === call.appointmentId);
+    return res.json({ message: 'Call answered', call, appointment });
+  } else {
+    call.status = 'DECLINED';
+    return res.json({ message: 'Call declined', call });
+  }
+});
+
+// Doctor Phone Notification: Simulate an instant incoming call for verification/testing
+router.post('/doctor/:doctorId/simulate-incoming-call', (req: Request, res: Response) => {
+  const { doctorId } = req.params;
+  const doc = store.doctors.find(d => d.id === doctorId) || store.doctors[0];
+  const { patientName, patientPhone, feePaid } = req.body || {};
+
+  const simulatedCall: IncomingCallNotification = {
+    id: `call-sim-${Date.now()}`,
+    doctorId: doc ? doc.id : (doctorId as string),
+    doctorName: doc ? doc.name : 'Dr. Ananya Sharma',
+    patientId: `user-sim-${Date.now()}`,
+    patientName: patientName || 'Ramesh Kumar',
+    patientPhone: patientPhone || '+91 98765 43210',
+    feePaid: Number(feePaid) || 250,
+    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    appointmentId: `vid-sim-${Date.now()}`,
+    status: 'RINGING',
+    createdAt: new Date().toISOString()
+  };
+
+  store.incomingCalls = store.incomingCalls || [];
+  store.incomingCalls.unshift(simulatedCall);
+
+  res.status(201).json({
+    message: 'Incoming video call dispatched to doctor phone/workstation',
+    call: simulatedCall
   });
 });
 

@@ -108,12 +108,15 @@ export function App() {
     return true;
   });
 
-  // Compulsory splash screen playback whenever switching between apps / roles (e.g., Patient -> Doctor)
+  // Splash screen playback on role switch unless splash=false
   const prevRoleRef = useRef<UserRole>(currentRole);
   useEffect(() => {
     if (prevRoleRef.current !== currentRole) {
       prevRoleRef.current = currentRole;
-      setShowSplashScreen(true);
+      const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+      if (params?.get('splash') !== 'false') {
+        setShowSplashScreen(true);
+      }
     }
   }, [currentRole]);
   const [patientTab, setPatientTab] = useState<'op_booking' | 'bookings' | 'ai_assist' | 'hospitals' | 'profile'>(() => {
@@ -1293,6 +1296,9 @@ export function App() {
 
   // 17. Telehealth Video Booking
   const handleBookVideoConsultation = async (bookingData: any) => {
+    let bookedApt: VideoAppointment | null = null;
+    let callNotification: any = null;
+
     try {
       const res = await fetch('/api/telehealth/book', {
         method: 'POST',
@@ -1301,29 +1307,59 @@ export function App() {
       });
       if (res.ok) {
         const data = await res.json();
-        setVideoAppointments(prev => [data.appointment, ...prev]);
-        return data;
+        bookedApt = data.appointment;
+        callNotification = data.callNotification;
+        if (bookedApt) {
+          setVideoAppointments(prev => [bookedApt!, ...prev]);
+        }
       }
     } catch (e) {}
-    const apt: VideoAppointment = {
-      id: `vid-${Date.now()}`,
-      doctorId: bookingData.doctorId,
-      doctorName: bookingData.doctorName,
-      doctorSpecialty: bookingData.doctorSpecialty,
-      hospitalName: bookingData.hospitalName,
-      patientId: patientProfile.userId,
-      patientName: patientProfile.name,
-      patientPhone: patientProfile.phone,
-      date: new Date().toISOString().split('T')[0],
-      time: bookingData.time || '11:00 AM',
-      meetingLink: `https://meet.bcare.health/room/bc-vid-${bookingData.doctorId.slice(-4)}`,
-      feePaid: bookingData.feePaid || 200,
-      status: 'SCHEDULED',
-      paymentMethod: bookingData.paymentMethod || 'UPI',
-      createdAt: new Date().toISOString()
-    };
-    setVideoAppointments(prev => [apt, ...prev]);
-    return { appointment: apt };
+
+    if (!bookedApt) {
+      bookedApt = {
+        id: `vid-${Date.now()}`,
+        doctorId: bookingData.doctorId,
+        doctorName: bookingData.doctorName || 'Dr. Ananya Sharma',
+        doctorSpecialty: bookingData.doctorSpecialty || 'Cardiology',
+        hospitalName: bookingData.hospitalName || 'City Care Multi-Specialty Hospital',
+        patientId: patientProfile.userId,
+        patientName: patientProfile.name,
+        patientPhone: patientProfile.phone,
+        date: new Date().toISOString().split('T')[0],
+        time: bookingData.time || '11:00 AM',
+        meetingLink: `https://meet.bcare.health/room/bc-vid-${bookingData.doctorId?.slice(-4) || 'doc1'}`,
+        feePaid: bookingData.feePaid || bookingData.consultationFee || 250,
+        status: 'SCHEDULED',
+        paymentMethod: bookingData.paymentMethod || 'UPI',
+        createdAt: new Date().toISOString()
+      };
+      setVideoAppointments(prev => [bookedApt!, ...prev]);
+    }
+
+    // Instantly notify Doctor Portal / Phone via BroadcastChannel
+    try {
+      const channel = new BroadcastChannel('bcare_telehealth');
+      channel.postMessage({
+        type: 'INCOMING_VIDEO_CALL',
+        doctorId: bookingData.doctorId || bookedApt.doctorId,
+        call: callNotification || {
+          id: `call-${Date.now()}`,
+          doctorId: bookingData.doctorId || bookedApt.doctorId,
+          doctorName: bookedApt.doctorName,
+          patientId: bookedApt.patientId,
+          patientName: bookedApt.patientName,
+          patientPhone: bookedApt.patientPhone,
+          feePaid: bookedApt.feePaid,
+          time: bookedApt.time,
+          appointmentId: bookedApt.id,
+          status: 'RINGING',
+          createdAt: new Date().toISOString()
+        }
+      });
+      setTimeout(() => channel.close(), 1000);
+    } catch (e) {}
+
+    return { appointment: bookedApt };
   };
 
   // Nimbus Liquid Glass Nav Items: Home, Bookings (Visits + Video), AI Health, Hospitals (with Maps), Profile (with Records & Legal)
