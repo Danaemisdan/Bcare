@@ -1,61 +1,32 @@
-import { RealMapView } from './RealMapView';
-import { UserLocationData, calculateDistanceKm, getGoogleMapsDirectionsUrl, detectCurrentLocation } from '../services/locationService';
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Sparkles, 
-  MapPin, 
-  Building2, 
-  Star, 
-  ChevronLeft, 
-  ArrowRight, 
-  Check, 
-  Search, 
-  X, 
-  Volume2, 
-  VolumeX, 
+  Send, 
   Mic, 
   MicOff, 
-  Video, 
-  CheckCircle2, 
-  RotateCcw, 
-  Waves, 
-  Bone, 
-  Thermometer, 
-  Wind, 
-  HeartPulse, 
-  Brain, 
-  Eye, 
-  Ear, 
-  Smile, 
-  Droplets, 
-  ShieldAlert, 
-  HeartHandshake, 
-  Baby, 
-  Syringe, 
-  Moon, 
-  FlaskConical, 
-  Bandage, 
-  Stethoscope, 
-  MoreHorizontal, 
-  Navigation, 
-  Crosshair, 
-  ExternalLink, 
-  Layers, 
-  Plus, 
-  Minus, 
-  LocateFixed, 
-  Car, 
-  ShieldCheck, 
-  Globe, 
-  ChevronDown, 
+  Volume2, 
+  VolumeX, 
   Languages, 
-  PhoneCall,
-  LucideIcon 
+  Sparkles, 
+  ChevronLeft, 
+  Building2, 
+  Calendar, 
+  Video, 
+  MapPin, 
+  Clock, 
+  CheckCircle2, 
+  AlertTriangle, 
+  PhoneCall, 
+  RotateCcw, 
+  Star, 
+  ArrowRight,
+  ShieldCheck,
+  Stethoscope,
+  ChevronRight,
+  ExternalLink
 } from 'lucide-react';
 import { DoctorProfile, Hospital, OpSlot, PatientProfile } from '../types';
 import { ConsultationType } from './BookingConsultationScreen';
-import { SiriOrb } from './SiriOrb';
 
 // ============================================================================
 // ALL 10 INDIAN REGIONAL LANGUAGES (PREMIUM STT & TTS ENGINE)
@@ -66,65 +37,73 @@ export interface IndianLanguage {
   englishName: string;
   flag: string;
   placeholder: string;
-  spokenIntro: string;
+  greeting: string;
+  listeningText: string;
 }
 
 export const SUPPORTED_INDIAN_LANGUAGES: IndianLanguage[] = [
   { 
     code: 'en-IN', 
-    name: 'English (India)', 
+    name: 'English', 
     englishName: 'English (IN)', 
     flag: '🇮🇳', 
-    placeholder: 'Search symptoms, e.g. severe stomach pain, fever, back ache, knee swelling...',
-    spokenIntro: 'Tell us what you are experiencing. We will guide you where to go and who to see.' 
-  },
-  { 
-    code: 'ta-IN', 
-    name: 'தமிழ்', 
-    englishName: 'Tamil', 
-    flag: '🇮🇳', 
-    placeholder: 'உங்கள் அறிகுறிகளை தமிழில் தேடவும் அல்லது பேசவும்...',
-    spokenIntro: 'உங்கள் பிரச்சனையை கூறுங்கள். நீங்கள் எந்த மருத்துவமனைக்கு செல்ல வேண்டும் என்று வழிகாட்டுகிறோம்.' 
-  },
-  { 
-    code: 'hi-IN', 
-    name: 'हिन्दी', 
-    englishName: 'Hindi', 
-    flag: '🇮🇳', 
-    placeholder: 'अपने लक्षण लिखें या बोलें, जैसे पेट दर्द, बुखार, सिरदर्द...',
-    spokenIntro: 'कृपया बताएं कि आपको क्या समस्या है। हम बताएंगे कि आपको किस अस्पताल या डॉक्टर के पास जाना चाहिए।' 
+    placeholder: 'Type your symptoms or tap the mic to speak...',
+    greeting: "Hello! I'm Bcare AI, your clinical care assistant. 🩺\n\nWhat health problem or symptoms are you experiencing today? You can speak using the mic 🎙️ in any language or type below.",
+    listeningText: "Listening... Please speak your symptoms now"
   },
   { 
     code: 'te-IN', 
     name: 'తెలుగు', 
     englishName: 'Telugu', 
     flag: '🇮🇳', 
-    placeholder: 'మీ సమస్యను ఇక్కడ టైప్ చేయండి లేదా మాట్లాడండి...',
-    spokenIntro: 'మీ లక్షణాలను తెలపండి. మీరు ఏ విభాగానికి లేదా ఆసుపత్రికి వెళ్లాలో మేము మార్గదర్శనం చేస్తాము.' 
+    placeholder: 'మీ ఆరోగ్య సమస్యను ఇక్కడ టైప్ చేయండి లేదా మాట్లాడండి...',
+    greeting: "నమస్కారం! నేను మీ బికేర్ AI క్లినికల్ అసిస్టెంట్‌ని. 🩺\n\nమీకు ఎలాంటి ఆరోగ్య సమస్య లేదా నొప్పులు ఉన్నాయి? మైక్ 🎙️ ద్వారా తెలుగులో మాట్లాడండి లేదా కింద టైప్ చేయండి.",
+    listeningText: "వింటున్నాను... మీ లక్షణాలను ఇప్పుడు మాట్లాడండి"
+  },
+  { 
+    code: 'hi-IN', 
+    name: 'हिन्दी', 
+    englishName: 'Hindi', 
+    flag: '🇮🇳', 
+    placeholder: 'अपनी परेशानी लिखें या माइक दबाकर बोलें...',
+    greeting: "नमस्ते! मैं आपका बीकेयर AI क्लिनिकल असिस्टेंट हूँ। 🩺\n\nआपको क्या स्वास्थ्य समस्या या लक्षण महसूस हो रहे हैं? आप माइक 🎙️ दबाकर हिन्दी में बोल सकते हैं या नीचे लिख सकते हैं।",
+    listeningText: "सुन रहा हूँ... कृपया अपनी परेशानी बताएं"
+  },
+  { 
+    code: 'ta-IN', 
+    name: 'தமிழ்', 
+    englishName: 'Tamil', 
+    flag: '🇮🇳', 
+    placeholder: 'உங்கள் பிரச்சனையை தமிழில் தட்டச்சு செய்யவும் அல்லது பேசவும்...',
+    greeting: "வணக்கம்! நான் உங்கள் பிகேர் AI உதவியாளர். 🩺\n\nஉங்களுக்கு என்ன உடல்நல பிரச்சனை அல்லது வலி உள்ளது? மைக் 🎙️ மூலம் தமிழில் பேசலாம் அல்லது கீழே தட்டச்சு செய்யவும்.",
+    listeningText: "கேட்கிறது... உங்கள் பிரச்சனையை இப்போது பேசுங்கள்"
   },
   { 
     code: 'kn-IN', 
     name: 'ಕನ್ನಡ', 
     englishName: 'Kannada', 
     flag: '🇮🇳', 
-    placeholder: 'ನಿಮ್ಮ ರೋಗಲಕ್ಷಣಗಳನ್ನು ಟೈಪ್ ಮಾಡಿ ಅಥವಾ ಮಾತನಾಡಿ...',
-    spokenIntro: 'ನಿಮ್ಮ ಸಮಸ್ಯೆಯನ್ನು ವಿವರಿಸಿ. ನೀವು ಯಾವ ವೈದ್ಯರ ಬಳಿಗೆ ಹೋಗಬೇಕೆಂದು ನಾವು ತಿಳಿಸುತ್ತೇವೆ.' 
+    placeholder: 'ನಿಮ್ಮ ಸಮಸ್ಯೆಯನ್ನು ಟೈಪ್ ಮಾಡಿ ಅಥವಾ ಮಾತನಾಡಿ...',
+    greeting: "ನಮಸ್ಕಾರ! ನಾನು ನಿಮ್ಮ ಬಿಕೇರ್ AI ಕ್ಲಿನಿಕಲ್ ಸಹಾಯಕ. 🩺\n\nನಿಮಗೆ ಯಾವ ಆರೋಗ್ಯ ಸಮಸ್ಯೆ ಇದೆ? ಮೈಕ್ 🎙️ ಒತ್ತಿ ಮಾತನಾಡಿ ಅಥವಾ ಕೆಳಗೆ ಬರೆಯಿರಿ.",
+    listeningText: "ಕೇಳಿಸಿಕೊಳ್ಳುತ್ತಿದ್ದೇನೆ... ಮಾತನಾಡಿ"
   },
   { 
     code: 'ml-IN', 
     name: 'മലയാളം', 
     englishName: 'Malayalam', 
     flag: '🇮🇳', 
-    placeholder: 'ലക്ഷണങ്ങൾ മലയാളത്തിൽ തിരയുക അല്ലെങ്കിൽ പറയുക...',
-    spokenIntro: 'നിങ്ങളുടെ ബുദ്ധിമുട്ട് വ്യക്തമാക്കുക. ഏത് ആശുപത്രിയിൽ പോകണമെന്ന് ഞങ്ങൾ വഴികാണിക്കാം.' 
+    placeholder: 'ലക്ഷണങ്ങൾ മലയാളത്തിൽ ടൈപ്പ് ചെയ്യുക അല്ലെങ്കിൽ പറയുക...',
+    greeting: "നമസ്കാരം! ഞാൻ നിങ്ങളുടെ ബികെയർ AI അസിസ്റ്റന്റാണ്. 🩺\n\nനിങ്ങൾക്ക് എന്ത് രോഗലക്ഷണങ്ങളാണ് ഉള്ളത്? സംസാരിക്കുക അല്ലെങ്കിൽ ടൈപ്പ് ചെയ്യുക.",
+    listeningText: "ശ്രദ്ധിക്കുന്നു... സംസാരിക്കൂ"
   },
   { 
     code: 'mr-IN', 
     name: 'मराठी', 
     englishName: 'Marathi', 
     flag: '🇮🇳', 
-    placeholder: 'आपली लक्षणे टाइप करा किंवा बोला...',
-    spokenIntro: 'आपली लक्षणे सांगा. आपण कोणत्या डॉक्टरकडे जावे हे आम्ही सुचवू.' 
+    placeholder: 'आपली लक्षणे लिहा किंवा बोला...',
+    greeting: "नमस्कार! मी आपला बीकेअर AI सहाय्यक आहे. 🩺\n\nआपल्याला काय त्रास होत आहे? माइक 🎙️ वापरून बोला किंवा खाली लिहा.",
+    listeningText: "ऐकत आहे... कृपया बोला"
   },
   { 
     code: 'bn-IN', 
@@ -132,1255 +111,721 @@ export const SUPPORTED_INDIAN_LANGUAGES: IndianLanguage[] = [
     englishName: 'Bengali', 
     flag: '🇮🇳', 
     placeholder: 'আপনার লক্ষণগুলি বাংলায় লিখুন বা বলুন...',
-    spokenIntro: 'আপনার সমস্যা জানান। কোন হাসপাতালে যাবেন তা আমরা বলে দেব।' 
+    greeting: "নমস্কার! আমি আপনার বিকেয়ার AI সহায়ক। 🩺\n\nআপনার কি শারীরিক সমস্যা হচ্ছে? মাইক 🎙️ টিপে বলুন বা নিচে লিখুন।",
+    listeningText: "শুনছি... আপনার সমস্যা বলুন"
   },
   { 
     code: 'gu-IN', 
     name: 'ગુજરાતી', 
     englishName: 'Gujarati', 
     flag: '🇮🇳', 
-    placeholder: 'તમારા લક્ષણો લખો અથવા બોલો...',
-    spokenIntro: 'તમારી તકલીફ જણાવો. કયા દવાખાને જવું તે અમે બતાવીશું.' 
+    placeholder: 'તમારી તકલીફ લખો અથવા બોલો...',
+    greeting: "નમસ્તે! હું તમારો બીકેર AI આસિસ્ટન્ટ છું. 🩺\n\nતમને શું તકલીફ છે? માઇક 🎙️ દબાવીને બોલો અથવા નીચે લખો.",
+    listeningText: "સાંભળી રહ્યો છું... કૃપા કરીને બોલો"
   },
   { 
     code: 'pa-IN', 
     name: 'ਪੰਜਾਬੀ', 
     englishName: 'Punjabi', 
     flag: '🇮🇳', 
-    placeholder: 'ਆਪਣੇ ਲੱਛਣ ਲਿਖੋ ਜਾਂ ਬੋਲੋ...',
-    spokenIntro: 'ਆਪਣੀ ਸਮੱਸਿਆ ਦੱਸੋ। ਅਸੀਂ ਦੱਸਾਂਗੇ ਕਿ ਤੁਹਾਨੂੰ ਕਿੱਥੇ ਜਾਣਾ ਚਾਹੀਦਾ ਹੈ।' 
+    placeholder: 'ਆਪਣੀ ਸਮੱਸਿਆ ਲਿਖੋ ਜਾਂ ਬੋਲੋ...',
+    greeting: "ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ! ਮੈਂ ਤੁਹਾਡਾ ਬੀਕੇਅਰ AI ਸਹਾਇਕ ਹਾਂ। 🩺\n\nਤੁਹਾਨੂੰ ਕੀ ਸਮੱਸਿਆ ਮਹਿਸੂਸ ਹੋ ਰਹੀ ਹੈ? ਮਾਈਕ 🎙️ ਦਬਾ ਕੇ ਬੋਲੋ ਜਾਂ ਹੇਠਾਂ ਲਿਖੋ।",
+    listeningText: "ਸੁਣ ਰਿਹਾ ਹਾਂ... ਕਿਰਪਾ ਕਰਕੇ ਬੋਲੋ"
   }
 ];
 
-// ============================================================================
-// CARE NAVIGATOR CATEGORIES (WHERE TO GO & SPECIALIST MATCHING)
-// ============================================================================
-export type ClinicalCategoryId = 
-  | 'vomiting_gi'
-  | 'pain_ortho'
-  | 'fever_infection'
-  | 'cough_breathing'
-  | 'chest_cardiac'
-  | 'headache_neuro'
-  | 'eye_vision'
-  | 'ent_throat'
-  | 'dental_oral'
-  | 'urinary_kidney'
-  | 'skin_allergy'
-  | 'womens_health'
-  | 'pediatrics_child'
-  | 'diabetes_endocrine'
-  | 'mental_sleep'
-  | 'trauma_firstaid'
-  | 'diagnostics_lab'
-  | 'general_other';
+// Quick symptom starter chips
+const QUICK_SYMPTOM_PROMPTS = [
+  "Stomach pain & acidity",
+  "Chest heaviness & palpitations",
+  "High fever & severe headache",
+  "Knee joint pain & swelling",
+  "Skin itching & red allergy"
+];
 
-export interface SmartCategoryConfig {
-  id: ClinicalCategoryId;
-  title: string;
-  badge: string;
-  icon: LucideIcon;
-  iconBg: string;
-  iconColor: string;
-  keywords: string[];
-  department: string;
-  specialty: string;
-  urgency: 'PRIORITY' | 'SAME_DAY' | 'ROUTINE';
-  urgencyLabel: string;
-  whereToGoAdvice: string;
-  spokenSummary: string;
+export interface ChatMessage {
+  id: string;
+  sender: 'ai' | 'user';
+  text: string;
+  timestamp: number;
+  doctorRecommendation?: {
+    doctor: DoctorProfile;
+    hospital: Hospital;
+    specialty: string;
+    advice: string;
+    urgency: 'EMERGENCY' | 'PRIORITY' | 'ROUTINE';
+    urgencyLabel: string;
+  };
+  suggestedChips?: string[];
 }
-
-export const SMART_CLINICAL_CATEGORIES: SmartCategoryConfig[] = [
-  {
-    id: 'vomiting_gi',
-    title: 'Stomach & Digestion',
-    badge: 'Gastroenterology',
-    icon: Waves,
-    iconBg: 'bg-emerald-50',
-    iconColor: 'text-emerald-600',
-    keywords: [
-      'vomit', 'vomiting', 'nausea', 'puke', 'food poison', 'loose motion', 'diarrhea', 'stomach bug', 'dehydration', 'acid reflux', 'indigestion', 'stomach cramp', 'belly pain', 'gastric', 'cramp', 'cramps', 'tummy', 'acidity', 'loose stool', 'dysentery', 'food poisoning', 'gas', 'bloating',
-      'pet', 'pait', 'pet dard', 'ulti', 'dast', 'matli', 'kabz', 'marod', 'पेट', 'उल्टी', 'दस्त', 'मतली',
-      'vayiru', 'vairu', 'vayiru vali', 'vaanthi', 'vanthi', 'bhedi', 'pedhi', 'seriyamai', 'வயிறு', 'வாந்தி', 'பேதி',
-      'kadupu', 'kadupu noppi', 'vanthulu', 'virachanalu', 'కడుపు', 'వాంతులు',
-      'hotte', 'hotte novu', 'vaanti', 'ಹೊಟ್ಟೆ', 'ವಾಂತಿ',
-      'vayaru', 'vayaruvedhana', 'chardhi', 'ഛർദ്ദി', 'വയറു'
-    ],
-    department: 'Department of Gastroenterology & General Medicine',
-    specialty: 'Gastroenterology',
-    urgency: 'SAME_DAY',
-    urgencyLabel: 'Visit Hospital OPD Today',
-    whereToGoAdvice: 'Visit the Gastroenterology or General Medicine OPD for physical examination and rehydration. If vomiting is severe and you cannot keep fluids down, head directly to the 24/7 Emergency unit for IV fluids.',
-    spokenSummary: 'For severe stomach pain or vomiting, visit the Gastroenterology department at City Care Hospital nearby. An outpatient queue token is available.'
-  },
-  {
-    id: 'pain_ortho',
-    title: 'Spine & Joints',
-    badge: 'Orthopedics',
-    icon: Bone,
-    iconBg: 'bg-amber-50',
-    iconColor: 'text-amber-600',
-    keywords: [
-      'pain', 'back', 'lower back', 'neck', 'spine', 'joint', 'knee', 'shoulder', 'sciatica', 'sprain', 'twist', 'muscle', 'ache', 'slip disc', 'cervical', 'lumbar', 'bone', 'fracture', 'ligament', 'ankle', 'wrist',
-      'kamar dard', 'kamar', 'ghutna', 'ghutne', 'dard', 'कमर दर्द', 'घुटने', 'जोड़ों',
-      'mudhugu', 'mudhugu vali', 'kaal vali', 'mottu vali', 'iduppu vali', 'elumbu', 'முதுகு வலி', 'மூட்டு வலி',
-      'vennu', 'vennu noppi', 'kaalu noppi', 'mokkalilu', 'వెన్ను నొప్పి', 'మోకాలు నొప్పి',
-      'kalu novu', 'mokaalu novu', 'bennu novu', 'ಕೀಲು ನೋವು', 'ಬೆನ್ನು ನೋವು'
-    ],
-    department: 'Department of Orthopedics & Joint Care',
-    specialty: 'Orthopedics',
-    urgency: 'SAME_DAY',
-    urgencyLabel: 'Consult Orthopedic Specialist',
-    whereToGoAdvice: 'Visit an Orthopedic specialist at a hospital OPD for joint and spinal mobility testing. Avoid heavy lifting and apply warm compress. A video consultation is also available if travel is painful.',
-    spokenSummary: 'For joint or back pain, visit the Orthopedic specialist at City Care Hospital.'
-  },
-  {
-    id: 'fever_infection',
-    title: 'Fever & Infection',
-    badge: 'General Medicine',
-    icon: Thermometer,
-    iconBg: 'bg-rose-50',
-    iconColor: 'text-rose-600',
-    keywords: [
-      'fever', 'temperature', 'chills', 'shivering', 'flu', 'viral', 'body ache', 'dengue', 'malaria', 'cold', 'sore throat', 'pyrexia', 'typhoid',
-      'bukhar', 'tez bukhar', 'tap', 'taap', 'बुखार', 'ताप',
-      'kaachal', 'kaaychal', 'kulir', 'udambu vali', 'காய்ச்சல்', 'குளிர்',
-      'jwaram', 'jalubu', 'chali', 'జ్వరం', 'చలి',
-      'jwara', 'pani', 'viral pani', 'ജ്വര', 'പനി'
-    ],
-    department: 'Department of General & Internal Medicine',
-    specialty: 'General Medicine',
-    urgency: 'SAME_DAY',
-    urgencyLabel: 'Visit General Physician Today',
-    whereToGoAdvice: 'Visit a General Physician at the hospital OPD for vitals check, temperature assessment, and routine CBC screening. Keep well hydrated with water and electrolytes.',
-    spokenSummary: 'Visit General Medicine at City Care Hospital for fever and infection evaluation.'
-  },
-  {
-    id: 'chest_cardiac',
-    title: 'Chest & Heart',
-    badge: 'Cardiology (24/7)',
-    icon: HeartPulse,
-    iconBg: 'bg-red-50',
-    iconColor: 'text-red-600',
-    keywords: [
-      'chest', 'heart', 'palpitation', 'chest pain', 'cardiac', 'tightness', 'shortness of breath', 'left arm pain', 'pressure', 'angina', 'fluttering', 'racing heart',
-      'seena dard', 'chaati dard', 'dil', 'सीना दर्द', 'छाती', 'दिल',
-      'nenju', 'nenju vali', 'irudhayam', 'நெஞ்சு வலி', 'இதயம்',
-      'gunde', 'gunde noppi', 'chaathi', 'గుండె నొప్పి',
-      'ede novu', 'hrudaya', 'ಎದೆ ನೋವು', 'ഹൃദയം', 'നെഞ്ചുവേദന'
-    ],
-    department: 'Department of Cardiology & Emergency Care',
-    specialty: 'Cardiology',
-    urgency: 'PRIORITY',
-    urgencyLabel: 'Priority 24/7 Emergency Care',
-    whereToGoAdvice: 'Head directly to the nearest 24/7 Emergency Trauma or Cardiology OPD at a multi-specialty hospital for immediate ECG and physician evaluation. Do not delay or drive alone.',
-    spokenSummary: 'For chest discomfort, go immediately to the Emergency or Cardiology department at City Care Hospital.'
-  },
-  {
-    id: 'headache_neuro',
-    title: 'Head & Neuro',
-    badge: 'Neurology',
-    icon: Brain,
-    iconBg: 'bg-purple-50',
-    iconColor: 'text-purple-600',
-    keywords: [
-      'headache', 'migraine', 'dizziness', 'giddiness', 'vertigo', 'fainting', 'numbness', 'tingling', 'seizure', 'tremor', 'head ache',
-      'sar dard', 'sir dard', 'chakkar', 'बेहोशी', 'सिरदर्द', 'चक्कर',
-      'thalai vali', 'thalaivali', 'mayakkam', 'தலைவலி', 'மயக்கம்',
-      'tala noppi', 'talanoppi', 'thirugudu', 'తల నొప్పి', 'కళ్ళు తిరగడం',
-      'tale novu', 'taledhudhu', 'ತಲೆ ನೋವು', 'തലവേദന', 'തലകറക്കം'
-    ],
-    department: 'Department of Neurology & General Medicine',
-    specialty: 'Neurology',
-    urgency: 'SAME_DAY',
-    urgencyLabel: 'Consult Neurologist or Physician',
-    whereToGoAdvice: 'Visit a Neurologist or Physician at the hospital OPD for neurological examination. If the headache started suddenly with vision change or numbness, visit Emergency immediately.',
-    spokenSummary: 'Visit Neurology at City Care Hospital for neurological consultation.'
-  },
-  {
-    id: 'cough_breathing',
-    title: 'Cough & Lungs',
-    badge: 'Pulmonology',
-    icon: Wind,
-    iconBg: 'bg-cyan-50',
-    iconColor: 'text-cyan-600',
-    keywords: [
-      'cough', 'breathing', 'wheezing', 'asthma', 'breathless', 'phlegm', 'sputum', 'bronchitis', 'dry cough', 'wet cough', 'chest congestion',
-      'khaansi', 'saans', 'khasi', 'दमा', 'खांसी', 'सांस फूलना',
-      'irumal', 'moochu', 'moochu thinaral', 'சளி', 'இருமல்', 'மூச்சுத்திணறல்',
-      'daggulu', 'swasa', 'daggu', 'శ్వాస', 'దగ్గు',
-      'kemmu', 'usiru', 'ಕೆಮ್ಮು', 'ചുമ', 'ശ്വാസംമുട്ടൽ'
-    ],
-    department: 'Department of Pulmonology & Respiratory Care',
-    specialty: 'Pulmonology',
-    urgency: 'SAME_DAY',
-    urgencyLabel: 'Visit Pulmonology OPD Today',
-    whereToGoAdvice: 'Visit Pulmonology or General Medicine for chest auscultation and oxygen saturation testing. If you have resting breathlessness, go directly to the hospital Emergency room.',
-    spokenSummary: 'Visit Pulmonology at City Care Hospital for respiratory examination.'
-  },
-  {
-    id: 'skin_allergy',
-    title: 'Skin & Allergy',
-    badge: 'Dermatology',
-    icon: Smile,
-    iconBg: 'bg-teal-50',
-    iconColor: 'text-teal-600',
-    keywords: [
-      'skin', 'rash', 'itching', 'allergy', 'eczema', 'hives', 'pimple', 'acne', 'redness', 'boil', 'fungal', 'scalp', 'dermatitis', 'scabies',
-      'khujli', 'daane', 'twacha', 'खुजली', 'दाने', 'त्वचा',
-      'arippu', 'tholu', 'thol', 'அரிப்பு', 'தோல் நோய்',
-      'durada', 'charma', 'దురద', 'చర్మ సమస్య',
-      'tika', 'chaddi', 'ತುರಿಕೆ', 'ത്വക്ക്', 'ചൊറിച്ചിൽ'
-    ],
-    department: 'Department of Dermatology',
-    specialty: 'Dermatology',
-    urgency: 'ROUTINE',
-    urgencyLabel: 'In-Person OPD or Video Call',
-    whereToGoAdvice: 'Consult a Dermatologist either at an outpatient hospital clinic or through an instant video call from home for visual skin inspection and targeted topical treatment.',
-    spokenSummary: 'Consult Dermatology at City Care Hospital or connect via video call.'
-  },
-  {
-    id: 'pediatrics_child',
-    title: 'Child & Infant',
-    badge: 'Pediatrics',
-    icon: Baby,
-    iconBg: 'bg-sky-50',
-    iconColor: 'text-sky-600',
-    keywords: [
-      'child', 'baby', 'infant', 'toddler', 'kid', 'pediatric', 'vaccination', 'newborn', 'colic', 'feeding',
-      'bacha', 'bacche', 'chota bacha', 'बच्चा', 'शिशु',
-      'kuzhandhai', 'paapa', 'kulandhai', 'குழந்தை', 'பாப்பா',
-      'pilla', 'biddalu', 'chinna pilla', 'పిల్లలు', 'పాప',
-      'makkalu', 'magu', 'ಮಗು', 'കുഞ്ഞ്', 'പീഡിയാട്രിക്'
-    ],
-    department: 'Department of Pediatrics & Child Health',
-    specialty: 'Pediatrics',
-    urgency: 'SAME_DAY',
-    urgencyLabel: 'Consult Pediatric Specialist',
-    whereToGoAdvice: 'Take your child to a specialist Pediatric OPD at a children\'s clinic or multi-specialty hospital with pediatric facilities for gentle vital checks and examination.',
-    spokenSummary: 'Take your child to the Pediatric department at City Care Hospital.'
-  },
-  {
-    id: 'eye_vision',
-    title: 'Eye & Vision',
-    badge: 'Ophthalmology',
-    icon: Eye,
-    iconBg: 'bg-blue-50',
-    iconColor: 'text-blue-600',
-    keywords: [
-      'eye', 'vision', 'blur', 'itchy eye', 'red eye', 'pain eye', 'watery eye', 'stye', 'conjunctivitis', 'spectacles',
-      'aankh', 'dikhai', 'आंख', 'आंखों',
-      'kann', 'kannu', 'parvai', 'கண்', 'பார்வை',
-      'kallu', 'chupu', 'కన్ను', 'చూపు',
-      'kannu novu', 'drushti', 'ಕಣ್ಣು', 'കണ്ണ്'
-    ],
-    department: 'Department of Ophthalmology (Eye Care)',
-    specialty: 'Ophthalmology',
-    urgency: 'ROUTINE',
-    urgencyLabel: 'Visit Eye Specialist',
-    whereToGoAdvice: 'Visit an Eye Care clinic or Ophthalmology department at a hospital for slit-lamp examination, vision assessment, and prescription eye drops.',
-    spokenSummary: 'Visit the Ophthalmology department at City Care Hospital.'
-  },
-  {
-    id: 'ent_throat',
-    title: 'ENT & Throat',
-    badge: 'ENT Specialist',
-    icon: Ear,
-    iconBg: 'bg-indigo-50',
-    iconColor: 'text-indigo-600',
-    keywords: [
-      'ear', 'nose', 'throat', 'sinus', 'tonsil', 'earache', 'ear pain', 'hearing', 'tinnitus', 'nasal', 'sneezing',
-      'kaan', 'naak', 'gala', 'कान', 'नाक', 'गला',
-      'kaadhu', 'mooku', 'thondai', 'காது', 'மூக்கு', 'தொண்டை',
-      'chevi', 'mukku', 'gonthu', 'చెవి', 'ముక్కు', 'గొంతు',
-      'kivi', 'moogu', 'gantalu', 'ಕಿವಿ', 'ಮೂಗು', 'గొంతు', 'ചെവി', 'മൂക്ക്'
-    ],
-    department: 'Department of ENT (Ear, Nose & Throat)',
-    specialty: 'ENT',
-    urgency: 'ROUTINE',
-    urgencyLabel: 'Visit ENT Specialist',
-    whereToGoAdvice: 'Visit an ENT specialist for otoscopic ear inspection, throat swab, or sinus evaluation.',
-    spokenSummary: 'Visit the ENT department at City Care Hospital.'
-  },
-  {
-    id: 'dental_oral',
-    title: 'Dental & Oral',
-    badge: 'Dentistry',
-    icon: Droplets,
-    iconBg: 'bg-emerald-50',
-    iconColor: 'text-emerald-600',
-    keywords: [
-      'tooth', 'teeth', 'dental', 'gum', 'bleeding gum', 'toothache', 'cavity', 'molar', 'mouth ulcer',
-      'daant', 'masuda', 'दांत', 'मसूड़े',
-      'pal', 'pallu', 'eeru', 'பல் வலி', 'ஈறு',
-      'pallu noppi', 'చిగుళ్ళు', 'దంత సమస్య',
-      'hallu', 'hallu novu', 'ಹಲ್ಲು ನೋವು', 'പല്ലുവേദന'
-    ],
-    department: 'Department of Dental & Oral Care',
-    specialty: 'Dentistry',
-    urgency: 'ROUTINE',
-    urgencyLabel: 'Visit Dental Clinic',
-    whereToGoAdvice: 'Visit a dental clinic or hospital dental wing for direct tooth examination and X-ray.',
-    spokenSummary: 'Visit the Dental clinic at City Care Hospital.'
-  },
-  {
-    id: 'urinary_kidney',
-    title: 'Urinary & Kidney',
-    badge: 'Nephrology / Urology',
-    icon: FlaskConical,
-    iconBg: 'bg-amber-50',
-    iconColor: 'text-amber-600',
-    keywords: [
-      'urine', 'urinary', 'burning', 'uti', 'kidney', 'stone', 'flank pain', 'blood urine', 'bladder',
-      'peshab', 'jaln', 'पेशाब', 'गुर्दा',
-      'siruneer', 'eriച്ചல்', 'சிறுநீர்',
-      'muthram', 'manta', 'మూత్రం', 'కిడ్నీ',
-      'moothra', 'ಉರಿ ಮೂತ್ರ', 'മൂത്രമൊഴിക്കുമ്പോൾ'
-    ],
-    department: 'Department of Urology & Nephrology',
-    specialty: 'Urology',
-    urgency: 'SAME_DAY',
-    urgencyLabel: 'Visit Urology / Nephrology OPD',
-    whereToGoAdvice: 'Visit a Urologist or General Physician for urine analysis, hydration guidance, and ultrasound if flank pain is present.',
-    spokenSummary: 'Visit Urology at City Care Hospital for urinary assessment.'
-  },
-  {
-    id: 'womens_health',
-    title: "Women's Health",
-    badge: 'Gynecology & Obs',
-    icon: HeartHandshake,
-    iconBg: 'bg-pink-50',
-    iconColor: 'text-pink-600',
-    keywords: [
-      'period', 'menstrual', 'cramp', 'pregnancy', 'pregnant', 'gynecology', 'pcos', 'pelvic', 'discharge', 'irregular period',
-      'mahina', 'garbh', 'माहवारी', 'गर्भावस्था',
-      'madhavi', 'karppam', 'மாதவிடாய்', 'கர்ப்பம்',
-      'muttulu', 'garbham', 'పీరియడ్స్', 'గర్భం',
-      'rutu', 'tumba', 'ಮುಟ್ಟು', 'ഗർഭം', 'ആർത്തവം'
-    ],
-    department: 'Department of Obstetrics & Gynecology',
-    specialty: 'Gynecology',
-    urgency: 'SAME_DAY',
-    urgencyLabel: 'Consult Obstetrician / Gynecologist',
-    whereToGoAdvice: 'Visit a Gynecologist at a maternity centre or multi-specialty hospital for confidential consultation and pelvic ultrasound.',
-    spokenSummary: 'Visit Gynecology at City Care Hospital for consultation.'
-  },
-  {
-    id: 'trauma_firstaid',
-    title: 'Emergency & Trauma',
-    badge: '24/7 Trauma Unit',
-    icon: Bandage,
-    iconBg: 'bg-red-50',
-    iconColor: 'text-red-600',
-    keywords: [
-      'accident', 'injury', 'bleed', 'bleeding', 'cut', 'fall', 'burn', 'fracture', 'wound', 'head injury', 'trauma', 'emergency',
-      'chot', 'khoon', 'hadsa', 'चोट', 'खून', 'हादसा',
-      'kaayam', 'ratham', 'விபத்து', 'காயம்', 'ரத்தம்',
-      'gaayam', 'raktham', 'ప్రమాదం', 'గాయం',
-      'gaaya', 'raktha', 'ಗಾಯ', 'രക്തസ്രാവം', 'അപകടം'
-    ],
-    department: '24/7 Emergency & Trauma Unit',
-    specialty: 'Emergency Medicine',
-    urgency: 'PRIORITY',
-    urgencyLabel: 'Immediate 24/7 Trauma Visit',
-    whereToGoAdvice: 'Head immediately to the nearest 24/7 Emergency Trauma center for wound dressing, suturing, or emergency stabilization. Dial 108 if ambulance transport is required.',
-    spokenSummary: 'Go immediately to the 24/7 Trauma and Emergency Center at City Care Hospital.'
-  },
-  {
-    id: 'diagnostics_lab',
-    title: 'Lab Tests & Scans',
-    badge: 'Diagnostic Centre',
-    icon: Syringe,
-    iconBg: 'bg-emerald-50',
-    iconColor: 'text-emerald-600',
-    keywords: [
-      'test', 'blood test', 'lab', 'ecg', 'x-ray', 'xray', 'scan', 'mri', 'ct scan', 'ultrasound', 'sugar test', 'thyroid', 'cbc',
-      'jaanch', 'khoon jaanch', 'जांच', 'खून जांच',
-      'parithanai', 'ratha parithanai', 'பரிசோதனை',
-      'pariksha', 'raktha pariksha', 'పరీక్ష', 'ల్యాబ్',
-      'raktha pareekshe', 'ಲ್ಯಾಬ್', 'രക്തപരിശോധന'
-    ],
-    department: 'Hospital Diagnostic Laboratory & Scans',
-    specialty: 'General Medicine',
-    urgency: 'ROUTINE',
-    urgencyLabel: 'Visit Hospital Diagnostic Lab',
-    whereToGoAdvice: 'Visit the hospital diagnostic lab for fasting or random blood samples, digital X-Ray, or ECG. Results are delivered digitally to your phone.',
-    spokenSummary: 'Visit the Diagnostic Lab at City Care Hospital for tests.'
-  },
-  {
-    id: 'general_other',
-    title: 'General OPD',
-    badge: 'Internal Medicine',
-    icon: Stethoscope,
-    iconBg: 'bg-blue-50',
-    iconColor: 'text-blue-600',
-    keywords: [
-      'weakness', 'fatigue', 'tired', 'general checkup', 'routine', 'health check', 'doctor', 'physician',
-      'kamzori', 'thakan', 'कमजोरी', 'थकान',
-      'aasai', 'sornvu', 'சோர்வு', 'உடல் சோர்வு',
-      'neerasam', 'alasata', 'నీరసం', 'అలసట',
-      'susthu', 'nissahukathe', 'ಸುಸ್ತು', 'ക്ഷീണം'
-    ],
-    department: 'Department of General Medicine & Outpatient Care',
-    specialty: 'General Medicine',
-    urgency: 'ROUTINE',
-    urgencyLabel: 'Visit General OPD',
-    whereToGoAdvice: 'Visit the General Medicine OPD at the nearest hospital for routine checkup, vitals examination, or health review.',
-    spokenSummary: 'Visit General Medicine OPD at City Care Hospital.'
-  }
-];
 
 export interface AiHealthAssistantProps {
   patientProfile?: PatientProfile;
   hospitals: Hospital[];
   doctors: DoctorProfile[];
   slots: OpSlot[];
-  userLocation?: UserLocationData | null;
+  userLocation?: any;
   onOpenCheckout: (doctor: DoctorProfile, consultationType: ConsultationType, explicitSlot?: OpSlot) => void;
   onClose?: () => void;
 }
 
-// 2 Simple, Direct Steps: 1. Select / Type Symptom -> 2. Where You Should Go
-export type AiFlowStep = 'SYMPTOM_INPUT' | 'WHERE_TO_GO';
-
 export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
   hospitals,
   doctors,
-  slots,
-  userLocation: propUserLocation,
   onOpenCheckout,
   onClose
 }) => {
-  // 2-Step Flow
-  const [currentStep, setCurrentStep] = useState<AiFlowStep>('SYMPTOM_INPUT');
-  const [selectedCategoryId, setSelectedCategoryId] = useState<ClinicalCategoryId>('vomiting_gi');
-  const [inputText, setInputText] = useState<string>('');
-  const [showMoreModal, setShowMoreModal] = useState<boolean>(false);
-  const [selectedHospitalIndex, setSelectedHospitalIndex] = useState<number>(0);
-
-  // Voice & Language State
   const [selectedLanguage, setSelectedLanguage] = useState<IndianLanguage>(SUPPORTED_INDIAN_LANGUAGES[0]);
+  const [showLanguageModal, setShowLanguageModal] = useState<boolean>(false);
   const [isVoiceEnabled, setIsVoiceEnabled] = useState<boolean>(false);
   const [isListening, setIsListening] = useState<boolean>(false);
-  const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
-  const [showLanguageModal, setShowLanguageModal] = useState<boolean>(false);
+  const [inputText, setInputText] = useState<string>('');
+  const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
+
+  // Default Hospital & Doctors fallback
+  const primaryHospital = hospitals[0] || {
+    id: 'hosp-1',
+    name: 'City Care Multi-Specialty Hospital',
+    address: '42 Avinashi Road, Peelamedu, Coimbatore',
+    phone: '+914222570100',
+    rating: 4.8,
+    distance: '1.2 km',
+    emergencyAvailable: true,
+    specialties: ['Cardiology', 'Orthopedics', 'General Medicine'],
+    baseOpFee: 100
+  };
+
+  const cardiologistDoc = doctors.find(d => 
+    d.specialty.toLowerCase().includes('cardio') || d.name.toLowerCase().includes('ananya')
+  ) || doctors[0] || ({
+    id: 'doc-1',
+    userId: 'user-doc-1',
+    name: 'Dr. Ananya Sharma',
+    specialty: 'Cardiology & General Medicine',
+    hospitalId: primaryHospital.id,
+    hospitalName: primaryHospital.name,
+    experienceYears: 12,
+    rating: 4.9,
+    totalConsultations: 1420,
+    availableDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+    opConsultationFee: 100,
+    teleConsultationFee: 250,
+    roomNumber: 'Room 204',
+    nextAvailableToken: 5,
+    estimatedWaitMins: 10,
+    registrationNumber: 'NMC-84920'
+  } as DoctorProfile);
+
+  const orthoDoc = doctors.find(d => 
+    d.specialty.toLowerCase().includes('ortho') || d.name.toLowerCase().includes('rajesh')
+  ) || doctors[1] || cardiologistDoc;
+
+  // Initial welcome message
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      id: 'welcome-1',
+      sender: 'ai',
+      text: selectedLanguage.greeting,
+      timestamp: Date.now(),
+      suggestedChips: QUICK_SYMPTOM_PROMPTS
+    }
+  ]);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
 
-  // User Location
-  const [userLocation, setUserLocation] = useState<UserLocationData>(
-    propUserLocation || {
-      area: 'Banjara Hills',
-      city: 'Hyderabad',
-      state: 'Telangana',
-      country: 'India',
-      displayName: 'Banjara Hills, Hyderabad',
-      lat: 17.4156,
-      lng: 78.4350,
-      accuracyMeters: 20,
-      isLiveGps: false,
-      timestamp: Date.now()
-    }
-  );
+  // Auto scroll to bottom
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   useEffect(() => {
-    if (propUserLocation) {
-      setUserLocation(propUserLocation);
-    } else {
-      detectCurrentLocation().then(loc => setUserLocation(loc));
-    }
-  }, [propUserLocation]);
+    scrollToBottom();
+  }, [messages, isAnalyzing]);
 
-  // Proximity sorted hospitals
-  const sortedHospitals = useMemo(() => {
-    return [...hospitals].sort((a, b) => {
-      const distA = userLocation && a.latitude && a.longitude
-        ? calculateDistanceKm(userLocation.lat, userLocation.lng, a.latitude, a.longitude)
-        : 10;
-      const distB = userLocation && b.latitude && b.longitude
-        ? calculateDistanceKm(userLocation.lat, userLocation.lng, b.latitude, b.longitude)
-        : 10;
-      return distA - distB;
-    });
-  }, [hospitals, userLocation]);
-
-  const selectedHospital = sortedHospitals[selectedHospitalIndex] || sortedHospitals[0] || hospitals[0];
-
-  // Active Category Config
-  const activeCategory = useMemo(() => {
-    return SMART_CLINICAL_CATEGORIES.find(c => c.id === selectedCategoryId) || SMART_CLINICAL_CATEGORIES[0];
-  }, [selectedCategoryId]);
-
-  // Primary Doctor Match
-  const availableDoctors = useMemo(() => {
-    const targetSpecialty = activeCategory.specialty.toLowerCase();
-    let docs = doctors.filter(d => {
-      const spec = d.specialty.toLowerCase();
-      return spec.includes(targetSpecialty) || targetSpecialty.includes(spec) || spec.includes('general') || spec.includes('medicine');
-    });
-    if (docs.length === 0) docs = doctors;
-    return docs;
-  }, [doctors, activeCategory.specialty]);
-
-  const topDoctor = useMemo(() => {
-    if (availableDoctors.length > selectedHospitalIndex) {
-      return availableDoctors[selectedHospitalIndex];
-    }
-    return availableDoctors[0] || doctors[0];
-  }, [availableDoctors, selectedHospitalIndex, doctors]);
-
-  // Automatically detect category when user types
-  const handleInputChange = (text: string) => {
-    setInputText(text);
-    if (!text.trim()) return;
-
-    const lower = text.toLowerCase();
-    for (const cat of SMART_CLINICAL_CATEGORIES) {
-      for (const kw of cat.keywords) {
-        if (lower.includes(kw.toLowerCase())) {
-          setSelectedCategoryId(cat.id);
-          return;
-        }
-      }
-    }
-  };
-
-  // Select category and immediately guide where to go
-  const handleSelectCategory = (catId: ClinicalCategoryId) => {
-    setSelectedCategoryId(catId);
-    stopSpeaking();
-    setCurrentStep('WHERE_TO_GO');
-    const matched = SMART_CLINICAL_CATEGORIES.find(c => c.id === catId);
-    if (matched && isVoiceEnabled) {
-      speakText(matched.spokenSummary);
-    }
-  };
-
-  // Find natural speech voice
-  const stopSpeaking = () => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      setIsSpeaking(false);
-    }
-  };
-
-  const speakText = (text: string, customLang?: string) => {
-    if (!isVoiceEnabled || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+  // Voice synthesis (Text-to-Speech)
+  const speakText = (text: string) => {
+    if (!('speechSynthesis' in window)) return;
     try {
       window.speechSynthesis.cancel();
-      const targetLang = customLang || selectedLanguage.code;
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = targetLang;
+      utterance.lang = selectedLanguage.code;
       utterance.rate = 1.0;
-      utterance.pitch = 1.0;
-      utterance.onstart = () => setIsSpeaking(true);
-      utterance.onend = () => setIsSpeaking(false);
-      utterance.onerror = () => setIsSpeaking(false);
       window.speechSynthesis.speak(utterance);
     } catch (e) {
-      setIsSpeaking(false);
+      console.warn('Speech synthesis error:', e);
     }
   };
 
-  // Speech Recognition (STT)
-  const toggleSpeechRecognition = () => {
-    if (typeof window === 'undefined') return;
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      alert("Voice recognition is not supported in this browser. Please type your symptoms.");
-      return;
+  const stopSpeaking = () => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
     }
+  };
 
+  // Web Speech API (Microphone Speech-to-Text)
+  const toggleListening = () => {
     if (isListening) {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
+      recognitionRef.current?.stop();
       setIsListening(false);
       return;
     }
 
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('Speech recognition is not supported in this browser. Please type your message.');
+      return;
+    }
+
     try {
-      stopSpeaking();
       const recognition = new SpeechRecognition();
-      recognitionRef.current = recognition;
       recognition.lang = selectedLanguage.code;
       recognition.continuous = false;
       recognition.interimResults = false;
 
-      recognition.onstart = () => setIsListening(true);
-      recognition.onend = () => setIsListening(false);
-      recognition.onerror = () => setIsListening(false);
+      recognition.onstart = () => {
+        setIsListening(true);
+      };
+
       recognition.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript;
-        if (transcript) {
-          handleInputChange(transcript);
-          // Directly guide where to go with spoken query
-          setTimeout(() => {
-            setCurrentStep('WHERE_TO_GO');
-          }, 400);
+        if (transcript.trim()) {
+          setInputText(transcript);
+          handleSendMessage(transcript);
         }
       };
 
+      recognition.onerror = (event: any) => {
+        console.warn('Speech recognition error:', event.error);
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current = recognition;
       recognition.start();
     } catch (e) {
+      console.warn('Speech recognition failed to start:', e);
       setIsListening(false);
     }
   };
 
-  const handleProceedBooking = (chosenDoc: DoctorProfile, type: ConsultationType = 'IN_PERSON_OPD') => {
-    const targetSlot = slots.find(s => s.doctorId === chosenDoc.id && s.status === 'AVAILABLE') || slots[0];
-    onOpenCheckout(chosenDoc, type, targetSlot);
-  };
+  // Multi-Language Clinical Triage Matching
+  const analyzeSymptoms = (query: string) => {
+    const q = query.toLowerCase();
 
-  const formatDocName = (name?: string) => {
-    if (!name) return 'Specialist';
-    return name.startsWith('Dr.') || name.startsWith('Dr ') ? name : `Dr. ${name}`;
-  };
+    // 1. Cardiac / Heart / Chest
+    const isCardiac = 
+      q.includes('chest') || q.includes('heart') || q.includes('cardiac') ||
+      q.includes('palpitation') || q.includes('breath') || q.includes('bp') ||
+      q.includes('గుండె') || q.includes('ఛాతీ') || q.includes('दिल') || q.includes('छाती') ||
+      q.includes('நெஞ்சு') || q.includes('இதயம்') || q.includes('ಉಸಿರಾಟ') || q.includes('हार्ट');
 
-  // Cleanup speech on unmount
-  useEffect(() => {
-    return () => {
-      stopSpeaking();
+    // 2. Stomach / GI / Digestion / Vomiting (Checked before Ortho so stomach pain routes correctly)
+    const isGastro = 
+      q.includes('stomach') || q.includes('abdomen') || q.includes('vomit') ||
+      q.includes('nausea') || q.includes('acidity') || q.includes('gastric') ||
+      q.includes('diarrhea') || q.includes('motion') || q.includes('food') ||
+      q.includes('కడుపు') || q.includes('వాంతులు') || q.includes('వికారం') ||
+      q.includes('पेट') || q.includes('उल्टी') || q.includes('दस्त') ||
+      q.includes('வயிறு') || q.includes('வாந்தி') || q.includes('ಹೊಟ್ಟೆ');
+
+    // 3. Bone / Joint / Ortho / Spine
+    const isOrtho = 
+      q.includes('bone') || q.includes('joint') || q.includes('knee') ||
+      q.includes('back') || q.includes('spine') || q.includes('fracture') ||
+      q.includes('మోకాలు') || q.includes('వెన్ను') || q.includes('కీలు') ||
+      q.includes('घुटने') || q.includes('कमर') || q.includes('हड्डी') || q.includes('जोड़ों') ||
+      q.includes('முழங்கால்') || q.includes('முதுகு') || q.includes('ಕೀಲು') || q.includes('ಕುತ್ತಿಗೆ');
+
+    // 4. Fever / Infection / General Medicine
+    const isFever = 
+      q.includes('fever') || q.includes('cold') || q.includes('cough') ||
+      q.includes('infection') || q.includes('headache') || q.includes('weakness') ||
+      q.includes('temperature') || q.includes('জ্বর') || q.includes('ताप') ||
+      q.includes('జ్వరం') || q.includes('దగ్గు') || q.includes('తలనొప్పి') ||
+      q.includes('बुखार') || q.includes('खांसी') || q.includes('सिरदर्द') ||
+      q.includes('காய்ச்சல்') || q.includes('இருமல்') || q.includes('தலைவலி');
+
+    // Select matching doctor & specialty
+    let matchedDoctor = cardiologistDoc;
+    let specialty = 'Cardiology';
+    let urgency: 'EMERGENCY' | 'PRIORITY' | 'ROUTINE' = 'PRIORITY';
+    let urgencyLabel = 'Immediate Clinical Attention';
+    let advice = `Based on your symptoms, I suggest you consult ${cardiologistDoc.name} at ${primaryHospital.name}. Token #${cardiologistDoc.nextAvailableToken || 5} is ready now.`;
+
+    if (isCardiac) {
+      matchedDoctor = cardiologistDoc;
+      specialty = 'Cardiology';
+      urgency = 'PRIORITY';
+      urgencyLabel = 'Priority Cardiac Care';
+      advice = `Your symptoms indicate a possible cardiovascular or respiratory concern. I suggest you see ${cardiologistDoc.name} (Cardiologist) at ${primaryHospital.name} immediately.`;
+    } else if (isGastro) {
+      matchedDoctor = cardiologistDoc;
+      specialty = 'Gastroenterology & General Medicine';
+      urgency = 'PRIORITY';
+      urgencyLabel = 'Digestive Clinical Care';
+      advice = `For acute abdominal symptoms and digestion, I suggest you consult ${cardiologistDoc.name} at ${primaryHospital.name} for an immediate physical exam.`;
+    } else if (isOrtho) {
+      matchedDoctor = orthoDoc;
+      specialty = 'Orthopedics';
+      urgency = 'SAME_DAY' as any;
+      urgencyLabel = 'Orthopedic Specialist Needed';
+      advice = `For joint, spine, or bone pain, I suggest you consult ${orthoDoc.name} (Orthopedic Specialist) at ${primaryHospital.name}.`;
+    } else if (isFever) {
+      matchedDoctor = cardiologistDoc; // Dual qualified or general physician
+      specialty = 'Gastroenterology & General Medicine';
+      urgency = 'PRIORITY';
+      urgencyLabel = 'Digestive Clinical Care';
+      advice = `For acute abdominal symptoms and digestion, I suggest you consult ${cardiologistDoc.name} at ${primaryHospital.name} for an immediate physical exam.`;
+    } else if (isFever) {
+      matchedDoctor = cardiologistDoc;
+      specialty = 'General Medicine';
+      urgency = 'ROUTINE';
+      urgencyLabel = 'General Outpatient Care';
+      advice = `For viral fever, infection, or weakness, I suggest visiting the General Medicine OPD with ${cardiologistDoc.name} at ${primaryHospital.name}.`;
+    } else {
+      matchedDoctor = cardiologistDoc;
+      specialty = 'General Medicine';
+      urgency = 'ROUTINE';
+      urgencyLabel = 'Clinical Consultation';
+      advice = `I suggest you see ${cardiologistDoc.name} at ${primaryHospital.name} (${primaryHospital.distance || '1.2 km away'}).`;
+    }
+
+    return {
+      doctor: matchedDoctor,
+      hospital: primaryHospital,
+      specialty,
+      urgency,
+      urgencyLabel,
+      advice
     };
-  }, []);
+  };
 
-  // Scroll to top on step change
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'instant' as any });
-    const scrollContainers = document.querySelectorAll("div[class*='overflow-y-auto']");
-    scrollContainers.forEach(c => { c.scrollTop = 0; });
-  }, [currentStep]);
+  // Send message
+  const handleSendMessage = (textToSend?: string) => {
+    const text = (textToSend || inputText).trim();
+    if (!text) return;
 
-  // Core 8 categories for clean grid display
-  const coreCategories = useMemo(() => {
-    const coreIds: ClinicalCategoryId[] = [
-      'vomiting_gi',
-      'pain_ortho',
-      'fever_infection',
-      'chest_cardiac',
-      'headache_neuro',
-      'pediatrics_child',
-      'skin_allergy',
-      'trauma_firstaid'
-    ];
-    return coreIds.map(id => SMART_CLINICAL_CATEGORIES.find(c => c.id === id)!);
-  }, []);
+    // Add user message
+    const userMsg: ChatMessage = {
+      id: `user-${Date.now()}`,
+      sender: 'user',
+      text,
+      timestamp: Date.now()
+    };
+
+    setMessages(prev => [...prev, userMsg]);
+    setInputText('');
+    setIsAnalyzing(true);
+
+    // AI Response synthesis
+    setTimeout(() => {
+      const triage = analyzeSymptoms(text);
+
+      let aiResponseText = `I understand your concern regarding "${text}".\n\nI suggest you consult **${triage.doctor.name}** (${triage.specialty}) at **${triage.hospital.name}**, located at ${triage.hospital.address}.\n\nHere are the doctor's details and instant appointment options:`;
+
+      if (selectedLanguage.code === 'te-IN') {
+        aiResponseText = `మీరు పేర్కొన్న సమస్యను నేను అర్థం చేసుకున్నాను.\n\nనేను మీకు **${triage.hospital.name}** లోని **${triage.doctor.name}** (${triage.specialty}) గారిని సంప్రదించమని సూచిస్తున్నాను.\n\nలైవ్ టోకెన్ మరియు తక్షణ బుకింగ్ వివరాలు కింద ఉన్నాయి:`;
+      } else if (selectedLanguage.code === 'hi-IN') {
+        aiResponseText = `मैंने आपकी परेशानी को समझ लिया है।\n\nमैं आपको **${triage.hospital.name}** में **${triage.doctor.name}** (${triage.specialty}) से मिलने की सलाह देता हूँ।\n\nडॉक्टर का लाइव टोकन और अपॉइंटमेंट नीचे देखें:`;
+      } else if (selectedLanguage.code === 'ta-IN') {
+        aiResponseText = `உங்கள் உடல்நல பிரச்சனையை நான் புரிந்துகொண்டேன்.\n\n**${triage.hospital.name}** இல் உள்ள **${triage.doctor.name}** (${triage.specialty}) மருத்துவரை பார்க்குமாறு பரிந்துரைக்கிறேன்.\n\nடோக்கன் மற்றும் முன்பதிவு விவரங்கள் கீழே:`;
+      }
+
+      const aiMsg: ChatMessage = {
+        id: `ai-${Date.now()}`,
+        sender: 'ai',
+        text: aiResponseText,
+        timestamp: Date.now(),
+        doctorRecommendation: triage
+      };
+
+      setMessages(prev => [...prev, aiMsg]);
+      setIsAnalyzing(false);
+
+      if (isVoiceEnabled) {
+        speakText(`I suggest you to see ${triage.doctor.name} at ${triage.hospital.name}`);
+      }
+    }, 600);
+  };
+
+  // Open booking directly
+  const handleBookNow = (doctor: DoctorProfile, type: ConsultationType) => {
+    stopSpeaking();
+    onOpenCheckout(doctor, type);
+  };
+
+  // Reset chat
+  const handleResetChat = () => {
+    stopSpeaking();
+    setMessages([
+      {
+        id: `welcome-${Date.now()}`,
+        sender: 'ai',
+        text: selectedLanguage.greeting,
+        timestamp: Date.now(),
+        suggestedChips: QUICK_SYMPTOM_PROMPTS
+      }
+    ]);
+  };
 
   return (
-    <div className="min-h-full flex flex-col select-none animate-in fade-in duration-150 relative bg-slate-50 text-slate-900 pb-28">
-      
+    <div className="flex flex-col h-full w-full bg-slate-50 select-none overflow-hidden rounded-[28px] border border-slate-200/90 shadow-sm relative">
       {/* ========================================================================= */}
-      {/* 1. TOP HEADER: BCARE AI                                                   */}
+      {/* 1. SLEEK MINIMAL HEADER                                                  */}
       {/* ========================================================================= */}
-      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-4 py-2.5 shadow-2xs shrink-0">
-        <div className="flex items-center justify-between gap-2">
+      <div className="px-4 py-3 bg-white/95 backdrop-blur-md border-b border-slate-200/90 flex items-center justify-between shrink-0 shadow-xs z-10">
+        <div className="flex items-center gap-2">
+          {onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 rounded-full hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer"
+              title="Back"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+          )}
+
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-sm">
+              <Sparkles className="w-4 h-4 text-cyan-200" />
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <h3 className="font-bold text-sm text-slate-900 leading-tight">
+                  Bcare AI
+                </h3>
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              </div>
+              <p className="text-[10px] text-slate-500 font-medium">
+                Clinical Health Assistant
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          {/* Language Selector */}
+          <button
+            type="button"
+            onClick={() => setShowLanguageModal(true)}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
+            title="Change Language"
+          >
+            <Languages className="w-3.5 h-3.5 text-blue-600" />
+            <span>{selectedLanguage.name}</span>
+          </button>
+
+          {/* Voice Guidance Readout Toggle */}
           <button
             type="button"
             onClick={() => {
-              if (currentStep === 'WHERE_TO_GO') {
-                setCurrentStep('SYMPTOM_INPUT');
-              } else {
-                onClose?.();
-              }
+              const next = !isVoiceEnabled;
+              setIsVoiceEnabled(next);
+              if (!next) stopSpeaking();
             }}
-            className="flex items-center gap-1 py-1.5 px-3 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all cursor-pointer shadow-2xs active:scale-95 whitespace-nowrap shrink-0"
+            className={`p-1.5 rounded-full transition-colors cursor-pointer ${
+              isVoiceEnabled 
+                ? 'bg-blue-600 text-white shadow-xs' 
+                : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+            }`}
+            title={isVoiceEnabled ? "Voice Readout Active" : "Voice Readout Muted"}
           >
-            <ChevronLeft className="w-4 h-4 shrink-0 text-slate-600" />
-            <span>{currentStep === 'WHERE_TO_GO' ? 'Change Concern' : 'Exit'}</span>
+            {isVoiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
           </button>
 
-          <div className="flex items-center gap-1.5 min-w-0">
-            <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse shrink-0" />
-            <h2 className="text-sm font-black text-slate-950 tracking-tight whitespace-nowrap">
-              Bcare AI
-            </h2>
-          </div>
-
-          <div className="flex items-center gap-1.5 shrink-0">
-            {/* Language Switcher Button */}
-            <button
-              type="button"
-              onClick={() => setShowLanguageModal(true)}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10.5px] font-bold transition-colors cursor-pointer shrink-0"
-              title="Change Language"
-            >
-              <Languages className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-              <span>{selectedLanguage.englishName.split(' ')[0]}</span>
-            </button>
-
-            {/* Voice Readout Toggle */}
-            <button
-              type="button"
-              onClick={() => {
-                const nextState = !isVoiceEnabled;
-                setIsVoiceEnabled(nextState);
-                if (!nextState) stopSpeaking();
-                else speakText(activeCategory.spokenSummary);
-              }}
-              className={`p-1.5 rounded-full border transition-all cursor-pointer ${
-                isVoiceEnabled 
-                  ? 'bg-blue-600 text-white border-blue-600 shadow-2xs' 
-                  : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200'
-              }`}
-              title="Voice Guidance"
-            >
-              {isVoiceEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
-            </button>
-          </div>
+          {/* Clear / Reset Chat */}
+          <button
+            type="button"
+            onClick={handleResetChat}
+            className="p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer"
+            title="Reset Chat"
+          >
+            <RotateCcw className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
       {/* ========================================================================= */}
-      {/* 2. BODY CONTENT: STEP 1 (INPUT) vs STEP 2 (WHERE TO GO)                   */}
+      {/* 2. CHAT MESSAGES THREAD                                                  */}
       {/* ========================================================================= */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        <AnimatePresence mode="wait">
+        {messages.map((msg) => {
+          const isAi = msg.sender === 'ai';
 
-          {/* ===================================================================== */}
-          {/* STEP 1: TELL US WHAT'S WRONG / SELECT CARE CONCERN                   */}
-          {/* ===================================================================== */}
-          {currentStep === 'SYMPTOM_INPUT' && (
-            <motion.div
-              key="step-input"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-              className="space-y-4"
+          return (
+            <div
+              key={msg.id}
+              className={`flex flex-col ${isAi ? 'items-start' : 'items-end'}`}
             >
-              {/* Apple Intelligence Hero Banner */}
-              <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0c1322] via-[#0f1b2d] to-[#0a1827] text-white p-4.5 shadow-md border border-blue-500/30 space-y-3">
-                <div className="absolute -right-8 -top-8 w-32 h-32 bg-cyan-500/15 rounded-full blur-2xl pointer-events-none" />
-                <div className="flex items-center gap-3">
-                  <div className="shrink-0">
-                    <SiriOrb size={44} state={isListening ? 'listening' : 'idle'} />
+              {/* Message Bubble with AI Avatar */}
+              <div className={`flex items-start gap-2 max-w-[90%] ${isAi ? 'flex-row' : 'flex-row-reverse self-end'}`}>
+                {isAi && (
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shrink-0 shadow-xs mt-0.5">
+                    <Sparkles className="w-3.5 h-3.5 text-cyan-200" />
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-                      <span className="text-[10px] font-black uppercase tracking-wider text-cyan-300">
-                        Bcare Clinical AI
-                      </span>
-                    </div>
-                    <h3 className="text-sm font-extrabold text-white mt-0.5 leading-snug">
-                      What symptoms are you experiencing?
-                    </h3>
-                    <p className="text-[11px] text-slate-300 font-medium leading-tight mt-0.5">
-                      We'll assess your concern and book the right hospital specialist.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Input & Voice Bar */}
-                <div className="relative flex items-center gap-2 pt-1">
-                  <div className="relative flex-1">
-                    <input
-                      type="text"
-                      value={inputText}
-                      onChange={(e) => handleInputChange(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && inputText.trim()) {
-                          setCurrentStep('WHERE_TO_GO');
-                        }
-                      }}
-                      placeholder={selectedLanguage.placeholder}
-                      className="w-full py-3 pl-10 pr-9 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 focus:bg-white focus:text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-xs font-semibold text-white placeholder:text-slate-400 outline-none transition-all shadow-inner"
-                    />
-                    <Search className="w-4 h-4 text-slate-300 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    {inputText && (
-                      <button
-                        type="button"
-                        onClick={() => setInputText('')}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-white p-0.5"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={toggleSpeechRecognition}
-                    className={`p-3 rounded-2xl border transition-all cursor-pointer shrink-0 shadow-sm active:scale-95 ${
-                      isListening
-                        ? 'bg-rose-500 text-white border-rose-400 animate-pulse'
-                        : 'bg-white hover:bg-slate-100 text-slate-900 border-white'
-                    }`}
-                    title={isListening ? 'Listening... Tap to stop' : 'Tap to speak your symptoms'}
-                  >
-                    {isListening ? <MicOff className="w-4 h-4 text-white" /> : <Mic className="w-4 h-4 text-blue-600" />}
-                  </button>
-                </div>
-
-                {inputText.trim() && (
-                  <button
-                    type="button"
-                    onClick={() => setCurrentStep('WHERE_TO_GO')}
-                    className="w-full py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs shadow-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
-                  >
-                    <span>Assess Symptoms with Bcare AI</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
                 )}
-              </div>
 
-              {/* Quick Care Category Tiles (Vertical Cards: ZERO TRUNCATION) */}
-              <div>
-                <div className="flex items-center justify-between mb-2.5 px-0.5">
-                  <span className="text-xs font-black uppercase tracking-wider text-slate-500">
-                    Or Select Primary Concern:
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setShowMoreModal(true)}
-                    className="text-[11px] font-bold text-blue-600 hover:text-blue-800"
-                  >
-                    View All (18) →
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2.5">
-                  {coreCategories.map((cat) => {
-                    const IconComponent = cat.icon;
-                    return (
-                      <motion.div
-                        whileTap={{ scale: 0.97 }}
-                        key={cat.id}
-                        onClick={() => handleSelectCategory(cat.id)}
-                        className="p-3.5 rounded-2xl bg-white border border-slate-200/90 hover:border-blue-500 hover:shadow-xs transition-all cursor-pointer shadow-2xs flex flex-col justify-between min-h-[96px] group"
-                      >
-                        <div className="flex items-center justify-between w-full">
-                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${cat.iconBg} ${cat.iconColor}`}>
-                            <IconComponent className="w-4.5 h-4.5" />
-                          </div>
-                          <span className="text-[10px] font-bold text-slate-400 group-hover:text-blue-600 transition-colors">
-                            Select →
-                          </span>
-                        </div>
-                        <div className="mt-2 w-full">
-                          <h4 className="font-extrabold text-xs text-slate-900 leading-tight">
-                            {cat.title}
-                          </h4>
-                          <span className="block text-[10px] text-slate-500 font-semibold mt-0.5">
-                            {cat.badge}
-                          </span>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Emergency Ribbon */}
-              <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200/80 flex items-center justify-between gap-3 text-xs">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-rose-600 text-white flex items-center justify-center font-bold shrink-0">
-                    <ShieldAlert className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <h5 className="font-extrabold text-rose-950 text-xs">
-                      Life-Threatening Emergency?
-                    </h5>
-                    <p className="text-[10.5px] text-rose-700 truncate">
-                      Head to the nearest trauma unit or call 108 immediately
-                    </p>
-                  </div>
-                </div>
-
-                <a
-                  href="tel:108"
-                  className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs shrink-0 flex items-center gap-1 shadow-2xs"
+                <div
+                  className={`rounded-2xl p-3.5 text-xs leading-relaxed shadow-xs ${
+                    isAi
+                      ? 'bg-white text-slate-800 rounded-tl-xs border border-slate-200/90'
+                      : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-tr-xs font-medium'
+                  }`}
                 >
-                  <PhoneCall className="w-3.5 h-3.5" />
-                  <span>Call 108</span>
-                </a>
-              </div>
-            </motion.div>
-          )}
-
-          {/* ===================================================================== */}
-          {/* STEP 2: BCARE AI CLINICAL ASSESSMENT & DIRECT BOOKING FORM TYPE       */}
-          {/* ===================================================================== */}
-          {currentStep === 'WHERE_TO_GO' && (
-            <motion.div
-              key="step-where-to-go"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-              className="space-y-4"
-            >
-              {/* Card 1: Bcare AI Clinical Assessment */}
-              <div className="p-4.5 rounded-3xl bg-slate-900 text-white shadow-md space-y-3 relative overflow-hidden">
-                <div className="absolute -right-6 -bottom-6 w-28 h-28 bg-blue-500/10 rounded-full blur-xl pointer-events-none" />
-
-                <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2.5">
-                  <div className="flex items-center gap-1.5">
-                    <Sparkles className="w-4 h-4 text-cyan-400" />
-                    <span className="text-[11px] font-black uppercase tracking-wider text-cyan-300">
-                      Bcare AI Assessment
-                    </span>
-                  </div>
-
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${
-                    activeCategory.urgency === 'PRIORITY'
-                      ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
-                      : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                  }`}>
-                    {activeCategory.urgencyLabel}
-                  </span>
-                </div>
-
-                <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                    Recommended Department & Specialist
-                  </span>
-                  <h3 className="text-base font-black text-white leading-tight mt-0.5">
-                    {activeCategory.department}
-                  </h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs font-bold text-cyan-300">
-                      Attending: {topDoctor.name} ({topDoctor.specialty})
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-300 leading-relaxed mt-2.5 bg-white/5 p-3 rounded-2xl border border-white/10">
-                    {activeCategory.whereToGoAdvice}
+                  <p className="whitespace-pre-line">
+                    {msg.text.split('**').map((part, i) => 
+                      i % 2 === 1 ? <strong key={i} className={isAi ? "font-extrabold text-slate-900" : "font-black text-white"}>{part}</strong> : part
+                    )}
                   </p>
-                </div>
 
-                <div className="pt-2 border-t border-white/10 flex items-center justify-between text-xs">
-                  <span className="text-slate-400 text-[11px]">
-                    Specialist: <strong className="text-white font-bold">{activeCategory.specialty}</strong>
-                  </span>
-
-                  <button
-                    type="button"
-                    onClick={() => speakText(activeCategory.spokenSummary)}
-                    className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-white text-[10.5px] font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
-                  >
-                    <Volume2 className="w-3.5 h-3.5 text-cyan-400" />
-                    <span>Listen</span>
-                  </button>
+                  {/* Suggested Chips (Only on initial welcome message) */}
+                  {msg.suggestedChips && (
+                    <div className="mt-3 pt-2.5 border-t border-slate-100 space-y-1.5">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                        Quick Questions:
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {msg.suggestedChips.map((chip, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => handleSendMessage(chip)}
+                            className="px-2.5 py-1 rounded-full bg-slate-50 hover:bg-blue-50 hover:border-blue-300 border border-slate-200 text-[11px] font-semibold text-slate-700 hover:text-blue-700 transition-all cursor-pointer text-left"
+                          >
+                            ⚡ {chip}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Card 2: CHOOSE CONSULTATION FORMAT (BOOKING UI FORM TYPE) */}
-              <div className="space-y-2.5">
-                <div className="flex items-center justify-between px-1">
-                  <div>
-                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-800">
-                      Choose Booking Format
-                    </h4>
-                    <p className="text-[11px] text-slate-500 font-medium">
-                      Select your preferred way to consult with {topDoctor.name}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Option 1: In-Person Hospital OPD Pass */}
-                <div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm hover:border-blue-400 transition-all space-y-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3 min-w-0 flex-1">
-                      <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-200/80 flex items-center justify-center shrink-0 mt-0.5">
-                        <Building2 className="w-5 h-5 text-blue-600" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <span className="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-extrabold text-[10px]">
-                            In-Person OPD Pass
-                          </span>
-                          <span className="px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-bold text-[10px]">
-                            Live Queue
-                          </span>
-                        </div>
-                        <h4 className="font-black text-sm text-slate-900 mt-1 truncate">
-                          {selectedHospital.name}
+              {/* DIRECT DOCTOR & LOCATION CARD (When AI suggests a doctor) */}
+              {msg.doctorRecommendation && (
+                <div className="w-[calc(100%-2.25rem)] max-w-[92%] ml-9 mt-2.5 rounded-2xl bg-white border border-slate-200/90 shadow-md p-3.5 space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                  {/* Doctor Info */}
+                  <div className="flex items-start gap-3">
+                    <img
+                      src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=200"
+                      alt={msg.doctorRecommendation.doctor.name}
+                      className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1">
+                        <h4 className="font-extrabold text-sm text-slate-900 truncate">
+                          {msg.doctorRecommendation.doctor.name}
                         </h4>
-                        <p className="text-[11px] text-slate-500 truncate mt-0.5">
-                          {selectedHospital.address}
-                        </p>
+                        <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                       </div>
-                    </div>
-
-                    <div className="text-right shrink-0">
-                      <span className="text-base font-black text-slate-900 block">
-                        ₹{topDoctor.opConsultationFee || 100}
+                      <span className="inline-block px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-bold text-[10px] mt-0.5">
+                        {msg.doctorRecommendation.specialty}
                       </span>
-                      <span className="text-[10px] text-slate-400">ABDM Pass</span>
+                      <p className="text-[11px] text-slate-500 font-medium truncate mt-0.5">
+                        {msg.doctorRecommendation.doctor.experienceYears || 12}+ yrs experience • Reg: {msg.doctorRecommendation.doctor.registrationNumber || 'NMC-84920'}
+                      </p>
                     </div>
                   </div>
 
-                  {/* Status Strip */}
-                  <div className="py-2 px-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between text-xs">
+                  {/* Hospital & Location */}
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Building2 className="w-4 h-4 text-slate-500 shrink-0" />
+                      <div className="min-w-0">
+                        <span className="font-bold text-slate-900 block truncate text-[11.5px]">
+                          {msg.doctorRecommendation.hospital.name}
+                        </span>
+                        <div className="flex items-center gap-1 text-[10.5px] text-slate-500">
+                          <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                          <span className="truncate">{msg.doctorRecommendation.hospital.address.split(',')[0]} • Peelamedu</span>
+                        </div>
+                      </div>
+                    </div>
+                    <span className="text-[11px] font-bold text-blue-600 shrink-0 ml-2">
+                      {msg.doctorRecommendation.hospital.distance || '1.2 km'}
+                    </span>
+                  </div>
+
+                  {/* Live OPD Status Badge */}
+                  <div className="flex items-center justify-between py-1.5 px-3 rounded-lg bg-emerald-50 border border-emerald-200/80 text-xs">
                     <div className="flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                      <span className="font-extrabold text-slate-900">
-                        Token #{topDoctor.nextAvailableToken || 5} Ready
+                      <span className="font-extrabold text-emerald-900 text-[11px]">
+                        Token #{msg.doctorRecommendation.doctor.nextAvailableToken || 5} Ready
                       </span>
-                      <span className="text-slate-300">•</span>
-                      <span className="text-slate-500 font-medium">Room 204</span>
+                      <span className="text-emerald-400">•</span>
+                      <span className="text-emerald-700 font-medium text-[10.5px]">Room 204</span>
                     </div>
                     <span className="text-emerald-700 font-bold text-[11px]">~10m wait</span>
                   </div>
 
-                  {/* Action Button */}
-                  <motion.button
-                    whileTap={{ scale: 0.985 }}
-                    type="button"
-                    onClick={() => handleProceedBooking(topDoctor, 'IN_PERSON_OPD')}
-                    className="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-extrabold text-xs flex items-center justify-between shadow-xs transition-all cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Building2 className="w-4 h-4 text-blue-200" />
-                      <span>Book In-Person OPD Token</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-blue-100">
-                      <span>From ₹{topDoctor.opConsultationFee || 100}</span>
-                      <ArrowRight className="w-3.5 h-3.5 text-blue-200" />
-                    </div>
-                  </motion.button>
-                </div>
+                  {/* Action Buttons: 1-Click Open */}
+                  <div className="grid grid-cols-2 gap-2 pt-0.5">
+                    <button
+                      type="button"
+                      onClick={() => handleBookNow(msg.doctorRecommendation!.doctor, 'IN_PERSON_OPD')}
+                      className="py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                    >
+                      <Calendar className="w-3.5 h-3.5 text-blue-200" />
+                      <span>Book OPD (₹{msg.doctorRecommendation.doctor.opConsultationFee || 100})</span>
+                    </button>
 
-                {/* Option 2: HD Video Call (Integrated Real-time Teleconsult) */}
-                <div className="rounded-2xl border border-emerald-200/90 bg-emerald-50/40 p-4 shadow-sm hover:border-emerald-400 transition-all space-y-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3 min-w-0 flex-1">
-                      <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
-                        <Video className="w-5 h-5 text-white" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-extrabold text-[10px]">
-                            HD Video Telehealth
-                          </span>
-                          <span className="px-1.5 py-0.5 rounded-md bg-white text-emerald-700 border border-emerald-200 font-bold text-[10px]">
-                            Zero Travel
-                          </span>
-                        </div>
-                        <h4 className="font-black text-sm text-slate-900 mt-1 truncate">
-                          Online Video Consultation
-                        </h4>
-                        <p className="text-[11px] text-emerald-800/80 font-medium truncate mt-0.5">
-                          Consult {topDoctor.name} live from your phone
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="text-right shrink-0">
-                      <span className="text-base font-black text-emerald-900 block">
-                        ₹{topDoctor.teleConsultationFee || 250}
-                      </span>
-                      <span className="text-[10px] text-emerald-700 font-semibold">Video + Rx</span>
-                    </div>
-                  </div>
-
-                  {/* Video Feature Bullets */}
-                  <div className="py-2 px-3 rounded-xl bg-white border border-emerald-200/80 text-[11px] text-slate-700 space-y-1">
-                    <div className="flex items-center gap-1.5 text-emerald-700 font-bold">
-                      <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                      <span>Ready in ~10m • 10 Indian Regional Languages</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-slate-600">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                      <span>Live two-way camera, mic visualizer, doctor chat & instant digital Rx</span>
-                    </div>
-                  </div>
-
-                  {/* Video Action Button */}
-                  <motion.button
-                    whileTap={{ scale: 0.985 }}
-                    type="button"
-                    onClick={() => handleProceedBooking(topDoctor, 'VIDEO_CONSULTATION')}
-                    className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-extrabold text-xs flex items-center justify-between shadow-xs transition-all cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Video className="w-4 h-4 text-emerald-200" />
-                      <span>Schedule Video Consultation</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-emerald-100">
-                      <span>₹{topDoctor.teleConsultationFee || 250}</span>
-                      <ArrowRight className="w-3.5 h-3.5 text-emerald-200" />
-                    </div>
-                  </motion.button>
-                </div>
-              </div>
-
-              {/* Directions Link (Clean & Simple) */}
-              <div className="p-3 rounded-2xl bg-white border border-slate-200 text-xs flex items-center justify-between">
-                <div className="flex items-center gap-2 min-w-0 pr-2">
-                  <MapPin className="w-4 h-4 text-blue-600 shrink-0" />
-                  <div className="min-w-0">
-                    <span className="font-bold text-slate-900 block truncate">
-                      {selectedHospital.name}
-                    </span>
-                    <span className="text-[10px] text-slate-500 block truncate">
-                      {selectedHospital.address}
-                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleBookNow(msg.doctorRecommendation!.doctor, 'VIDEO_CONSULTATION')}
+                      className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                    >
+                      <Video className="w-3.5 h-3.5 text-emerald-200" />
+                      <span>Video Call (₹{msg.doctorRecommendation.doctor.teleConsultationFee || 250})</span>
+                    </button>
                   </div>
                 </div>
+              )}
+            </div>
+          );
+        })}
 
-                <a
-                  href={getGoogleMapsDirectionsUrl(
-                    userLocation.lat,
-                    userLocation.lng,
-                    selectedHospital.latitude || 11.0168,
-                    selectedHospital.longitude || 76.9558,
-                    selectedHospital.name
-                  )}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-blue-600 font-bold text-xs flex items-center gap-1 shrink-0 transition-colors"
-                >
-                  <Navigation className="w-3.5 h-3.5 rotate-45" />
-                  <span>Google Maps</span>
-                </a>
-              </div>
+        {/* Analyzing / Typing Indicator */}
+        {isAnalyzing && (
+          <div className="flex items-center gap-2 p-3 rounded-2xl bg-white border border-slate-200 shadow-xs max-w-[240px] animate-in fade-in duration-200">
+            <div className="flex space-x-1">
+              <span className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '0ms' }} />
+              <span className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '150ms' }} />
+              <span className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '300ms' }} />
+            </div>
+            <span className="text-[11px] text-slate-500 font-medium">
+              Finding the right doctor...
+            </span>
+          </div>
+        )}
 
-              {/* Bottom Action: Check Another Symptom */}
-              <div className="pt-2">
-                <button
-                  type="button"
-                  onClick={() => setCurrentStep('SYMPTOM_INPUT')}
-                  className="w-full py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  <span>Check Another Symptom or Concern</span>
-                </button>
-              </div>
-            </motion.div>
-          )}
-
-        </AnimatePresence>
+        <div ref={messagesEndRef} />
       </div>
 
       {/* ========================================================================= */}
-      {/* 3. MODAL: ALL 18 SPECIALTY CARE CATEGORIES                                */}
+      {/* 3. LISTENING PULSE BANNER (WHEN MICROPHONE IS ACTIVE)                     */}
       {/* ========================================================================= */}
-      <AnimatePresence>
-        {showMoreModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4"
+      {isListening && (
+        <div className="px-4 py-2.5 bg-rose-50 border-t border-rose-200 flex items-center justify-between text-xs text-rose-800 animate-pulse">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-rose-600 animate-ping" />
+            <span className="font-bold">{selectedLanguage.listeningText}</span>
+          </div>
+          <button
+            type="button"
+            onClick={toggleListening}
+            className="text-[11px] font-extrabold text-rose-700 underline cursor-pointer"
           >
-            <motion.div
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl"
-            >
-              <div className="p-4 border-b border-slate-200 flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-black text-slate-900">All Care Departments</h3>
-                  <p className="text-xs text-slate-500 mt-0.5">Select your primary symptom or specialty</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowMoreModal(false)}
-                  className="p-1.5 rounded-full hover:bg-slate-100 text-slate-500"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="p-4 overflow-y-auto space-y-2">
-                {SMART_CLINICAL_CATEGORIES.map((cat) => {
-                  const IconComp = cat.icon;
-                  return (
-                    <div
-                      key={cat.id}
-                      onClick={() => {
-                        setShowMoreModal(false);
-                        handleSelectCategory(cat.id);
-                      }}
-                      className="p-3 rounded-2xl border border-slate-200/90 hover:border-blue-500 hover:bg-blue-50/30 transition-all cursor-pointer flex items-center gap-3"
-                    >
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${cat.iconBg} ${cat.iconColor}`}>
-                        <IconComp className="w-4 h-4" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h4 className="font-extrabold text-xs text-slate-900 truncate">{cat.title}</h4>
-                        <p className="text-[10px] text-slate-500 truncate">{cat.badge} • {cat.urgencyLabel}</p>
-                      </div>
-                      <ArrowRight className="w-4 h-4 text-slate-400" />
-                    </div>
-                  );
-                })}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            Stop
+          </button>
+        </div>
+      )}
 
       {/* ========================================================================= */}
-      {/* 4. MODAL: REGIONAL LANGUAGE SELECTOR                                     */}
+      {/* 4. CHAT INPUT BAR WITH MICROPHONE & SEND                                 */}
       {/* ========================================================================= */}
-      <AnimatePresence>
-        {showLanguageModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4"
+      <div className="p-3 bg-white border-t border-slate-200/90 shrink-0">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSendMessage();
+          }}
+          className="flex items-center gap-2"
+        >
+          {/* Microphone Button */}
+          <button
+            type="button"
+            onClick={toggleListening}
+            className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-xs ${
+              isListening
+                ? 'bg-rose-600 text-white animate-pulse'
+                : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+            }`}
+            title={isListening ? "Listening... Tap to stop" : "Tap to speak in any language"}
           >
-            <motion.div
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl"
-            >
-              <div className="p-4 border-b border-slate-200 flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-black text-slate-900">Choose Language / भाषा चुनें</h3>
-                  <p className="text-xs text-slate-500 mt-0.5">Voice guidance and speech recognition support</p>
-                </div>
+            {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5 text-blue-600" />}
+          </button>
+
+          {/* Text Input */}
+          <input
+            type="text"
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            placeholder={selectedLanguage.placeholder}
+            className="flex-1 py-2.5 px-3.5 rounded-2xl bg-slate-100 hover:bg-slate-100/80 focus:bg-white text-xs font-medium text-slate-900 placeholder:text-slate-400 border border-transparent focus:border-blue-500 focus:outline-none transition-all"
+          />
+
+          {/* Send Button */}
+          <button
+            type="submit"
+            disabled={!inputText.trim()}
+            className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all cursor-pointer shrink-0 ${
+              inputText.trim()
+                ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm'
+                : 'bg-slate-100 text-slate-300 cursor-not-allowed'
+            }`}
+            title="Send Message"
+          >
+            <Send className="w-4 h-4" />
+          </button>
+        </form>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 5. LANGUAGE SELECTOR MODAL                                               */}
+      {/* ========================================================================= */}
+      {showLanguageModal && (
+        <div className="absolute inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-xs bg-white rounded-3xl p-4 shadow-2xl border border-slate-200 space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <h4 className="font-extrabold text-sm text-slate-900">
+                Select Consultation Language
+              </h4>
+              <button
+                type="button"
+                onClick={() => setShowLanguageModal(false)}
+                className="text-xs font-bold text-slate-400 hover:text-slate-600"
+              >
+                Done
+              </button>
+            </div>
+
+            <div className="max-h-60 overflow-y-auto space-y-1 scrollbar-none">
+              {SUPPORTED_INDIAN_LANGUAGES.map((lang) => (
                 <button
+                  key={lang.code}
                   type="button"
-                  onClick={() => setShowLanguageModal(false)}
-                  className="p-1.5 rounded-full hover:bg-slate-100 text-slate-500"
+                  onClick={() => {
+                    setSelectedLanguage(lang);
+                    setShowLanguageModal(false);
+                  }}
+                  className={`w-full py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-between cursor-pointer transition-colors ${
+                    selectedLanguage.code === lang.code
+                      ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                      : 'hover:bg-slate-50 text-slate-700'
+                  }`}
                 >
-                  <X className="w-5 h-5" />
+                  <div className="flex items-center gap-2">
+                    <span>{lang.flag}</span>
+                    <span>{lang.name}</span>
+                    <span className="text-[10px] text-slate-400 font-normal">({lang.englishName})</span>
+                  </div>
+                  {selectedLanguage.code === lang.code && (
+                    <CheckCircle2 className="w-4 h-4 text-blue-600" />
+                  )}
                 </button>
-              </div>
-
-              <div className="p-4 overflow-y-auto space-y-2">
-                {SUPPORTED_INDIAN_LANGUAGES.map((lang) => {
-                  const isSelected = lang.code === selectedLanguage.code;
-                  return (
-                    <button
-                      key={lang.code}
-                      type="button"
-                      onClick={() => {
-                        setSelectedLanguage(lang);
-                        setShowLanguageModal(false);
-                      }}
-                      className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
-                        isSelected 
-                          ? 'bg-blue-50 border-blue-600 text-blue-900 shadow-2xs' 
-                          : 'bg-white border-slate-200 hover:border-slate-300 text-slate-800'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl">{lang.flag}</span>
-                        <div>
-                          <span className="font-extrabold text-xs block">{lang.name}</span>
-                          <span className="text-[10px] text-slate-500">{lang.englishName}</span>
-                        </div>
-                      </div>
-                      {isSelected && <Check className="w-4 h-4 text-blue-600 stroke-[3]" />}
-                    </button>
-                  );
-                })}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+
 export default AiHealthAssistant;
