@@ -18,6 +18,7 @@ import { CheckoutSummary, ConsultationType } from '../components/CheckoutSummary
 import { BookingConsultationScreen } from '../components/BookingConsultationScreen';
 import { AiHealthAssistant } from '../components/AiHealthAssistant';
 import { OpdTokenPassCard } from '../components/OpdTokenPassCard';
+import { ZomatoLocationPickerModal } from '../components/ZomatoLocationPickerModal';
 import { PhoneModalPortal } from '../components/PhoneModalPortal';
 import { generatePrescriptionPdf } from '../utils/pdfGenerator';
 import { 
@@ -147,7 +148,6 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
   onSelectLocation
 }) => {
   const [showLocationPickerModal, setShowLocationPickerModal] = useState(false);
-  const [isLocDetecting, setIsLocDetecting] = useState(false);
   const [internalTab, setInternalTab] = useState<PatientPortalTab>('op_booking');
   const activeTab = controlledTab !== undefined ? controlledTab : internalTab;
   const setActiveTab = (tab: PatientPortalTab) => {
@@ -3178,115 +3178,17 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
       )}
     </AnimatePresence>
 
-      {/* LOCATION PICKER & GPS AUTO-DETECTION MODAL */}
-      {showLocationPickerModal && (
-        <PhoneModalPortal>
-          <div className="fixed inset-0 z-[130] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/60 backdrop-blur-sm">
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 40 }}
-              className="relative w-full max-w-sm rounded-t-[32px] sm:rounded-[28px] overflow-hidden shadow-2xl border border-slate-200/90 bg-white text-slate-900 p-5 space-y-4"
-            >
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-                    <MapPin className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-extrabold text-slate-900">Your Location</h3>
-                    <p className="text-[11px] text-slate-500">Auto-detected live GPS & nearby care</p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowLocationPickerModal(false)}
-                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 cursor-pointer"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Current Detected Location Display */}
-              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
-                <div className="min-w-0 flex-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Current Location</span>
-                  <span className="text-xs font-extrabold text-slate-900 truncate block mt-0.5">
-                    {userLocation?.displayName || 'Detecting...'}
-                  </span>
-                  <span className="text-[10px] text-emerald-600 font-semibold block">
-                    {userLocation?.isLiveGps ? '● Live GPS High Accuracy' : '● Auto-detected Region'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Live GPS Refresh Button */}
-              <button
-                type="button"
-                onClick={async () => {
-                  setIsLocDetecting(true);
-                  if (onRefreshLocation) {
-                    await onRefreshLocation();
-                  }
-                  setIsLocDetecting(false);
-                  setShowLocationPickerModal(false);
-                }}
-                disabled={isLocDetecting}
-                className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-98"
-              >
-                <LocateFixed className={`w-4 h-4 ${isLocDetecting ? 'animate-spin' : ''}`} />
-                <span>{isLocDetecting ? 'Detecting Live GPS...' : 'Detect My Exact GPS Location'}</span>
-              </button>
-
-              {/* Major Indian Hubs Quick Select */}
-              <div className="space-y-1.5">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                  Quick Switch Hubs:
-                </span>
-                <div className="grid grid-cols-2 gap-1.5">
-                  {[
-                    { name: 'Hyderabad, Telangana', area: 'Banjara Hills', city: 'Hyderabad', state: 'Telangana', lat: 17.4156, lng: 78.4350 },
-                    { name: 'Bengaluru, Karnataka', area: 'Indiranagar', city: 'Bengaluru', state: 'Karnataka', lat: 12.9716, lng: 77.5946 },
-                    { name: 'Chennai, Tamil Nadu', area: 'Adyar', city: 'Chennai', state: 'Tamil Nadu', lat: 13.0827, lng: 80.2707 },
-                    { name: 'Coimbatore, Tamil Nadu', area: 'Peelamedu', city: 'Coimbatore', state: 'Tamil Nadu', lat: 11.0267, lng: 76.9945 },
-                    { name: 'Mumbai, Maharashtra', area: 'Bandra West', city: 'Mumbai', state: 'Maharashtra', lat: 19.0760, lng: 72.8777 },
-                    { name: 'Delhi NCR', area: 'Connaught Place', city: 'New Delhi', state: 'Delhi', lat: 28.6139, lng: 77.2090 }
-                  ].map(hub => (
-                    <button
-                      key={hub.name}
-                      type="button"
-                      onClick={() => {
-                        if (onSelectLocation) {
-                          onSelectLocation({
-                            area: hub.area,
-                            city: hub.city,
-                            state: hub.state,
-                            country: 'India',
-                            displayName: hub.name,
-                            lat: hub.lat,
-                            lng: hub.lng,
-                            isLiveGps: true,
-                            timestamp: Date.now()
-                          });
-                        }
-                        setShowLocationPickerModal(false);
-                      }}
-                      className={`p-2 rounded-xl text-left border text-xs font-bold transition-all cursor-pointer ${
-                        userLocation?.displayName === hub.name
-                          ? 'bg-blue-50 border-blue-400 text-blue-950'
-                          : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'
-                      }`}
-                    >
-                      <span className="block truncate">{hub.city}</span>
-                      <span className="text-[9.5px] text-slate-400 font-medium block truncate">{hub.area}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </PhoneModalPortal>
-      )}
+      {/* ZOMATO-STYLE REAL-TIME MAP & LOCATION SELECTOR MODAL */}
+      <ZomatoLocationPickerModal
+        isOpen={showLocationPickerModal}
+        onClose={() => setShowLocationPickerModal(false)}
+        currentLocation={userLocation}
+        onSelectLocation={(loc) => {
+          if (onSelectLocation) onSelectLocation(loc);
+          setShowLocationPickerModal(false);
+        }}
+        onRefreshGps={onRefreshLocation}
+      />
     </div>
   );
 };
