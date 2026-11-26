@@ -129,7 +129,7 @@ export class AppDataStore {
     }]
   ]);
 
-  // Accredited Hospitals with Registered Accounts
+  // Accredited Hospitals with Registered Accounts (Strictly the one active verified hospital)
   hospitals: Hospital[] = [
     {
       id: 'hosp-1',
@@ -151,52 +151,10 @@ export class AppDataStore {
       phone: '+91 422 257 0108',
       emergencyPhone: '108',
       googleMapsUrl: 'https://www.google.com/maps/dir/?api=1&destination=11.0267,77.0089'
-    },
-    {
-      id: 'hosp-hyd-1',
-      name: 'Apollo Health City & Multi-Specialty Centre',
-      districtId: 'dist-hyderabad-central',
-      districtName: 'Hyderabad Central',
-      address: 'Road No 2, Jubilee Hills / Banjara Hills, Hyderabad',
-      rating: 4.9,
-      specialties: ['Cardiology', 'General Medicine', 'Neurology', 'Orthopedics'],
-      baseOpFee: 100,
-      imageUrl: 'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?w=600',
-      emergencyAvailable: true,
-      distance: '2.4 km',
-      activeDoctorsCount: 1,
-      adminUserId: 'user-franchise-hyd',
-      isAccountVerified: true,
-      latitude: 17.4265,
-      longitude: 78.4118,
-      phone: '+91 40 2360 7777',
-      emergencyPhone: '108',
-      googleMapsUrl: 'https://www.google.com/maps/dir/?api=1&destination=17.4265,78.4118'
-    },
-    {
-      id: 'hosp-2',
-      name: 'Kovai Medical & Research Centre',
-      districtId: 'dist-coimbatore-south',
-      districtName: 'Coimbatore South',
-      address: '15 Trichy Road, Singanallur, Coimbatore',
-      rating: 4.6,
-      specialties: ['Neurology', 'General Medicine'],
-      baseOpFee: 100,
-      imageUrl: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=600',
-      emergencyAvailable: true,
-      distance: '2.8 km',
-      activeDoctorsCount: 1,
-      adminUserId: 'user-franchise-2',
-      isAccountVerified: true,
-      latitude: 11.0016,
-      longitude: 77.0253,
-      phone: '+91 422 268 0100',
-      emergencyPhone: '108',
-      googleMapsUrl: 'https://www.google.com/maps/dir/?api=1&destination=11.0016,77.0253'
     }
   ];
 
-  // Doctors Directory (Strictly Only Doctors with Registered Signed-up Accounts)
+  // Doctors Directory (Strictly Only Doctors with Registered Signed-up Accounts at hosp-1)
   doctors: DoctorProfile[] = [
     {
       id: 'doc-1',
@@ -240,50 +198,6 @@ export class AppDataStore {
       estimatedWaitMins: 8,
       videoAvailable: true,
       registrationNumber: 'TMC-66291',
-      isAccountVerified: true
-    },
-    {
-      id: 'doc-hyd-1',
-      userId: 'user-doctor-hyd',
-      name: 'Dr. Vikram Reddy, MD, DM',
-      specialty: 'Cardiology',
-      hospitalId: 'hosp-hyd-1',
-      hospitalName: 'Apollo Health City & Multi-Specialty Centre',
-      experienceYears: 16,
-      opConsultationFee: 100,
-      teleConsultationFee: 250,
-      availableDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-      rating: 4.9,
-      totalConsultations: 1640,
-      status: 'ACTIVE',
-      distance: '2.4 km',
-      nextAvailableToken: 1,
-      roomNumber: '102',
-      estimatedWaitMins: 10,
-      videoAvailable: true,
-      registrationNumber: 'TSMC-48201',
-      isAccountVerified: true
-    },
-    {
-      id: 'doc-3',
-      userId: 'user-doctor-3',
-      name: 'Dr. Meera Swaminathan, MD',
-      specialty: 'Neurology',
-      hospitalId: 'hosp-2',
-      hospitalName: 'Kovai Medical & Research Centre',
-      experienceYears: 16,
-      opConsultationFee: 120,
-      teleConsultationFee: 300,
-      availableDays: ['Tue', 'Thu', 'Sat'],
-      rating: 4.95,
-      totalConsultations: 2100,
-      status: 'ACTIVE',
-      distance: '2.8 km',
-      nextAvailableToken: 4,
-      roomNumber: '302',
-      estimatedWaitMins: 15,
-      videoAvailable: true,
-      registrationNumber: 'TMC-88102',
       isAccountVerified: true
     }
   ];
@@ -660,7 +574,7 @@ export class AppDataStore {
     });
     allGeneratedSlots.push(...doc1TodaySlots);
 
-    // 2. All doctors across upcoming dates (including doc-1 for tomorrow onwards, and doc-2, doc-hyd-1, doc-3 for all dates)
+    // 2. All doctors across upcoming dates (including doc-1 for tomorrow onwards, and doc-2 for all dates)
     for (const doc of this.doctors) {
       for (const dStr of upcomingDates) {
         // Skip doc-1 on today because we already added doc1TodaySlots above

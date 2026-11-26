@@ -53,9 +53,24 @@ import {
 } from 'lucide-react';
 
 export function App() {
-  const [currentRole, setCurrentRole] = useState<UserRole>('PATIENT');
+  const [currentRole, setCurrentRole] = useState<UserRole>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const r = params.get('role')?.toUpperCase();
+      if (r === 'NURSE' || r === 'DOCTOR' || r === 'FRANCHISE_ADMIN' || r === 'SUPER_ADMIN' || r === 'PATIENT') {
+        return r as UserRole;
+      }
+    }
+    return 'PATIENT';
+  });
   const [currentUser, setCurrentUser] = useState<any>(() => {
     if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const r = params.get('role')?.toUpperCase();
+      if (r === 'NURSE') return { id: 'nurse_1', name: 'Sister Priya Nair', phone: '9842112233', role: 'NURSE' };
+      if (r === 'DOCTOR') return { id: 'doc_1', name: 'Dr. Anand Varma', phone: '9842001122', role: 'DOCTOR' };
+      if (r === 'FRANCHISE_ADMIN') return { id: 'fran_1', name: 'Kavitha Sundaram', phone: '9842998877', role: 'FRANCHISE_ADMIN' };
+      if (r === 'SUPER_ADMIN') return { id: 'admin_1', name: 'Ops Chief Admin', phone: '9900112233', role: 'SUPER_ADMIN' };
       const saved = localStorage.getItem('bcare_user');
       if (saved) {
         try { return JSON.parse(saved); } catch (e) { return null; }
@@ -109,7 +124,14 @@ export function App() {
     }
     return 'op_booking';
   });
-  const [nurseTab, setNurseTab] = useState<'referrals' | 'bulk' | 'walkin' | 'profile'>('referrals');
+  const [nurseTab, setNurseTab] = useState<'referrals' | 'bulk' | 'walkin' | 'hospital' | 'profile'>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const t = params.get('tab');
+      if (t === 'hospital' || t === 'bulk' || t === 'walkin' || t === 'profile' || t === 'referrals') return t as any;
+    }
+    return 'referrals';
+  });
   const [doctorTab, setDoctorTab] = useState<'queue' | 'rx' | 'completed' | 'profile'>('queue');
   const [franchiseTab, setFranchiseTab] = useState<'territory' | 'hospitals' | 'nurses' | 'profile'>('territory');
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -282,30 +304,6 @@ export function App() {
 
   const [hospitals, setHospitals] = useState<Hospital[]>([
     {
-      id: 'hosp-hyd-1',
-      name: 'Apollo Health City & Multi-Specialty Centre',
-      districtId: 'dist-hyderabad-central',
-      districtName: 'Hyderabad Central',
-      address: 'Road No 2, Jubilee Hills / Banjara Hills, Hyderabad',
-      rating: 4.9,
-      specialties: ['Cardiology', 'General Medicine', 'Neurology', 'Orthopedics'],
-      baseOpFee: 100,
-      imageUrl: 'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?w=600',
-      emergencyAvailable: true,
-      distance: '2.4 km',
-      activeDoctorsCount: 1,
-      latitude: 17.4265,
-      longitude: 78.4118,
-      phone: '+91 40 2360 7777',
-      emergencyPhone: '108',
-      googleMapsUrl: 'https://www.google.com/maps/dir/?api=1&destination=17.4265,78.4118',
-      adminUserId: 'user-franchise-hyd',
-      isAccountVerified: true,
-      featured: true,
-      status: 'ACTIVE',
-      onboardingSource: 'Hyderabad Central Master Franchise'
-    },
-    {
       id: 'hosp-1',
       name: 'City Care Multi-Specialty Hospital',
       districtId: 'dist-coimbatore-south',
@@ -326,30 +324,6 @@ export function App() {
       adminUserId: 'user-franchise-1',
       isAccountVerified: true,
       featured: true,
-      status: 'ACTIVE',
-      onboardingSource: 'Apex Health District Franchise'
-    },
-    {
-      id: 'hosp-2',
-      name: 'Kovai Medical & Research Centre',
-      districtId: 'dist-coimbatore-south',
-      districtName: 'Coimbatore South',
-      address: '15 Trichy Road, Singanallur, Coimbatore',
-      rating: 4.6,
-      specialties: ['Neurology', 'General Medicine'],
-      baseOpFee: 100,
-      imageUrl: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=600',
-      emergencyAvailable: true,
-      distance: '2.8 km',
-      activeDoctorsCount: 1,
-      latitude: 11.0016,
-      longitude: 77.0253,
-      phone: '+91 422 259 4400',
-      emergencyPhone: '+91 422 259 4499',
-      googleMapsUrl: 'https://www.google.com/maps/dir/?api=1&destination=11.0016,77.0253',
-      adminUserId: 'user-franchise-2',
-      isAccountVerified: true,
-      featured: false,
       status: 'ACTIVE',
       onboardingSource: 'Apex Health District Franchise'
     }
@@ -405,56 +379,6 @@ export function App() {
       featured: false,
       onboardingSource: 'Apex Health District Franchise (Coimbatore South)',
       franchiseName: 'Apex Health District Franchise'
-    },
-    {
-      id: 'doc-hyd-1',
-      userId: 'user-doctor-hyd',
-      name: 'Dr. Vikram Reddy, MD, DM',
-      specialty: 'Cardiology',
-      hospitalId: 'hosp-hyd-1',
-      hospitalName: 'Apollo Health City & Multi-Specialty Centre',
-      experienceYears: 16,
-      opConsultationFee: 100,
-      teleConsultationFee: 250,
-      availableDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-      rating: 4.9,
-      totalConsultations: 1640,
-      status: 'ACTIVE',
-      distance: '2.4 km',
-      nextAvailableToken: 1,
-      roomNumber: '102',
-      estimatedWaitMins: 10,
-      videoAvailable: true,
-      registrationNumber: 'TSMC-48201',
-      isAccountVerified: true,
-      featured: true,
-      onboardingSource: 'Hyderabad Central Master Franchise',
-      franchiseName: 'Hyderabad Central Franchise'
-    },
-    {
-      id: 'doc-3',
-      userId: 'user-doctor-3',
-      name: 'Dr. Meera Swaminathan, MD',
-      specialty: 'Neurology',
-      hospitalId: 'hosp-2',
-      hospitalName: 'Kovai Medical & Research Centre',
-      experienceYears: 16,
-      opConsultationFee: 120,
-      teleConsultationFee: 300,
-      availableDays: ['Tue', 'Thu', 'Sat'],
-      rating: 4.95,
-      totalConsultations: 2100,
-      status: 'ACTIVE',
-      distance: '2.8 km',
-      nextAvailableToken: 4,
-      roomNumber: '302',
-      estimatedWaitMins: 15,
-      videoAvailable: true,
-      registrationNumber: 'TMC-88102',
-      isAccountVerified: true,
-      featured: false,
-      onboardingSource: 'Direct HQ Onboarding',
-      franchiseName: 'Direct HQ'
     }
   ]);
 
@@ -1439,10 +1363,11 @@ export function App() {
     },
   ];
 
-  const nurseNavItems: LiquidNavItem<'referrals' | 'bulk' | 'walkin' | 'profile'>[] = [
+  const nurseNavItems: LiquidNavItem<'referrals' | 'bulk' | 'walkin' | 'hospital' | 'profile'>[] = [
     { id: 'referrals', label: 'Referrals', icon: Ticket },
     { id: 'bulk', label: 'Bulk', icon: Layers },
     { id: 'walkin', label: 'Walk-ins', icon: UserPlus },
+    { id: 'hospital', label: 'Hospital', icon: Building2 },
     { id: 'profile', label: 'Profile', icon: User, verifiedBeacon: true },
   ];
 
@@ -1578,6 +1503,7 @@ export function App() {
             onBulkReserve={handleBulkReserve}
             onAssignBulkSlot={handleAssignBulkSlot}
             onTriggerWhatsAppToast={triggerWhatsAppToast}
+            onUpdateHospital={handleUpdateHospital}
             onLogout={handleLogout}
           />
         );

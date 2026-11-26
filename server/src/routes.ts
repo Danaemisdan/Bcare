@@ -991,13 +991,22 @@ router.post('/admin/hospitals', (req: Request, res: Response) => {
   res.status(201).json(newHosp);
 });
 
-router.put('/admin/hospitals/:id', (req: Request, res: Response) => {
+// Hospital Profile Updates (Accessible by Nurse In-Charge and Administrator)
+router.put(['/admin/hospitals/:id', '/nurse/hospital/:id', '/hospitals/:id'], (req: Request, res: Response) => {
   const hosp = store.hospitals.find(h => h.id === req.params.id);
   if (!hosp) {
     return res.status(404).json({ error: 'Hospital not found' });
   }
   Object.assign(hosp, req.body);
-  res.json({ message: 'Hospital details updated', hospital: hosp });
+  if (req.body.name) {
+    // Synchronize hospitalName across all doctors associated with this hospital
+    store.doctors.forEach(doc => {
+      if (doc.hospitalId === hosp.id) {
+        doc.hospitalName = req.body.name;
+      }
+    });
+  }
+  res.json({ message: 'Hospital details updated successfully', hospital: hosp });
 });
 
 // Telehealth: Video Consultations

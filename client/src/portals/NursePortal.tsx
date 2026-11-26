@@ -42,7 +42,17 @@ import {
   UserCheck,
   Calendar,
   Video,
-  Users
+  Users,
+  Image as ImageIcon,
+  Phone,
+  Save,
+  Plus,
+  Trash2,
+  Camera,
+  RefreshCw,
+  Star,
+  Navigation,
+  AlertCircle
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -55,11 +65,12 @@ interface NursePortalProps {
   onBookVideoConsultation?: (bookingData: any) => Promise<any>;
   splitConfig: RevenueSplitConfig;
   isMobile?: boolean;
-  activeTab?: 'referrals' | 'bulk' | 'walkin' | 'profile';
-  onTabChange?: (tab: 'referrals' | 'bulk' | 'walkin' | 'profile') => void;
+  activeTab?: 'referrals' | 'bulk' | 'walkin' | 'hospital' | 'profile';
+  onTabChange?: (tab: 'referrals' | 'bulk' | 'walkin' | 'hospital' | 'profile') => void;
   onBulkReserve: (nurseId: string, doctorId: string, startToken: number, endToken: number, date?: string, time?: string) => Promise<any>;
   onAssignBulkSlot: (slotId: string, patientName: string, patientPhone: string, nurseId: string) => Promise<any>;
   onTriggerWhatsAppToast: (title: string, message: string, type: 'TOKEN_CONFIRMATION' | 'PRESCRIPTION_READY' | 'TELECONSULT_LINK') => void;
+  onUpdateHospital?: (hospitalId: string, updates: Partial<Hospital>) => Promise<any>;
   onLogout?: () => void;
 }
 
@@ -77,6 +88,7 @@ export const NursePortal: React.FC<NursePortalProps> = ({
   onBulkReserve,
   onAssignBulkSlot,
   onTriggerWhatsAppToast,
+  onUpdateHospital,
   onLogout
 }) => {
   const [copiedCode, setCopiedCode] = useState(false);
@@ -88,6 +100,136 @@ export const NursePortal: React.FC<NursePortalProps> = ({
     () => new Date().toISOString().split('T')[0]
   );
   const [appointmentTime, setAppointmentTime] = useState<string>('10:00 AM');
+
+  // Hospital Facility Management State (Sister Priya Nair manages City Care Multi-Specialty Hospital)
+  const affiliatedHospital = hospitals.find(h => h.id === (nurse.affiliatedHospitalId || 'hosp-1')) || hospitals[0] || {
+    id: 'hosp-1',
+    name: 'City Care Multi-Specialty Hospital',
+    districtId: 'dist-coimbatore-south',
+    districtName: 'Coimbatore South',
+    address: '42 Avinashi Road, Peelamedu, Coimbatore',
+    rating: 4.8,
+    specialties: ['Cardiology', 'Orthopedics', 'General Medicine'],
+    baseOpFee: 100,
+    imageUrl: 'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?w=600',
+    emergencyAvailable: true,
+    distance: '1.2 km',
+    activeDoctorsCount: 2,
+    phone: '+91 422 257 0100',
+    emergencyPhone: '+91 422 257 0108',
+    googleMapsUrl: 'https://www.google.com/maps/dir/?api=1&destination=11.0267,77.0089'
+  };
+
+  const [hospFormName, setHospFormName] = useState(affiliatedHospital.name);
+  const [hospFormAddress, setHospFormAddress] = useState(affiliatedHospital.address);
+  const [hospFormDistrict, setHospFormDistrict] = useState(affiliatedHospital.districtName || 'Coimbatore South');
+  const [hospFormPhone, setHospFormPhone] = useState(affiliatedHospital.phone || '+91 422 257 0100');
+  const [hospFormEmergencyPhone, setHospFormEmergencyPhone] = useState(affiliatedHospital.emergencyPhone || '+91 422 257 0108');
+  const [hospFormBaseFee, setHospFormBaseFee] = useState<number>(affiliatedHospital.baseOpFee || 100);
+  const [hospFormEmergencyAvailable, setHospFormEmergencyAvailable] = useState<boolean>(affiliatedHospital.emergencyAvailable ?? true);
+  const [hospFormImageUrl, setHospFormImageUrl] = useState(affiliatedHospital.imageUrl);
+  const [hospFormSpecialties, setHospFormSpecialties] = useState<string[]>(affiliatedHospital.specialties || ['Cardiology', 'Orthopedics', 'General Medicine']);
+  const [customSpecialtyInput, setCustomSpecialtyInput] = useState('');
+  const [isSavingHospital, setIsSavingHospital] = useState(false);
+  const [hospitalSaveSuccess, setHospitalSaveSuccess] = useState(false);
+
+  // Sync state if affiliatedHospital updates externally
+  React.useEffect(() => {
+    if (affiliatedHospital) {
+      setHospFormName(affiliatedHospital.name);
+      setHospFormAddress(affiliatedHospital.address);
+      setHospFormDistrict(affiliatedHospital.districtName || 'Coimbatore South');
+      setHospFormPhone(affiliatedHospital.phone || '+91 422 257 0100');
+      setHospFormEmergencyPhone(affiliatedHospital.emergencyPhone || '+91 422 257 0108');
+      setHospFormBaseFee(affiliatedHospital.baseOpFee || 100);
+      setHospFormEmergencyAvailable(affiliatedHospital.emergencyAvailable ?? true);
+      setHospFormImageUrl(affiliatedHospital.imageUrl);
+      setHospFormSpecialties(affiliatedHospital.specialties || ['Cardiology', 'Orthopedics', 'General Medicine']);
+    }
+  }, [affiliatedHospital.id, affiliatedHospital.name, affiliatedHospital.imageUrl, affiliatedHospital.baseOpFee]);
+
+  const hospitalPhotoPresets = [
+    {
+      id: 'modern_glass',
+      label: 'Modern Glass Facade',
+      url: 'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?w=800'
+    },
+    {
+      id: 'premier_atrium',
+      label: 'Premier Medical Atrium',
+      url: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800'
+    },
+    {
+      id: 'surgical_wing',
+      label: 'Surgical & Emergency Wing',
+      url: 'https://images.unsplash.com/photo-1516549655169-df83a0774514?w=800'
+    },
+    {
+      id: 'contemporary_clinic',
+      label: 'Contemporary Clinical Center',
+      url: 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=800'
+    }
+  ];
+
+  const popularSpecialtiesCatalog = [
+    'Cardiology',
+    'Orthopedics',
+    'General Medicine',
+    'Pediatrics',
+    'Neurology',
+    'Gynecology',
+    'Dermatology',
+    'ENT',
+    'Ophthalmology'
+  ];
+
+  const toggleSpecialty = (spec: string) => {
+    setHospFormSpecialties(prev => 
+      prev.includes(spec) ? prev.filter(s => s !== spec) : [...prev, spec]
+    );
+  };
+
+  const handleAddCustomSpecialty = () => {
+    const trimmed = customSpecialtyInput.trim();
+    if (trimmed && !hospFormSpecialties.includes(trimmed)) {
+      setHospFormSpecialties(prev => [...prev, trimmed]);
+      setCustomSpecialtyInput('');
+    }
+  };
+
+  const handleSaveHospitalDetails = async () => {
+    if (!onUpdateHospital) return;
+    setIsSavingHospital(true);
+    try {
+      await onUpdateHospital(affiliatedHospital.id, {
+        name: hospFormName.trim(),
+        address: hospFormAddress.trim(),
+        districtName: hospFormDistrict.trim(),
+        phone: hospFormPhone.trim(),
+        emergencyPhone: hospFormEmergencyPhone.trim(),
+        baseOpFee: Number(hospFormBaseFee) || 100,
+        emergencyAvailable: hospFormEmergencyAvailable,
+        imageUrl: (hospFormImageUrl || '').trim() || affiliatedHospital.imageUrl,
+        specialties: hospFormSpecialties
+      });
+      setHospitalSaveSuccess(true);
+      confetti({
+        particleCount: 50,
+        spread: 60,
+        origin: { y: 0.7 }
+      });
+      onTriggerWhatsAppToast(
+        'Hospital Profile Updated',
+        `Details for "${hospFormName}" updated live across patient apps.`,
+        'TOKEN_CONFIRMATION'
+      );
+      setTimeout(() => setHospitalSaveSuccess(false), 3500);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsSavingHospital(false);
+    }
+  };
 
   // Walk-in modal
   const [assigningSlot, setAssigningSlot] = useState<OpSlot | null>(null);
@@ -1227,6 +1369,446 @@ export const NursePortal: React.FC<NursePortalProps> = ({
               </div>
             </div>
 
+          </motion.div>
+        )}
+
+        {/* ============================================================== */}
+        {/* TAB: HOSPITAL & FACILITY PROFILE (Nurse In-Charge Management)  */}
+        {/* ============================================================== */}
+        {activeTab === 'hospital' && (
+          <motion.div
+            key="hospital"
+            initial={{ opacity: 0, y: 8, filter: 'blur(3px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, y: -6, filter: 'blur(2px)' }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            className="space-y-4"
+          >
+            {/* Top Facility Header */}
+            <div className="bg-gradient-to-r from-blue-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-5 shadow-sm border border-blue-500/30 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+              <div className="relative z-10 flex items-start justify-between gap-3">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-blue-500/20 border border-blue-400/40 text-blue-300 flex items-center justify-center">
+                      <Building2 className="w-4 h-4" />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-blue-300">
+                      Facility Administration
+                    </span>
+                  </div>
+                  <h2 className="text-lg font-black tracking-tight text-white">
+                    Hospital Profile & Imagery
+                  </h2>
+                  <p className="text-xs text-blue-100/80">
+                    Managed by {nurse.name} (Duty Nurse In-Charge). Updates reflect immediately on all patient search & booking cards.
+                  </p>
+                </div>
+
+                <div className="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[10px] font-bold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>Live Sync</span>
+                </div>
+              </div>
+            </div>
+
+            {/* LIVE PREVIEW BANNER */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Live Patient View (Real-Time Preview)</span>
+                </span>
+                <span className="text-[11px] font-semibold text-blue-600">
+                  {hospFormSpecialties.length} Specialties Active
+                </span>
+              </div>
+
+              {/* Preview Hospital Card */}
+              <div className="rounded-[28px] border border-slate-200/90 bg-white shadow-md overflow-hidden pointer-events-none select-none">
+                <div className="relative w-full h-40 bg-slate-100 overflow-hidden">
+                  <img
+                    src={hospFormImageUrl || affiliatedHospital.imageUrl}
+                    alt={hospFormName}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/25 to-black/30" />
+                  
+                  {/* Top Badges */}
+                  <div className="absolute top-2.5 inset-x-2.5 flex items-center justify-between">
+                    <div className="px-2.5 py-1 rounded-xl bg-slate-950/70 backdrop-blur-md text-white border border-white/20 text-xs font-black flex items-center gap-1.5">
+                      <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+                      <span>{affiliatedHospital.rating}</span>
+                      <span className="text-[10px] text-slate-300 font-medium">(140+ reviews)</span>
+                    </div>
+                    {hospFormEmergencyAvailable && (
+                      <span className="px-2.5 py-1 rounded-xl bg-rose-950/70 backdrop-blur-md text-rose-200 border border-rose-400/30 text-[10.5px] font-bold flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse" />
+                        <span>24/7 Emergency ICU</span>
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Bottom Overlay */}
+                  <div className="absolute bottom-2.5 inset-x-2.5 flex items-end justify-between text-white">
+                    <p className="text-xs font-bold text-white flex items-center gap-1.5 drop-shadow-md truncate">
+                      <MapPin className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                      <span>{hospFormAddress.split(',')[0]} • {hospFormDistrict}</span>
+                    </p>
+                    <span className="px-2.5 py-0.5 rounded-lg bg-white/20 backdrop-blur-md text-white border border-white/30 text-[10px] font-bold flex items-center gap-1 shrink-0">
+                      <Navigation className="w-2.5 h-2.5 text-blue-300 rotate-45" />
+                      <span>1.2 km • Maps</span>
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-3.5 space-y-2">
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="font-black text-sm text-slate-900 truncate">
+                      {hospFormName}
+                    </h3>
+                    <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1">
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-bold border border-emerald-200">
+                      NABH Accredited
+                    </span>
+                    {hospFormSpecialties.slice(0, 4).map(s => (
+                      <span key={s} className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-medium">
+                        {s}
+                      </span>
+                    ))}
+                    {hospFormSpecialties.length > 4 && (
+                      <span className="px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[9px] font-bold">
+                        +{hospFormSpecialties.length - 4} more
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* FORM CARD 1: GENERAL FACILITY DETAILS */}
+            <div className="bg-white rounded-3xl p-5 shadow-2xs border border-slate-200/90 space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+                <Building2 className="w-4 h-4 text-blue-600" />
+                <h3 className="text-sm font-extrabold text-slate-900">
+                  Facility Information & Location
+                </h3>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Hospital / Clinic Official Name
+                  </label>
+                  <input
+                    type="text"
+                    value={hospFormName}
+                    onChange={(e) => setHospFormName(e.target.value)}
+                    placeholder="e.g. City Care Multi-Specialty Hospital"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-hidden focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Full Address & Street
+                    </label>
+                    <input
+                      type="text"
+                      value={hospFormAddress}
+                      onChange={(e) => setHospFormAddress(e.target.value)}
+                      placeholder="e.g. 42 Avinashi Road, Peelamedu"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-hidden focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Locality / District
+                    </label>
+                    <input
+                      type="text"
+                      value={hospFormDistrict}
+                      onChange={(e) => setHospFormDistrict(e.target.value)}
+                      placeholder="e.g. Coimbatore South"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-hidden focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Base OPD Token Fee (₹)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">₹</span>
+                    <input
+                      type="number"
+                      value={hospFormBaseFee}
+                      onChange={(e) => setHospFormBaseFee(Number(e.target.value))}
+                      className="w-full pl-8 pr-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-black text-slate-900 focus:outline-hidden focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                    />
+                  </div>
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    Standard OPD consultation token fee collected at reception or online via UPI.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* FORM CARD 2: HELPLINES & EMERGENCY ICU TOGGLE */}
+            <div className="bg-white rounded-3xl p-5 shadow-2xs border border-slate-200/90 space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+                <Phone className="w-4 h-4 text-emerald-600" />
+                <h3 className="text-sm font-extrabold text-slate-900">
+                  Contact Telephony & Emergency Casualty
+                </h3>
+              </div>
+
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Hospital Contact Phone
+                    </label>
+                    <input
+                      type="text"
+                      value={hospFormPhone}
+                      onChange={(e) => setHospFormPhone(e.target.value)}
+                      placeholder="+91 422 257 0100"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-hidden focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      24/7 Emergency / ICU Helpline
+                    </label>
+                    <input
+                      type="text"
+                      value={hospFormEmergencyPhone}
+                      onChange={(e) => setHospFormEmergencyPhone(e.target.value)}
+                      placeholder="+91 422 257 0108"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-hidden focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                    />
+                  </div>
+                </div>
+
+                {/* 24/7 Emergency Toggle */}
+                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-3">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                      <span className="text-xs font-extrabold text-slate-900">
+                        24/7 Emergency & ICU Readiness
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500">
+                      Displays red 24/7 Emergency ICU beacon on patient hospital search.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setHospFormEmergencyAvailable(!hospFormEmergencyAvailable)}
+                    className={`w-12 h-7 rounded-full p-1 transition-colors cursor-pointer shrink-0 ${
+                      hospFormEmergencyAvailable ? 'bg-rose-600' : 'bg-slate-300'
+                    }`}
+                  >
+                    <div
+                      className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${
+                        hospFormEmergencyAvailable ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* FORM CARD 3: HOSPITAL PHOTOGRAPHY & BANNER IMAGE */}
+            <div className="bg-white rounded-3xl p-5 shadow-2xs border border-slate-200/90 space-y-4">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <ImageIcon className="w-4 h-4 text-indigo-600" />
+                  <h3 className="text-sm font-extrabold text-slate-900">
+                    Hospital Photo & Exterior Banner
+                  </h3>
+                </div>
+                <span className="text-[10px] font-bold text-slate-400">
+                  Select Preset or Paste URL
+                </span>
+              </div>
+
+              {/* Curated Presets Grid */}
+              <div className="space-y-2">
+                <span className="text-xs font-bold text-slate-700 block">
+                  Quick Photo Presets (Verified Hospital Exteriors):
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  {hospitalPhotoPresets.map(preset => {
+                    const isSelected = hospFormImageUrl === preset.url;
+                    return (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => setHospFormImageUrl(preset.url)}
+                        className={`relative rounded-2xl overflow-hidden p-1.5 text-left border transition-all cursor-pointer ${
+                          isSelected
+                            ? 'border-blue-600 bg-blue-50/50 ring-2 ring-blue-500/30'
+                            : 'border-slate-200 hover:border-slate-300 bg-slate-50/50'
+                        }`}
+                      >
+                        <div className="w-full h-18 rounded-xl overflow-hidden bg-slate-200 mb-1.5 relative">
+                          <img
+                            src={preset.url}
+                            alt={preset.label}
+                            className="w-full h-full object-cover"
+                          />
+                          {isSelected && (
+                            <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-xs">
+                              <Check className="w-3 h-3 stroke-[3]" />
+                            </div>
+                          )}
+                        </div>
+                        <span className="text-[10.5px] font-bold text-slate-800 block truncate">
+                          {preset.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Custom Image URL Input */}
+              <div className="pt-1">
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Custom Image URL
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="url"
+                    value={hospFormImageUrl}
+                    onChange={(e) => setHospFormImageUrl(e.target.value)}
+                    placeholder="https://images.unsplash.com/..."
+                    className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 focus:outline-hidden focus:border-blue-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!hospFormImageUrl) {
+                        setHospFormImageUrl('https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?w=800');
+                      }
+                    }}
+                    className="px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer shrink-0"
+                  >
+                    Reset
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* FORM CARD 4: CLINICAL SPECIALTIES & DEPARTMENTS */}
+            <div className="bg-white rounded-3xl p-5 shadow-2xs border border-slate-200/90 space-y-4">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <Stethoscope className="w-4 h-4 text-teal-600" />
+                  <h3 className="text-sm font-extrabold text-slate-900">
+                    Clinical Specialties & Departments
+                  </h3>
+                </div>
+                <span className="text-[10px] font-bold text-slate-400">
+                  {hospFormSpecialties.length} Selected
+                </span>
+              </div>
+
+              {/* Active Specialties Chips */}
+              <div className="space-y-2">
+                <span className="text-xs font-bold text-slate-700 block">
+                  Active Departments (Click to toggle on/off):
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {popularSpecialtiesCatalog.map(spec => {
+                    const isIncluded = hospFormSpecialties.includes(spec);
+                    return (
+                      <button
+                        key={spec}
+                        type="button"
+                        onClick={() => toggleSpecialty(spec)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                          isIncluded
+                            ? 'bg-blue-600 text-white shadow-xs'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                      >
+                        {isIncluded && <Check className="w-3 h-3 stroke-[2.5]" />}
+                        <span>{spec}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Add Custom Specialty Input */}
+              <div className="pt-2 flex items-center gap-2">
+                <input
+                  type="text"
+                  value={customSpecialtyInput}
+                  onChange={(e) => setCustomSpecialtyInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddCustomSpecialty();
+                    }
+                  }}
+                  placeholder="Add other specialty (e.g. Oncology, Urology)..."
+                  className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 focus:outline-hidden focus:border-blue-500"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddCustomSpecialty}
+                  disabled={!customSpecialtyInput.trim()}
+                  className="px-3.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add</span>
+                </button>
+              </div>
+            </div>
+
+            {/* PRIMARY SAVE ACTION BAR */}
+            <div className="pt-2">
+              <motion.button
+                whileTap={{ scale: 0.985 }}
+                type="button"
+                onClick={handleSaveHospitalDetails}
+                disabled={isSavingHospital}
+                className={`w-full py-3.5 px-5 rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer ${
+                  hospitalSaveSuccess
+                    ? 'bg-emerald-600 text-white shadow-emerald-600/30'
+                    : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white shadow-blue-600/25'
+                }`}
+              >
+                {isSavingHospital ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>Syncing Hospital Profile...</span>
+                  </>
+                ) : hospitalSaveSuccess ? (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
+                    <span>Hospital Profile Updated Live!</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    <span>Save & Publish Hospital Profile</span>
+                  </>
+                )}
+              </motion.button>
+            </div>
           </motion.div>
         )}
 
