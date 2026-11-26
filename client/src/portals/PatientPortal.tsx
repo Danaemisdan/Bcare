@@ -1086,7 +1086,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
               <div className="flex items-center gap-1.5">
                 <Sparkles className="w-3 h-3 text-cyan-400" />
                 <span className="text-[10px] font-black tracking-wider uppercase text-cyan-300">
-                  Care AI Navigator
+                  Bcare AI
                 </span>
               </div>
               <h3 className="text-sm font-extrabold text-white tracking-tight leading-snug mt-0.5">
@@ -1100,7 +1100,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
             {/* Right: Clean White Frosted Pill Button */}
             <div className="shrink-0 flex items-center">
               <div className="px-3.5 py-1.5 rounded-full bg-white group-hover:bg-blue-50 text-slate-950 font-black text-xs flex items-center gap-1.5 whitespace-nowrap shrink-0 shadow-sm transition-all active:scale-95">
-                <span>Ask AI</span>
+                <span>Ask Bcare AI</span>
                 <ArrowRight className="w-3.5 h-3.5 text-blue-600 stroke-[2.5]" />
               </div>
             </div>
@@ -1183,7 +1183,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                   <SiriOrb size={26} state="idle" />
                 </div>
                 <div className="text-left leading-tight">
-                  <span className="block text-[11px] font-extrabold text-blue-700">Ask Care AI</span>
+                  <span className="block text-[11px] font-extrabold text-blue-700">Ask Bcare AI</span>
                   <span className="block text-[9px] text-blue-500 font-medium">Where to Go?</span>
                 </div>
               </button>
@@ -3008,7 +3008,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-1.5 min-w-0 flex-1 flex-wrap">
                         <h4 className="text-[13.5px] font-extrabold text-blue-950">
-                          Not sure? Ask B Care AI
+                          Not sure? Ask Bcare AI
                         </h4>
                         <span className="px-1.5 py-0.5 rounded-full bg-blue-600 text-white text-[9px] font-extrabold tracking-wide uppercase whitespace-nowrap shrink-0">
                           Fast
@@ -3017,7 +3017,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                       <Sparkles className="w-4 h-4 text-blue-600 shrink-0" />
                     </div>
                     <p className="text-[11px] text-blue-900/80 mt-1 leading-snug">
-                      Tell us your symptoms, pain or discomfort. Our Care Navigator will simply tell you where to go and who to see.
+                      Tell us your symptoms, pain or discomfort. Our Bcare AI will simply tell you where to go and who to see.
                     </p>
                     <div className="mt-2.5 flex items-center gap-1.5 text-xs font-bold text-blue-700">
                       <span>Find Where to Go & Hospitals</span>

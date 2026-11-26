@@ -747,7 +747,7 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
   // Scroll to top on step change
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' as any });
-    const scrollContainers = document.querySelectorAll('.overflow-y-auto');
+    const scrollContainers = document.querySelectorAll("div[class*='overflow-y-auto']");
     scrollContainers.forEach(c => { c.scrollTop = 0; });
   }, [currentStep]);
 
@@ -770,9 +770,9 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
     <div className="min-h-full flex flex-col select-none animate-in fade-in duration-150 relative bg-slate-50 text-slate-900 pb-28">
       
       {/* ========================================================================= */}
-      {/* 1. TOP HEADER: WHERE TO GO / CARE NAVIGATOR                               */}
+      {/* 1. TOP HEADER: BCARE AI                                                   */}
       {/* ========================================================================= */}
-      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-4 py-3 shadow-2xs shrink-0">
+      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-4 py-2.5 shadow-2xs shrink-0">
         <div className="flex items-center justify-between gap-2">
           <button
             type="button"
@@ -783,19 +783,17 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                 onClose?.();
               }
             }}
-            className="flex items-center gap-1 py-1.5 px-3 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer shadow-2xs active:scale-95 whitespace-nowrap shrink-0"
+            className="flex items-center gap-1 py-1.5 px-3 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all cursor-pointer shadow-2xs active:scale-95 whitespace-nowrap shrink-0"
           >
-            <ChevronLeft className="w-4 h-4 shrink-0" />
+            <ChevronLeft className="w-4 h-4 shrink-0 text-slate-600" />
             <span>{currentStep === 'WHERE_TO_GO' ? 'Change Concern' : 'Exit'}</span>
           </button>
 
-          <div className="text-center min-w-0 flex-1">
-            <h2 className="text-xs font-black text-slate-900 tracking-tight truncate">
-              {currentStep === 'SYMPTOM_INPUT' ? 'Care Navigator' : 'Where You Should Go'}
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse shrink-0" />
+            <h2 className="text-sm font-black text-slate-950 tracking-tight whitespace-nowrap">
+              Bcare AI
             </h2>
-            <p className="text-[10px] text-slate-500 font-medium truncate">
-              {currentStep === 'SYMPTOM_INPUT' ? 'Find the right hospital & specialist' : `${activeCategory.title} Guidance`}
-            </p>
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
@@ -803,7 +801,7 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
             <button
               type="button"
               onClick={() => setShowLanguageModal(true)}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10.5px] font-bold transition-colors cursor-pointer shrink-0"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10.5px] font-bold transition-colors cursor-pointer shrink-0"
               title="Change Language"
             >
               <Languages className="w-3.5 h-3.5 text-blue-600 shrink-0" />
@@ -850,39 +848,50 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
               transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
               className="space-y-4"
             >
-              {/* Symptom Search & Voice Bar */}
-              <div className="p-4 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-                    <span>What are you experiencing?</span>
-                  </span>
-                  <span className="text-[10px] font-bold text-slate-500 flex items-center gap-1">
-                    <MapPin className="w-3 h-3 text-blue-600" />
-                    <span>Near {userLocation.area || userLocation.city}</span>
-                  </span>
+              {/* Apple Intelligence Hero Banner */}
+              <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0c1322] via-[#0f1b2d] to-[#0a1827] text-white p-4.5 shadow-md border border-blue-500/30 space-y-3">
+                <div className="absolute -right-8 -top-8 w-32 h-32 bg-cyan-500/15 rounded-full blur-2xl pointer-events-none" />
+                <div className="flex items-center gap-3">
+                  <div className="shrink-0">
+                    <SiriOrb size={44} state={isListening ? 'listening' : 'idle'} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                      <span className="text-[10px] font-black uppercase tracking-wider text-cyan-300">
+                        Bcare Clinical AI
+                      </span>
+                    </div>
+                    <h3 className="text-sm font-extrabold text-white mt-0.5 leading-snug">
+                      What symptoms are you experiencing?
+                    </h3>
+                    <p className="text-[11px] text-slate-300 font-medium leading-tight mt-0.5">
+                      We'll assess your concern and book the right hospital specialist.
+                    </p>
+                  </div>
                 </div>
 
-                <div className="relative flex items-center gap-2">
+                {/* Input & Voice Bar */}
+                <div className="relative flex items-center gap-2 pt-1">
                   <div className="relative flex-1">
                     <input
                       type="text"
                       value={inputText}
                       onChange={(e) => handleInputChange(e.target.value)}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
+                        if (e.key === 'Enter' && inputText.trim()) {
                           setCurrentStep('WHERE_TO_GO');
                         }
                       }}
                       placeholder={selectedLanguage.placeholder}
-                      className="w-full py-3.5 pl-10 pr-9 rounded-2xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-100 text-xs font-medium text-slate-900 placeholder:text-slate-400 outline-none transition-all shadow-2xs"
+                      className="w-full py-3 pl-10 pr-9 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 focus:bg-white focus:text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-xs font-semibold text-white placeholder:text-slate-400 outline-none transition-all shadow-inner"
                     />
-                    <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <Search className="w-4 h-4 text-slate-300 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     {inputText && (
                       <button
                         type="button"
                         onClick={() => setInputText('')}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-white p-0.5"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
@@ -892,14 +901,14 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                   <button
                     type="button"
                     onClick={toggleSpeechRecognition}
-                    className={`p-3.5 rounded-2xl border transition-all cursor-pointer shrink-0 shadow-2xs active:scale-95 ${
+                    className={`p-3 rounded-2xl border transition-all cursor-pointer shrink-0 shadow-sm active:scale-95 ${
                       isListening
-                        ? 'bg-red-500 text-white border-red-500 shadow-sm'
-                        : 'bg-blue-600 text-white hover:bg-blue-700 border-blue-600'
+                        ? 'bg-rose-500 text-white border-rose-400 animate-pulse'
+                        : 'bg-white hover:bg-slate-100 text-slate-900 border-white'
                     }`}
                     title={isListening ? 'Listening... Tap to stop' : 'Tap to speak your symptoms'}
                   >
-                    {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                    {isListening ? <MicOff className="w-4 h-4 text-white" /> : <Mic className="w-4 h-4 text-blue-600" />}
                   </button>
                 </div>
 
@@ -907,17 +916,17 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                   <button
                     type="button"
                     onClick={() => setCurrentStep('WHERE_TO_GO')}
-                    className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs shadow-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+                    className="w-full py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs shadow-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
                   >
-                    <span>Guide Me Where to Go for "{inputText.slice(0, 24)}{inputText.length > 24 ? '...' : ''}"</span>
-                    <ArrowRight className="w-4 h-4" />
+                    <span>Assess Symptoms with Bcare AI</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 )}
               </div>
 
-              {/* Quick Care Category Tiles */}
+              {/* Quick Care Category Tiles (Vertical Cards: ZERO TRUNCATION) */}
               <div>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-2.5 px-0.5">
                   <span className="text-xs font-black uppercase tracking-wider text-slate-500">
                     Or Select Primary Concern:
                   </span>
@@ -926,7 +935,7 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                     onClick={() => setShowMoreModal(true)}
                     className="text-[11px] font-bold text-blue-600 hover:text-blue-800"
                   >
-                    View All Care (18) →
+                    View All (18) →
                   </button>
                 </div>
 
@@ -935,19 +944,24 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                     const IconComponent = cat.icon;
                     return (
                       <motion.div
-                        whileTap={{ scale: 0.98 }}
+                        whileTap={{ scale: 0.97 }}
                         key={cat.id}
                         onClick={() => handleSelectCategory(cat.id)}
-                        className="p-3.5 rounded-2xl bg-white border border-slate-200/90 hover:border-blue-500 hover:shadow-xs transition-all cursor-pointer shadow-2xs flex items-center gap-3"
+                        className="p-3.5 rounded-2xl bg-white border border-slate-200/90 hover:border-blue-500 hover:shadow-xs transition-all cursor-pointer shadow-2xs flex flex-col justify-between min-h-[96px] group"
                       >
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${cat.iconBg} ${cat.iconColor}`}>
-                          <IconComponent className="w-5 h-5" />
+                        <div className="flex items-center justify-between w-full">
+                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${cat.iconBg} ${cat.iconColor}`}>
+                            <IconComponent className="w-4.5 h-4.5" />
+                          </div>
+                          <span className="text-[10px] font-bold text-slate-400 group-hover:text-blue-600 transition-colors">
+                            Select →
+                          </span>
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <h4 className="font-extrabold text-xs text-slate-900 truncate">
+                        <div className="mt-2 w-full">
+                          <h4 className="font-extrabold text-xs text-slate-900 leading-tight">
                             {cat.title}
                           </h4>
-                          <span className="block text-[10px] text-slate-500 font-medium truncate mt-0.5">
+                          <span className="block text-[10px] text-slate-500 font-semibold mt-0.5">
                             {cat.badge}
                           </span>
                         </div>
@@ -985,7 +999,7 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
           )}
 
           {/* ===================================================================== */}
-          {/* STEP 2: WHERE YOU SHOULD GO (SIMPLE, INSTANT, ZERO FAKE DIAGNOSIS)    */}
+          {/* STEP 2: BCARE AI CLINICAL ASSESSMENT & DIRECT BOOKING FORM TYPE       */}
           {/* ===================================================================== */}
           {currentStep === 'WHERE_TO_GO' && (
             <motion.div
@@ -996,17 +1010,19 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
               transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
               className="space-y-4"
             >
-              {/* Card 1: Guidance & Department Summary */}
-              <div className="p-4 rounded-3xl bg-slate-900 text-white shadow-md space-y-3">
+              {/* Card 1: Bcare AI Clinical Assessment */}
+              <div className="p-4.5 rounded-3xl bg-slate-900 text-white shadow-md space-y-3 relative overflow-hidden">
+                <div className="absolute -right-6 -bottom-6 w-28 h-28 bg-blue-500/10 rounded-full blur-xl pointer-events-none" />
+
                 <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2.5">
                   <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
-                    <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-400">
-                      Recommended Department
+                    <Sparkles className="w-4 h-4 text-cyan-400" />
+                    <span className="text-[11px] font-black uppercase tracking-wider text-cyan-300">
+                      Bcare AI Assessment
                     </span>
                   </div>
 
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${
                     activeCategory.urgency === 'PRIORITY'
                       ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
                       : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
@@ -1016,10 +1032,18 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                 </div>
 
                 <div>
-                  <h3 className="text-base font-black text-white leading-snug">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                    Recommended Department & Specialist
+                  </span>
+                  <h3 className="text-base font-black text-white leading-tight mt-0.5">
                     {activeCategory.department}
                   </h3>
-                  <p className="text-xs text-slate-300 leading-relaxed mt-2">
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-xs font-bold text-cyan-300">
+                      Attending: {topDoctor.name} ({topDoctor.specialty})
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed mt-2.5 bg-white/5 p-3 rounded-2xl border border-white/10">
                     {activeCategory.whereToGoAdvice}
                   </p>
                 </div>
@@ -1032,181 +1056,187 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
                   <button
                     type="button"
                     onClick={() => speakText(activeCategory.spokenSummary)}
-                    className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-white text-[10.5px] font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
+                    className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-white text-[10.5px] font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                   >
-                    <Volume2 className="w-3.5 h-3.5 text-emerald-400" />
+                    <Volume2 className="w-3.5 h-3.5 text-cyan-400" />
                     <span>Listen</span>
                   </button>
                 </div>
               </div>
 
-              {/* Card 2: Recommended Nearest Hospital Facility */}
-              <div className="p-4 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-3.5">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-bold shrink-0 shadow-2xs">
-                      <Building2 className="w-6 h-6" />
-                    </div>
-
-                    <div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[9.5px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md">
-                          Nearest Facility
-                        </span>
-                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
-                          Open Now
-                        </span>
-                      </div>
-                      <h4 className="font-extrabold text-sm text-slate-900 mt-1">
-                        {selectedHospital.name}
-                      </h4>
-                      <p className="text-[11px] text-slate-500 mt-0.5">
-                        {selectedHospital.address}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="text-right shrink-0">
-                    <span className="text-xs font-black text-blue-700 block">
-                      {userLocation && selectedHospital.latitude && selectedHospital.longitude
-                        ? `${calculateDistanceKm(userLocation.lat, userLocation.lng, selectedHospital.latitude, selectedHospital.longitude)} km`
-                        : (selectedHospital.distance || '1.2 km')}
-                    </span>
-                    <span className="text-[10px] text-slate-400">~6 mins away</span>
-                  </div>
-                </div>
-
-                {/* Attending Doctor on Duty & Token Status */}
-                <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-between text-xs">
+              {/* Card 2: CHOOSE CONSULTATION FORMAT (BOOKING UI FORM TYPE) */}
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between px-1">
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-slate-500 block">
-                      Physician on Duty
-                    </span>
-                    <span className="font-black text-slate-900 mt-0.5 block">
-                      {topDoctor.name} ({topDoctor.specialty})
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[10px] uppercase font-bold text-emerald-700 block">
-                      Next Token Ready
-                    </span>
-                    <span className="font-black text-emerald-800 text-sm">
-                      Token #{topDoctor.nextAvailableToken || 3}
-                    </span>
+                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-800">
+                      Choose Booking Format
+                    </h4>
+                    <p className="text-[11px] text-slate-500 font-medium">
+                      Select your preferred way to consult with {topDoctor.name}
+                    </p>
                   </div>
                 </div>
 
-                {/* 3 Clear Action Buttons */}
-                <div className="space-y-2 pt-1">
-                  <button
+                {/* Option 1: In-Person Hospital OPD Pass */}
+                <div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm hover:border-blue-400 transition-all space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3 min-w-0 flex-1">
+                      <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-200/80 flex items-center justify-center shrink-0 mt-0.5">
+                        <Building2 className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-extrabold text-[10px]">
+                            In-Person OPD Pass
+                          </span>
+                          <span className="px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-bold text-[10px]">
+                            Live Queue
+                          </span>
+                        </div>
+                        <h4 className="font-black text-sm text-slate-900 mt-1 truncate">
+                          {selectedHospital.name}
+                        </h4>
+                        <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                          {selectedHospital.address}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <span className="text-base font-black text-slate-900 block">
+                        ₹{topDoctor.opConsultationFee || 100}
+                      </span>
+                      <span className="text-[10px] text-slate-400">ABDM Pass</span>
+                    </div>
+                  </div>
+
+                  {/* Status Strip */}
+                  <div className="py-2 px-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="font-extrabold text-slate-900">
+                        Token #{topDoctor.nextAvailableToken || 5} Ready
+                      </span>
+                      <span className="text-slate-300">•</span>
+                      <span className="text-slate-500 font-medium">Room 204</span>
+                    </div>
+                    <span className="text-emerald-700 font-bold text-[11px]">~10m wait</span>
+                  </div>
+
+                  {/* Action Button */}
+                  <motion.button
+                    whileTap={{ scale: 0.985 }}
                     type="button"
                     onClick={() => handleProceedBooking(topDoctor, 'IN_PERSON_OPD')}
-                    className="w-full py-3.5 px-4 rounded-2xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-extrabold text-xs shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
+                    className="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-extrabold text-xs flex items-center justify-between shadow-xs transition-all cursor-pointer"
                   >
-                    <Building2 className="w-4 h-4" />
-                    <span>Book In-Person OPD Token (₹{topDoctor.opConsultationFee || 100})</span>
-                    <ArrowRight className="w-4 h-4 ml-1" />
-                  </button>
+                    <div className="flex items-center gap-2">
+                      <Building2 className="w-4 h-4 text-blue-200" />
+                      <span>Book In-Person OPD Token</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-blue-100">
+                      <span>From ₹{topDoctor.opConsultationFee || 100}</span>
+                      <ArrowRight className="w-3.5 h-3.5 text-blue-200" />
+                    </div>
+                  </motion.button>
+                </div>
 
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleProceedBooking(topDoctor, 'VIDEO_CONSULTATION')}
-                      className="py-2.5 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                    >
-                      <Video className="w-3.5 h-3.5 text-emerald-700" />
-                      <span>Video Call (₹{topDoctor.teleConsultationFee || 250})</span>
-                    </button>
+                {/* Option 2: HD Video Call (Integrated Real-time Teleconsult) */}
+                <div className="rounded-2xl border border-emerald-200/90 bg-emerald-50/40 p-4 shadow-sm hover:border-emerald-400 transition-all space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3 min-w-0 flex-1">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
+                        <Video className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-extrabold text-[10px]">
+                            HD Video Telehealth
+                          </span>
+                          <span className="px-1.5 py-0.5 rounded-md bg-white text-emerald-700 border border-emerald-200 font-bold text-[10px]">
+                            Zero Travel
+                          </span>
+                        </div>
+                        <h4 className="font-black text-sm text-slate-900 mt-1 truncate">
+                          Online Video Consultation
+                        </h4>
+                        <p className="text-[11px] text-emerald-800/80 font-medium truncate mt-0.5">
+                          Consult {topDoctor.name} live from your phone
+                        </p>
+                      </div>
+                    </div>
 
-                    <a
-                      href={getGoogleMapsDirectionsUrl(
-                        userLocation.lat,
-                        userLocation.lng,
-                        selectedHospital.latitude || 11.0168,
-                        selectedHospital.longitude || 76.9558,
-                        selectedHospital.name
-                      )}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                    >
-                      <Navigation className="w-3.5 h-3.5 text-blue-600" />
-                      <span>Directions</span>
-                    </a>
+                    <div className="text-right shrink-0">
+                      <span className="text-base font-black text-emerald-900 block">
+                        ₹{topDoctor.teleConsultationFee || 250}
+                      </span>
+                      <span className="text-[10px] text-emerald-700 font-semibold">Video + Rx</span>
+                    </div>
                   </div>
+
+                  {/* Video Feature Bullets */}
+                  <div className="py-2 px-3 rounded-xl bg-white border border-emerald-200/80 text-[11px] text-slate-700 space-y-1">
+                    <div className="flex items-center gap-1.5 text-emerald-700 font-bold">
+                      <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                      <span>Ready in ~10m • 10 Indian Regional Languages</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-slate-600">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span>Live two-way camera, mic visualizer, doctor chat & instant digital Rx</span>
+                    </div>
+                  </div>
+
+                  {/* Video Action Button */}
+                  <motion.button
+                    whileTap={{ scale: 0.985 }}
+                    type="button"
+                    onClick={() => handleProceedBooking(topDoctor, 'VIDEO_CONSULTATION')}
+                    className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-extrabold text-xs flex items-center justify-between shadow-xs transition-all cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Video className="w-4 h-4 text-emerald-200" />
+                      <span>Schedule Video Consultation</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-emerald-100">
+                      <span>₹{topDoctor.teleConsultationFee || 250}</span>
+                      <ArrowRight className="w-3.5 h-3.5 text-emerald-200" />
+                    </div>
+                  </motion.button>
                 </div>
               </div>
 
-              {/* Map Route Preview */}
-              {selectedHospital.latitude && selectedHospital.longitude && (
-                <div className="rounded-3xl border border-slate-200 overflow-hidden shadow-xs bg-white">
-                  <div className="px-3.5 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between text-xs">
-                    <span className="font-bold text-slate-700 flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-blue-600" />
-                      <span>Route from {userLocation.area || 'Current Location'}</span>
+              {/* Directions Link (Clean & Simple) */}
+              <div className="p-3 rounded-2xl bg-white border border-slate-200 text-xs flex items-center justify-between">
+                <div className="flex items-center gap-2 min-w-0 pr-2">
+                  <MapPin className="w-4 h-4 text-blue-600 shrink-0" />
+                  <div className="min-w-0">
+                    <span className="font-bold text-slate-900 block truncate">
+                      {selectedHospital.name}
                     </span>
-                    <span className="text-[10px] text-slate-500 font-semibold">
-                      Google Maps Verified
+                    <span className="text-[10px] text-slate-500 block truncate">
+                      {selectedHospital.address}
                     </span>
-                  </div>
-                  <div className="h-44 w-full">
-                    <RealMapView
-                      userLocation={userLocation}
-                      hospitals={sortedHospitals}
-                      selectedHospitalIndex={selectedHospitalIndex}
-                      onSelectHospital={(idx) => setSelectedHospitalIndex(idx)}
-                      onRefreshGps={() => {}}
-                    />
                   </div>
                 </div>
-              )}
 
-              {/* Hospital Switcher Rail */}
-              {sortedHospitals.length > 1 && (
-                <div>
-                  <span className="text-xs font-black uppercase tracking-wider text-slate-500 block mb-2">
-                    Other Nearby Facilities:
-                  </span>
-                  <div className="space-y-2">
-                    {sortedHospitals.map((hosp, idx) => {
-                      const isSelected = hosp.id === selectedHospital.id;
-                      const dist = userLocation && hosp.latitude && hosp.longitude
-                        ? `${calculateDistanceKm(userLocation.lat, userLocation.lng, hosp.latitude, hosp.longitude)} km`
-                        : hosp.distance || '2.0 km';
+                <a
+                  href={getGoogleMapsDirectionsUrl(
+                    userLocation.lat,
+                    userLocation.lng,
+                    selectedHospital.latitude || 11.0168,
+                    selectedHospital.longitude || 76.9558,
+                    selectedHospital.name
+                  )}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-blue-600 font-bold text-xs flex items-center gap-1 shrink-0 transition-colors"
+                >
+                  <Navigation className="w-3.5 h-3.5 rotate-45" />
+                  <span>Google Maps</span>
+                </a>
+              </div>
 
-                      return (
-                        <div
-                          key={hosp.id}
-                          onClick={() => setSelectedHospitalIndex(idx)}
-                          className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between text-xs ${
-                            isSelected
-                              ? 'bg-blue-50/70 border-blue-600 shadow-2xs ring-1 ring-blue-600'
-                              : 'bg-white border-slate-200 hover:border-slate-300'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
-                              isSelected ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'
-                            }`}>
-                              <Building2 className="w-4 h-4" />
-                            </div>
-                            <div className="min-w-0">
-                              <h5 className="font-extrabold text-slate-900 truncate">{hosp.name}</h5>
-                              <p className="text-[10.5px] text-slate-500 truncate">{hosp.address}</p>
-                            </div>
-                          </div>
-                          <div className="text-right shrink-0">
-                            <span className="font-bold text-blue-700 block">{dist}</span>
-                            <span className="text-[10px] text-slate-400">OPD ₹{hosp.baseOpFee || 100}</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Bottom Action: Change Symptom */}
+              {/* Bottom Action: Check Another Symptom */}
               <div className="pt-2">
                 <button
                   type="button"
