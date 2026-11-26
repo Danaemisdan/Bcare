@@ -17,18 +17,19 @@ export interface PhoneModalPortalProps {
  * and immune to scroll offsets.
  */
 export const PhoneModalPortal: React.FC<PhoneModalPortalProps> = ({ children }) => {
-  const [mountNode, setMountNode] = useState<HTMLElement | null>(null);
+  const [mountNode, setMountNode] = useState<HTMLElement | null>(() => {
+    if (typeof document !== 'undefined') {
+      return document.getElementById('phone-screen-modal-root') || document.body;
+    }
+    return null;
+  });
 
   useEffect(() => {
-    // Attempt to locate screen container root
     const rootEl = document.getElementById('phone-screen-modal-root');
-    if (rootEl) {
+    if (rootEl && rootEl !== mountNode) {
       setMountNode(rootEl);
-    } else {
-      // Fallback to body in standalone or headless environments
-      setMountNode(document.body);
     }
-  }, []);
+  }, [mountNode]);
 
   if (!mountNode) return null;
 

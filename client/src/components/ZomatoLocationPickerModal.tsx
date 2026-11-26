@@ -6,14 +6,14 @@ import {
   X, 
   MapPin, 
   LocateFixed, 
-  Navigation, 
   Crosshair, 
   ChevronRight, 
   Check, 
   Building2, 
   Layers, 
   Compass,
-  ArrowLeft
+  Sparkles,
+  Loader2
 } from 'lucide-react';
 import { UserLocationData, reverseGeocode, calculateDistanceKm } from '../services/locationService';
 import { PhoneModalPortal } from './PhoneModalPortal';
@@ -66,6 +66,9 @@ export const POPULAR_CARE_HUBS: LocationHub[] = [
   { name: 'Noida Sector 18, Noida', area: 'Sector 18', city: 'Noida', state: 'Uttar Pradesh', landmark: 'Atta Market, Jaypee Hospital', lat: 28.5708, lng: 77.3261 }
 ];
 
+const GOOGLE_ROADMAP_URL = 'https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}';
+const GOOGLE_SATELLITE_URL = 'https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}';
+
 interface ZomatoLocationPickerModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -81,10 +84,12 @@ export const ZomatoLocationPickerModal: React.FC<ZomatoLocationPickerModalProps>
   onSelectLocation,
   onRefreshGps
 }) => {
-  const [activeTab, setActiveTab] = useState<'MAP' | 'LIST'>('MAP');
+  const [mapType, setMapType] = useState<'roadmap' | 'satellite'>('roadmap');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCityFilter, setSelectedCityFilter] = useState<string>('All');
+  const [isSearchActive, setIsSearchActive] = useState(false);
   const [isGpsLoading, setIsGpsLoading] = useState(false);
+  const [isMapDragging, setIsMapDragging] = useState(false);
+  const [isGeocoding, setIsGeocoding] = useState(false);
 
   // Active Pinned Location State
   const [pinnedLocation, setPinnedLocation] = useState<{
@@ -105,8 +110,9 @@ export const ZomatoLocationPickerModal: React.FC<ZomatoLocationPickerModalProps>
     lng: currentLocation?.lng || 78.3996
   });
 
-  const mapContainerRef = useRef<HTMLDivElement | null>(null);
+  const [mapContainerNode, setMapContainerNode] = useState<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
   const isInternalMoveRef = useRef(false);
 
   // Sync initial location when modal opens
@@ -124,35 +130,47 @@ export const ZomatoLocationPickerModal: React.FC<ZomatoLocationPickerModalProps>
     }
   }, [isOpen, currentLocation]);
 
-  // Leaflet Map Initialization with Zomato-style Floating Center Pin
+  // Leaflet Map Initialization with Genuine Google Maps Tiles & Center Floating Pin
   useEffect(() => {
-    if (!isOpen || activeTab !== 'MAP' || !mapContainerRef.current) return;
+    if (!isOpen || !mapContainerNode) return;
+
+    const tileUrl = mapType === 'satellite' ? GOOGLE_SATELLITE_URL : GOOGLE_ROADMAP_URL;
 
     if (!mapInstanceRef.current) {
-      const map = L.map(mapContainerRef.current, {
+      const map = L.map(mapContainerNode, {
         center: [pinnedLocation.lat, pinnedLocation.lng],
-        zoom: 15,
+        zoom: 16,
         zoomControl: false,
         attributionControl: false
       });
 
-      // Premium High-Performance Clean OpenStreetMap Tiles
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        subdomains: ['a', 'b', 'c']
+      // Genuine Google Maps Tile Layer
+      const tileLayer = L.tileLayer(tileUrl, {
+        maxZoom: 20,
+        subdomains: ['0', '1', '2', '3'],
+        attribution: '© Google Maps'
       }).addTo(map);
 
-      // Listen to map drag / move events to update center pin location
+      tileLayerRef.current = tileLayer;
+
+      // Handle map dragging states for realistic pin bounce
+      map.on('movestart', () => {
+        setIsMapDragging(true);
+      });
+
+      // Update location when user finishes panning/dragging map
       map.on('moveend', async () => {
+        setIsMapDragging(false);
         if (isInternalMoveRef.current) {
           isInternalMoveRef.current = false;
           return;
         }
+
         const center = map.getCenter();
         const newLat = center.lat;
         const newLng = center.lng;
 
-        // Find nearest known hub or reverse geocode
+        // Check against nearest known hubs first for instant precision
         let closestHub: LocationHub | null = null;
         let minDistance = Infinity;
 
@@ -164,7 +182,7 @@ export const ZomatoLocationPickerModal: React.FC<ZomatoLocationPickerModalProps>
           }
         }
 
-        if (closestHub && minDistance <= 3.0) {
+        if (closestHub && minDistance <= 1.5) {
           setPinnedLocation({
             area: closestHub.area,
             city: closestHub.city,
@@ -175,42 +193,60 @@ export const ZomatoLocationPickerModal: React.FC<ZomatoLocationPickerModalProps>
             lng: newLng
           });
         } else {
+          setIsGeocoding(true);
           try {
             const geo = await reverseGeocode(newLat, newLng);
             setPinnedLocation({
-              area: geo.area || 'Local Area',
-              city: geo.city || 'City Region',
+              area: geo.area || 'Selected Area',
+              city: geo.city || 'City',
               state: geo.state || 'State',
-              displayName: `${geo.area || 'Local Area'}, ${geo.city || 'City'}`,
-              landmark: 'Custom Pinpoint Location',
+              displayName: `${geo.area || 'Selected Area'}, ${geo.city || 'City'}`,
+              landmark: 'Google Maps Pinpoint',
               lat: newLat,
               lng: newLng
             });
           } catch (e) {
             setPinnedLocation(prev => ({ ...prev, lat: newLat, lng: newLng }));
+          } finally {
+            setIsGeocoding(false);
           }
         }
       });
 
       mapInstanceRef.current = map;
     } else {
-      const map = mapInstanceRef.current;
-      isInternalMoveRef.current = true;
-      map.setView([pinnedLocation.lat, pinnedLocation.lng], 15);
+      // If map already exists, update tile layer url if type changed
+      if (tileLayerRef.current) {
+        tileLayerRef.current.setUrl(tileUrl);
+      }
     }
 
-    // Invalidate map size so it renders perfectly inside the container
-    const timer = setTimeout(() => {
+    // Invalidate size reliably so Google Maps tiles render seamlessly
+    const timer1 = setTimeout(() => {
+      mapInstanceRef.current?.invalidateSize();
+    }, 100);
+    const timer2 = setTimeout(() => {
+      mapInstanceRef.current?.invalidateSize();
+    }, 400);
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    };
+  }, [isOpen, mapContainerNode, mapType]);
+
+  // Clean up map instance when modal closes or unmounts
+  useEffect(() => {
+    return () => {
       if (mapInstanceRef.current) {
-        mapInstanceRef.current.invalidateSize();
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
       }
-    }, 250);
+    };
+  }, []);
 
-    return () => clearTimeout(timer);
-  }, [isOpen, activeTab]);
-
-  // Function to move map to a specific location
-  const handleMoveMapTo = (hub: LocationHub) => {
+  // Fly map to a selected hub
+  const handleSelectHub = (hub: LocationHub) => {
     setPinnedLocation({
       area: hub.area,
       city: hub.city,
@@ -221,14 +257,16 @@ export const ZomatoLocationPickerModal: React.FC<ZomatoLocationPickerModalProps>
       lng: hub.lng
     });
 
+    setIsSearchActive(false);
+    setSearchQuery('');
+
     if (mapInstanceRef.current) {
       isInternalMoveRef.current = true;
-      mapInstanceRef.current.flyTo([hub.lat, hub.lng], 15, { duration: 0.8 });
+      mapInstanceRef.current.flyTo([hub.lat, hub.lng], 16, { duration: 0.8 });
     }
-    setActiveTab('MAP');
   };
 
-  // Live GPS Trigger
+  // Recenter to user's live GPS coordinates
   const handleDetectCurrentGps = async () => {
     setIsGpsLoading(true);
     try {
@@ -257,7 +295,7 @@ export const ZomatoLocationPickerModal: React.FC<ZomatoLocationPickerModalProps>
     }
   };
 
-  // Final Confirmation: updates global location and closes modal
+  // Confirm selection and close
   const handleConfirmLocation = () => {
     onSelectLocation({
       area: pinnedLocation.area,
@@ -273,328 +311,259 @@ export const ZomatoLocationPickerModal: React.FC<ZomatoLocationPickerModalProps>
     onClose();
   };
 
-  // Filtered hubs for search query
+  // Filtered hubs for search
   const filteredHubs = useMemo(() => {
-    return POPULAR_CARE_HUBS.filter(hub => {
-      if (selectedCityFilter !== 'All' && hub.city.toLowerCase() !== selectedCityFilter.toLowerCase()) {
-        return false;
-      }
-      if (!searchQuery.trim()) return true;
-      const q = searchQuery.toLowerCase();
-      return (
-        hub.name.toLowerCase().includes(q) ||
-        hub.area.toLowerCase().includes(q) ||
-        hub.city.toLowerCase().includes(q) ||
-        hub.landmark.toLowerCase().includes(q)
-      );
-    });
-  }, [searchQuery, selectedCityFilter]);
+    if (!searchQuery.trim()) return POPULAR_CARE_HUBS.slice(0, 8);
+    const q = searchQuery.toLowerCase();
+    return POPULAR_CARE_HUBS.filter(hub => 
+      hub.name.toLowerCase().includes(q) ||
+      hub.area.toLowerCase().includes(q) ||
+      hub.city.toLowerCase().includes(q) ||
+      hub.landmark.toLowerCase().includes(q)
+    );
+  }, [searchQuery]);
 
   if (!isOpen) return null;
 
   return (
     <PhoneModalPortal>
       {/* 
-        CRITICAL CONSTRAINT: 
-        1. 'absolute inset-0' keeps the modal STRICTLY 100% inside the phone container screen!
-        2. 'pointer-events-auto' guarantees the backdrop, cross (X) button, and inputs ALL receive clicks!
+        STRICT MOBILE CONTAINER ENFORCEMENT:
+        'absolute inset-0' keeps the modal 100% inside the phone screen (#phone-screen-modal-root).
+        'pointer-events-auto' guarantees every click on buttons/map works seamlessly.
       */}
       <div 
-        className="absolute inset-0 z-50 flex flex-col bg-slate-950/70 backdrop-blur-sm pointer-events-auto overflow-hidden select-none animate-in fade-in duration-200"
-        onClick={onClose}
+        className="absolute inset-0 z-50 flex flex-col bg-slate-900 pointer-events-auto overflow-hidden select-none animate-in fade-in duration-200"
+        style={{ overscrollBehavior: 'none', touchAction: 'none' }}
       >
-        {/* Main Location Sheet Container */}
-        <div 
-          onClick={(e) => e.stopPropagation()}
-          className="relative w-full h-full flex flex-col bg-white overflow-hidden text-slate-900 shadow-2xl"
-        >
-          {/* Top Bar: Zomato-style Header with Search & Robust Cross Button */}
-          <div className="bg-white px-3.5 pt-3 pb-2.5 border-b border-slate-100 shrink-0 z-20 space-y-2.5 shadow-xs">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 min-w-0">
-                <div className="w-8 h-8 rounded-full bg-blue-600/10 text-blue-600 flex items-center justify-center shrink-0">
-                  <MapPin className="w-4 h-4 text-blue-600" />
-                </div>
-                <div className="min-w-0">
-                  <h3 className="font-extrabold text-[14px] text-slate-900 leading-tight">
-                    Select Your Care Location
-                  </h3>
-                  <p className="text-[10.5px] text-slate-500 font-medium truncate">
-                    Pinpoint your address on Google Maps or choose an area
-                  </p>
-                </div>
-              </div>
+        {/* Fullscreen Map Canvas */}
+        <div className="relative w-full h-full overflow-hidden">
+          {/* Leaflet Map Canvas with real Google Maps Tiles */}
+          <div 
+            ref={node => {
+              if (node && node !== mapContainerNode) {
+                setMapContainerNode(node);
+              }
+            }}
+            className="absolute inset-0 w-full h-full z-[1]" 
+          />
 
-              {/* Robust, Guaranteed-Working Cross (X) Button */}
+          {/* 
+            ZOMATO-STYLE FLOATING CENTER PIN:
+            Fixed dead-center of the screen.
+            Reacts dynamically to user panning.
+          */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full z-[400] pointer-events-none flex flex-col items-center">
+            {/* Floating Speech Tooltip */}
+            <div className={`px-3 py-1 rounded-full bg-slate-900/95 text-white font-black text-[10.5px] shadow-2xl border border-white/20 whitespace-nowrap mb-1.5 flex items-center gap-1.5 transition-all duration-200 ${
+              isMapDragging ? '-translate-y-2 opacity-90 scale-95' : 'translate-y-0 opacity-100 scale-100'
+            }`}>
+              <span className={`w-2 h-2 rounded-full ${isMapDragging ? 'bg-amber-400 animate-ping' : 'bg-emerald-400'}`} />
+              <span>{isMapDragging ? 'Pinpointing address...' : (isGeocoding ? 'Detecting address...' : 'Care will be provided here')}</span>
+            </div>
+
+            {/* Google / Zomato Signature Red Pin Head */}
+            <div className={`relative flex items-center justify-center transition-transform duration-200 ${
+              isMapDragging ? '-translate-y-2 scale-110' : 'translate-y-0 scale-100'
+            }`}>
+              <div className="w-10 h-10 rounded-full bg-red-600 border-3 border-white shadow-2xl flex items-center justify-center text-white">
+                <MapPin className="w-5 h-5 fill-white text-red-600" />
+              </div>
+            </div>
+
+            {/* Sharp Pin Point Arrow */}
+            <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[9px] border-t-red-600 -mt-0.5" />
+            
+            {/* Ground Contact Shadow */}
+            <div className={`rounded-full bg-black/40 blur-[1.5px] transition-all duration-200 ${
+              isMapDragging ? 'w-2 h-1 mt-3 opacity-25' : 'w-4 h-1.5 mt-0.5 opacity-60'
+            }`} />
+          </div>
+
+          {/* TOP BAR: Floating Google Search Bar & Guaranteed Working Close Button */}
+          <div className="absolute top-10 left-3 right-3 z-[500] space-y-2">
+            <div className="flex items-center gap-2">
+              {/* Back / Close (X) Button */}
               <button
                 type="button"
                 onClick={onClose}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95"
+                className="w-10 h-10 rounded-2xl bg-white/95 backdrop-blur-md shadow-lg border border-slate-200/90 text-slate-800 hover:bg-slate-100 active:bg-slate-200 flex items-center justify-center cursor-pointer transition-all active:scale-95 shrink-0"
                 aria-label="Close location picker"
                 title="Close"
               >
-                <X className="w-4 h-4 stroke-[2.5]" />
-              </button>
-            </div>
-
-            {/* Zomato-Style Location Search Bar */}
-            <div className="relative flex items-center bg-slate-100 rounded-xl px-3 py-2 border border-slate-200/80 focus-within:border-blue-500 focus-within:bg-white transition-all shadow-inner">
-              <Search className="w-4 h-4 text-slate-400 shrink-0 mr-2" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  if (activeTab !== 'LIST') setActiveTab('LIST');
-                }}
-                placeholder="Search area, landmark or street (e.g. Kukatpally)..."
-                className="w-full text-xs bg-transparent focus:outline-none text-slate-900 placeholder:text-slate-400 font-medium"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="p-1 rounded-full text-slate-400 hover:text-slate-600 cursor-pointer shrink-0"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-
-            {/* View Mode Switcher: Interactive Map Pin vs Search Hubs */}
-            <div className="flex items-center justify-between gap-1 pt-0.5">
-              <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg text-xs font-bold w-full">
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('MAP')}
-                  className={`flex-1 py-1.5 px-3 rounded-md transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                    activeTab === 'MAP'
-                      ? 'bg-white text-blue-700 shadow-xs'
-                      : 'text-slate-500 hover:text-slate-900'
-                  }`}
-                >
-                  <Layers className="w-3.5 h-3.5 shrink-0" />
-                  <span>Choose on Map</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('LIST')}
-                  className={`flex-1 py-1.5 px-3 rounded-md transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                    activeTab === 'LIST'
-                      ? 'bg-white text-blue-700 shadow-xs'
-                      : 'text-slate-500 hover:text-slate-900'
-                  }`}
-                >
-                  <Building2 className="w-3.5 h-3.5 shrink-0" />
-                  <span>Popular Hubs ({filteredHubs.length})</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* VIEW 1: ZOMATO-STYLE INTERACTIVE GOOGLE/LEAFLET MAP WITH CENTER PIN */}
-          {activeTab === 'MAP' && (
-            <div className="relative flex-1 w-full overflow-hidden flex flex-col">
-              {/* Map Canvas */}
-              <div ref={mapContainerRef} className="w-full h-full z-[1]" />
-
-              {/* 
-                THE FLOATING PIN (DEAD CENTER OF MAP):
-                Just like Zomato / Swiggy / Uber!
-                Users pan the map, and the pin always points to the exact center.
-              */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full z-[400] pointer-events-none flex flex-col items-center">
-                {/* Floating Micro-Badge */}
-                <div className="px-2.5 py-1 rounded-full bg-slate-950/90 text-white font-extrabold text-[10px] shadow-lg border border-white/20 whitespace-nowrap mb-1 flex items-center gap-1 animate-bounce">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-                  <span>Care will be shown here</span>
-                </div>
-
-                {/* Pin Head */}
-                <div className="relative flex items-center justify-center">
-                  <div className="w-10 h-10 rounded-full bg-red-600 border-3 border-white shadow-xl flex items-center justify-center text-white">
-                    <MapPin className="w-5 h-5 fill-white text-red-600" />
-                  </div>
-                </div>
-
-                {/* Pin Tip Indicator */}
-                <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-red-600 -mt-0.5" />
-                {/* Shadow dot on ground */}
-                <div className="w-3 h-1.5 rounded-full bg-black/40 blur-[1px] mt-0.5" />
-              </div>
-
-              {/* Floating Top Controls on Map: GPS Target Button */}
-              <div className="absolute top-3 right-3 z-[400] flex flex-col gap-2">
-                <button
-                  type="button"
-                  onClick={handleDetectCurrentGps}
-                  disabled={isGpsLoading}
-                  className="w-10 h-10 rounded-full bg-white text-blue-600 hover:text-blue-700 shadow-lg border border-slate-200/90 flex items-center justify-center transition-all cursor-pointer active:scale-90"
-                  title="Recenter on My Live GPS"
-                >
-                  <Crosshair className={`w-5 h-5 ${isGpsLoading ? 'animate-spin text-blue-600' : ''}`} />
-                </button>
-              </div>
-
-              {/* Floating Instructions Pill */}
-              <div className="absolute top-3 left-3 z-[400]">
-                <div className="px-3 py-1 rounded-full bg-white/95 backdrop-blur-md text-[10px] font-bold text-slate-700 shadow-md border border-slate-200/80 flex items-center gap-1.5">
-                  <Compass className="w-3.5 h-3.5 text-blue-600" />
-                  <span>Drag map to place pin</span>
-                </div>
-              </div>
-
-              {/* Floating Bottom Drawer: Selected Location Details & Zomato Confirm Button */}
-              <div className="bg-white p-3.5 border-t border-slate-200/90 shadow-2xl z-[450] space-y-3">
-                <div className="flex items-start gap-2.5">
-                  <div className="w-9 h-9 rounded-2xl bg-blue-50 text-blue-700 border border-blue-200 flex items-center justify-center shrink-0 mt-0.5">
-                    <MapPin className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
-                      Selected Care Area
-                    </span>
-                    <h4 className="font-black text-sm text-slate-900 leading-snug">
-                      {pinnedLocation.displayName}
-                    </h4>
-                    <p className="text-[11px] text-slate-500 font-medium truncate mt-0.5">
-                      {pinnedLocation.landmark || `${pinnedLocation.city}, ${pinnedLocation.state}`}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Big Zomato-Style Primary Confirm Button */}
-                <button
-                  type="button"
-                  onClick={handleConfirmLocation}
-                  className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-xs shadow-md shadow-blue-500/25 flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-98"
-                >
-                  <span>Confirm Location & Show Hospitals</span>
-                  <ChevronRight className="w-4 h-4 stroke-[3]" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* VIEW 2: SEARCH & POPULAR INDIAN HUBS LIST */}
-          {activeTab === 'LIST' && (
-            <div className="flex-1 overflow-y-auto p-3 space-y-3.5 scrollbar-none">
-              {/* GPS Instant Trigger Card */}
-              <button
-                type="button"
-                onClick={handleDetectCurrentGps}
-                disabled={isGpsLoading}
-                className="w-full p-3 rounded-2xl bg-blue-50 hover:bg-blue-100/80 border border-blue-200 text-left flex items-center justify-between gap-3 transition-colors cursor-pointer group"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-                    <LocateFixed className={`w-5 h-5 ${isGpsLoading ? 'animate-spin' : ''}`} />
-                  </div>
-                  <div className="min-w-0">
-                    <h4 className="font-extrabold text-xs text-blue-950 flex items-center gap-1.5">
-                      <span>Use Current Location</span>
-                      <span className="px-1.5 py-0.2 bg-blue-200/80 text-blue-800 text-[9px] rounded font-bold">GPS</span>
-                    </h4>
-                    <p className="text-[11px] text-blue-700 font-medium truncate mt-0.5">
-                      {isGpsLoading ? 'Locating device satellite coordinates...' : (currentLocation?.displayName || 'Auto-detect exact GPS location')}
-                    </p>
-                  </div>
-                </div>
-                <ChevronRight className="w-4 h-4 text-blue-500 group-hover:translate-x-0.5 transition-transform shrink-0" />
+                <X className="w-5 h-5 stroke-[2.5]" />
               </button>
 
-              {/* City Filter Pills */}
-              <div className="space-y-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block px-0.5">
-                  Filter by City:
-                </span>
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none no-scrollbar">
-                  {['All', 'Hyderabad', 'Bengaluru', 'Coimbatore', 'Chennai', 'Mumbai', 'New Delhi'].map(city => (
-                    <button
-                      key={city}
-                      type="button"
-                      onClick={() => setSelectedCityFilter(city)}
-                      className={`px-3 py-1 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer whitespace-nowrap ${
-                        selectedCityFilter === city
-                          ? 'bg-slate-900 text-white shadow-xs'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                      }`}
-                    >
-                      {city}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Hubs Results List */}
-              <div className="space-y-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block px-0.5">
-                  {searchQuery ? `Matching Results (${filteredHubs.length}):` : 'Popular Healthcare Neighborhoods:'}
-                </span>
-
-                {filteredHubs.length === 0 ? (
-                  <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-200/80 space-y-1.5">
-                    <MapPin className="w-6 h-6 text-slate-300 mx-auto" />
-                    <p className="text-xs font-bold text-slate-700">No areas found for "{searchQuery}"</p>
-                    <p className="text-[11px] text-slate-400">Try searching for Kukatpally, Indiranagar, Peelamedu, or Adyar</p>
-                  </div>
-                ) : (
-                  <div className="space-y-1.5">
-                    {filteredHubs.map(hub => {
-                      const isSelected = pinnedLocation.displayName === hub.name;
-
-                      return (
-                        <div
-                          key={hub.name}
-                          onClick={() => handleMoveMapTo(hub)}
-                          className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
-                            isSelected
-                              ? 'bg-blue-50/80 border-blue-400 text-blue-950 shadow-xs'
-                              : 'bg-white hover:bg-slate-50 border-slate-200/90 text-slate-800'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
-                              isSelected ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500'
-                            }`}>
-                              <MapPin className="w-4 h-4" />
-                            </div>
-                            <div className="min-w-0">
-                              <h4 className="font-extrabold text-xs leading-tight truncate">
-                                {hub.area}, <span className="font-semibold text-slate-500">{hub.city}</span>
-                              </h4>
-                              <p className="text-[10.5px] text-slate-500 font-medium truncate mt-0.5">
-                                {hub.landmark}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2 shrink-0">
-                            {isSelected ? (
-                              <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center">
-                                <Check className="w-3 h-3 stroke-[3]" />
-                              </span>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleMoveMapTo(hub);
-                                }}
-                                className="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-[10px] font-bold transition-colors cursor-pointer"
-                              >
-                                View Map
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+              {/* Floating Google Maps Style Search Input */}
+              <div className="flex-1 relative flex items-center bg-white/95 backdrop-blur-md rounded-2xl px-3 py-2.5 shadow-lg border border-slate-200/90 focus-within:ring-2 focus-within:ring-blue-500 transition-all">
+                <Search className="w-4 h-4 text-blue-600 shrink-0 mr-2" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onFocus={() => setIsSearchActive(true)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setIsSearchActive(true);
+                  }}
+                  placeholder="Search area, landmark or street..."
+                  className="w-full text-xs bg-transparent focus:outline-none text-slate-900 placeholder:text-slate-400 font-bold"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery('');
+                      setIsSearchActive(false);
+                    }}
+                    className="p-1 rounded-full text-slate-400 hover:text-slate-600 cursor-pointer shrink-0"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
                 )}
               </div>
             </div>
-          )}
+
+            {/* Instant Search Autocomplete Dropdown */}
+            {isSearchActive && (
+              <div className="bg-white/98 backdrop-blur-md rounded-2xl p-2 shadow-2xl border border-slate-200/90 max-h-60 overflow-y-auto space-y-1 animate-in fade-in duration-150 scrollbar-none">
+                <div className="flex items-center justify-between px-2 py-1 text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">
+                  <span>Google Maps Suggestions</span>
+                  <button 
+                    type="button"
+                    onClick={() => setIsSearchActive(false)}
+                    className="text-blue-600 lowercase font-bold cursor-pointer"
+                  >
+                    hide
+                  </button>
+                </div>
+                {/* Instant GPS Option in Dropdown */}
+                <div
+                  onClick={() => {
+                    setIsSearchActive(false);
+                    handleDetectCurrentGps();
+                  }}
+                  className="p-2 rounded-xl bg-blue-50/80 hover:bg-blue-100/80 text-blue-900 flex items-center gap-2.5 cursor-pointer transition-colors"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0">
+                    <LocateFixed className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h5 className="text-xs font-black truncate">Use Current Location</h5>
+                    <p className="text-[10px] text-blue-600 font-medium truncate">GPS High Accuracy</p>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                </div>
+
+                {filteredHubs.map(hub => (
+                  <div
+                    key={hub.name}
+                    onClick={() => handleSelectHub(hub)}
+                    className="p-2 rounded-xl hover:bg-slate-100 text-slate-800 flex items-center gap-2.5 cursor-pointer transition-colors"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                      <MapPin className="w-4 h-4 text-slate-500" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h5 className="text-xs font-black text-slate-900 truncate">{hub.area}, {hub.city}</h5>
+                      <p className="text-[10px] text-slate-500 font-medium truncate">{hub.landmark}</p>
+                    </div>
+                    <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* FLOATING MAP CONTROLS: Map/Satellite Switch & GPS Recenter */}
+          <div className="absolute top-24 right-3 z-[450] flex flex-col gap-2 items-end">
+            {/* Google Map / Satellite Layer Toggle */}
+            <button
+              type="button"
+              onClick={() => setMapType(prev => prev === 'roadmap' ? 'satellite' : 'roadmap')}
+              className="px-2.5 py-1.5 rounded-xl bg-white/95 backdrop-blur-md shadow-lg border border-slate-200/90 text-slate-800 text-[10px] font-extrabold flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all"
+              title="Toggle Google Maps Roadmap / Satellite"
+            >
+              <Layers className="w-3.5 h-3.5 text-blue-600" />
+              <span>{mapType === 'roadmap' ? 'Satellite' : 'Roadmap'}</span>
+            </button>
+
+            {/* Recenter on Live GPS Coordinates */}
+            <button
+              type="button"
+              onClick={handleDetectCurrentGps}
+              disabled={isGpsLoading}
+              className="w-10 h-10 rounded-2xl bg-white/95 backdrop-blur-md text-blue-600 hover:text-blue-700 shadow-lg border border-slate-200/90 flex items-center justify-center cursor-pointer active:scale-95 transition-all"
+              title="Center on My GPS Location"
+            >
+              <Crosshair className={`w-5 h-5 ${isGpsLoading ? 'animate-spin text-blue-600' : 'text-blue-600'}`} />
+            </button>
+          </div>
+
+          {/* FLOATING MAP INSTRUCTION PILL */}
+          <div className="absolute top-24 left-3 z-[450]">
+            <div className="px-3 py-1 rounded-full bg-white/95 backdrop-blur-md text-[10px] font-bold text-slate-700 shadow-md border border-slate-200/90 flex items-center gap-1.5">
+              <Compass className="w-3.5 h-3.5 text-blue-600" />
+              <span>Drag to place pin</span>
+            </div>
+          </div>
+
+          {/* BOTTOM DRAWER: ZOMATO CONFIRMATION CARD */}
+          <div className="absolute bottom-0 left-0 right-0 z-[480] bg-white rounded-t-[28px] shadow-2xl border-t border-slate-200/90 p-4 space-y-3">
+            {/* Quick Location Hubs Pill Carousel */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none no-scrollbar">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider shrink-0 mr-1">
+                Nearby:
+              </span>
+              {POPULAR_CARE_HUBS.slice(0, 6).map(hub => (
+                <button
+                  key={hub.name}
+                  type="button"
+                  onClick={() => handleSelectHub(hub)}
+                  className={`px-2.5 py-1 rounded-full text-[11px] font-bold shrink-0 transition-all cursor-pointer whitespace-nowrap ${
+                    pinnedLocation.area === hub.area
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  }`}
+                >
+                  {hub.area}
+                </button>
+              ))}
+            </div>
+
+            {/* Selected Location Details */}
+            <div className="flex items-start gap-3 pt-0.5">
+              <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200/80 flex items-center justify-center shrink-0 mt-0.5">
+                <MapPin className="w-5 h-5 text-blue-600" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                    Selected Care Area
+                  </span>
+                  <span className="px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 font-extrabold text-[9px] border border-emerald-200 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    Google Maps
+                  </span>
+                </div>
+                <h4 className="font-black text-base text-slate-900 leading-snug truncate">
+                  {pinnedLocation.displayName}
+                </h4>
+                <p className="text-[11px] text-slate-500 font-medium truncate mt-0.5">
+                  {pinnedLocation.landmark || `${pinnedLocation.city}, ${pinnedLocation.state}`}
+                </p>
+              </div>
+            </div>
+
+            {/* Primary Confirm Button */}
+            <button
+              type="button"
+              onClick={handleConfirmLocation}
+              className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-xs shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-98"
+            >
+              <span>Confirm Location & Show Hospitals</span>
+              <ChevronRight className="w-4 h-4 stroke-[3]" />
+            </button>
+          </div>
         </div>
       </div>
     </PhoneModalPortal>
