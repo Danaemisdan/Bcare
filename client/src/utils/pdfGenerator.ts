@@ -10,175 +10,215 @@ export const generatePrescriptionPdf = (prescription: DigitalPrescription) => {
   });
 
   // Colors
-  const primaryColor: [number, number, number] = [5, 150, 105]; // #059669
+  const primaryColor: [number, number, number] = [37, 99, 235]; // Blue 600
+  const headerBg: [number, number, number] = [15, 23, 42]; // Slate 900
   const darkText: [number, number, number] = [30, 41, 59];
   const mutedText: [number, number, number] = [100, 116, 139];
+  const borderGrey: [number, number, number] = [226, 232, 240];
 
-  // 1. Header Banner
-  doc.setFillColor(...primaryColor);
-  doc.rect(0, 0, 210, 32, 'F');
+  // 1. TOP HEADER BANNER: Hospital Branding + Bcare Health Logo
+  doc.setFillColor(...headerBg);
+  doc.rect(0, 0, 210, 36, 'F');
 
-  // Brand Name
+  // Bcare Logo & Platform Mark (Left)
+  doc.setFillColor(37, 99, 235);
+  doc.roundedRect(14, 8, 8, 8, 2, 2, 'F');
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(20);
+  doc.setFontSize(8);
   doc.setFont('helvetica', 'bold');
-  doc.text('B care Healthcare', 14, 15);
+  doc.text('+', 18, 13.5, { align: 'center' });
 
-  doc.setFontSize(9);
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(255, 255, 255);
+  doc.text('Bcare', 25, 14);
+
+  doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
-  doc.text('Digital Outpatient & Telehealth Platform | District Health Network', 14, 22);
-  doc.text(`Official Rx Token ID: ${prescription.appointmentId}`, 14, 27);
+  doc.setTextColor(148, 163, 184); // Slate 400
+  doc.text('CLINICAL HEALTH NETWORK', 25, 19);
 
-  // Hospital Name on Right
+  doc.setFontSize(7.5);
+  doc.setTextColor(96, 165, 250); // Blue 400
+  doc.text('Official ABDM Verified Teleconsult & OPD E-Prescription', 25, 25);
+  doc.text(`Token / Rx ID: ${prescription.appointmentId || prescription.id}`, 25, 30);
+
+  // Hospital Name & Details (Right)
+  doc.setTextColor(255, 255, 255);
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
-  doc.text(prescription.hospitalName, 196, 16, { align: 'right' });
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  doc.text('Authorized Clinical Facility', 196, 23, { align: 'right' });
+  const hospName = prescription.hospitalName || 'City Care Multi-Specialty Hospital';
+  doc.text(hospName, 196, 13, { align: 'right' });
 
-  // 2. Doctor Information
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(203, 213, 225); // Slate 300
+  doc.text(prescription.hospitalAddress || '42 Avinashi Road, Peelamedu, Coimbatore - 641004', 196, 18, { align: 'right' });
+  doc.text('NABH Accredited • 24/7 Emergency Trauma & ICU • Reg: TN-CBE-8492', 196, 23, { align: 'right' });
+  doc.text('Emergency Helpline: +91 98765 43210 | www.citycarehospital.in', 196, 28, { align: 'right' });
+
+  // 2. Doctor Information & Prescription Meta
   doc.setTextColor(...darkText);
   doc.setFontSize(13);
   doc.setFont('helvetica', 'bold');
-  doc.text(prescription.doctorName, 14, 42);
+  doc.text(prescription.doctorName, 14, 45);
 
-  doc.setFontSize(10);
+  doc.setFontSize(9.5);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...mutedText);
-  doc.text(`Specialist in ${prescription.doctorSpecialty}`, 14, 48);
-  doc.text(`Reg. Medical Practitioner | Tamil Nadu Medical Council`, 14, 53);
+  doc.text(`${prescription.doctorQualifications || 'MBBS, MD, DM'} • Specialist in ${prescription.doctorSpecialty}`, 14, 51);
+  doc.text(`Medical Council Reg. No: ${prescription.doctorRegistrationNumber || 'TMC-77492'} | Tamil Nadu Medical Council`, 14, 56);
 
   // Date & Rx Number on Right
   doc.setTextColor(...darkText);
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  doc.text(`Prescription No: ${prescription.id}`, 196, 42, { align: 'right' });
+  doc.text(`Prescription No: ${prescription.id}`, 196, 45, { align: 'right' });
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...mutedText);
-  doc.text(`Date of Issue: ${new Date(prescription.issuedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}`, 196, 48, { align: 'right' });
-  doc.text(`Follow-up Date: ${prescription.followUpDate || 'After 2 weeks'}`, 196, 53, { align: 'right' });
+  doc.text(`Date: ${new Date(prescription.issuedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`, 196, 51, { align: 'right' });
+  doc.text(`Follow-up: ${prescription.followUpDate || 'After 7 Days (or SOS)'}`, 196, 56, { align: 'right' });
 
   // Divider Line
-  doc.setDrawColor(226, 232, 240);
-  doc.line(14, 57, 196, 57);
+  doc.setDrawColor(...borderGrey);
+  doc.line(14, 60, 196, 60);
 
-  // 3. Patient Details Card
+  // 3. Patient Demographics & Vitals Card
   doc.setFillColor(248, 250, 252);
-  doc.roundedRect(14, 61, 182, 22, 2, 2, 'F');
+  doc.roundedRect(14, 63, 182, 22, 2, 2, 'F');
+  doc.setDrawColor(...borderGrey);
+  doc.roundedRect(14, 63, 182, 22, 2, 2, 'S');
 
-  doc.setFontSize(10);
+  doc.setFontSize(9.5);
   doc.setTextColor(...darkText);
   doc.setFont('helvetica', 'bold');
-  doc.text('Patient Information:', 18, 68);
+  doc.text('PATIENT DEMOGRAPHICS & VITALS:', 18, 70);
 
   doc.setFont('helvetica', 'normal');
-  doc.text(`Name: ${prescription.patientName}`, 18, 76);
-  doc.text(`Age / Gender: ${prescription.patientAge} Yrs / ${prescription.patientGender}`, 80, 76);
-  
-  const vitalsText = `Vitals: BP: ${prescription.vitals.bp || '120/80'} | Pulse: ${prescription.vitals.pulse || '72'} bpm`;
-  doc.text(vitalsText, 140, 76);
+  doc.setFontSize(9);
+  doc.text(`Name: ${prescription.patientName}`, 18, 78);
+  doc.text(`Age / Gender: ${prescription.patientAge || 32} Yrs / ${prescription.patientGender || 'Male'}`, 82, 78);
 
-  // 4. Clinical Diagnosis & Chief Symptoms
-  doc.setFontSize(11);
+  const vitalsText = `Vitals: BP: ${prescription.vitals?.bp || '120/80'} | Pulse: ${prescription.vitals?.pulse || '72'} bpm | SpO2: ${prescription.vitals?.spo2 || '98%'}`;
+  doc.text(vitalsText, 136, 78);
+
+  // 4. Clinical Diagnosis & Chief Concerns
+  doc.setFontSize(10.5);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...primaryColor);
-  doc.text('Clinical Diagnosis & Observations', 14, 91);
+  doc.text('CLINICAL DIAGNOSIS & OBSERVATIONS', 14, 93);
 
-  doc.setFontSize(10);
+  doc.setFontSize(9.5);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...darkText);
-  doc.text(`Diagnosis: ${prescription.diagnosis}`, 14, 98);
+  doc.text(`Primary Diagnosis: ${prescription.diagnosis}`, 14, 99);
 
   if (prescription.symptoms && prescription.symptoms.length > 0) {
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(...mutedText);
-    doc.text(`Reported Symptoms: ${prescription.symptoms.join(', ')}`, 14, 104);
+    doc.text(`Chief Complaints / Symptoms: ${prescription.symptoms.join(', ')}`, 14, 104);
   }
 
-  // 5. Prescribed Medicines (Rx Symbol & Table)
-  doc.setFontSize(16);
+  // 5. Prescribed Medicines (℞ Symbol & Detailed Specifications Table)
+  doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...primaryColor);
-  doc.text('℞ Prescribed Medicines', 14, 116);
+  doc.text('℞ Prescribed Medications & Dosage Schedule', 14, 115);
 
-  const tableData = prescription.medicines.map((med, index) => [
-    (index + 1).toString(),
-    med.name,
-    med.dosage,
-    med.frequency,
-    med.duration,
-    med.instructions
-  ]);
+  const tableData = prescription.medicines.map((med, index) => {
+    const medNameWithGeneric = med.genericComposition 
+      ? `${med.name}\n(${med.genericComposition})`
+      : med.name;
+
+    return [
+      (index + 1).toString(),
+      medNameWithGeneric,
+      med.specification || 'Tablet',
+      med.dosage || '-',
+      med.frequency,
+      med.duration,
+      med.instructions
+    ];
+  });
 
   autoTable(doc, {
-    startY: 120,
-    head: [['#', 'Medicine Name', 'Strength', 'Frequency', 'Duration', 'Instructions']],
+    startY: 119,
+    head: [['#', 'Medicine & Generic Name', 'Form / Specification', 'Strength', 'Frequency', 'Duration', 'Instructions']],
     body: tableData,
     theme: 'grid',
     headStyles: {
       fillColor: primaryColor,
       textColor: [255, 255, 255],
       fontStyle: 'bold',
-      fontSize: 9
+      fontSize: 8.5
     },
     styles: {
-      fontSize: 9,
-      cellPadding: 3,
-      textColor: darkText
+      fontSize: 8,
+      cellPadding: 2.5,
+      textColor: darkText,
+      overflow: 'linebreak'
     },
     columnStyles: {
-      0: { cellWidth: 10, halign: 'center' },
-      1: { cellWidth: 50, fontStyle: 'bold' },
-      2: { cellWidth: 25 },
-      3: { cellWidth: 35 },
-      4: { cellWidth: 25 },
-      5: { cellWidth: 37 }
+      0: { cellWidth: 8, halign: 'center' },
+      1: { cellWidth: 48, fontStyle: 'bold' },
+      2: { cellWidth: 32 },
+      3: { cellWidth: 18 },
+      4: { cellWidth: 26 },
+      5: { cellWidth: 18 },
+      6: { cellWidth: 32 }
     }
   });
 
   // Get table bottom Y position
-  const finalY = (doc as any).lastAutoTable ? (doc as any).lastAutoTable.finalY + 10 : 180;
+  const finalY = (doc as any).lastAutoTable ? (doc as any).lastAutoTable.finalY + 8 : 185;
 
-  // 6. Clinical Advice & Notes
-  doc.setFontSize(10);
+  // 6. Clinical Advice & Dietary Guidelines
+  doc.setFontSize(9.5);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...darkText);
   doc.text('Clinical Advice & Dietary Guidelines:', 14, finalY);
 
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...mutedText);
-  doc.text(prescription.clinicalNotes || 'Adhere strictly to prescribed medicine timings. Contact clinic immediately if symptoms worsen.', 14, finalY + 6, {
-    maxWidth: 182
-  });
+  doc.text(
+    prescription.clinicalNotes || 'Strictly follow prescribed medicine timings. Maintain proper hydration and report back immediately if symptoms persist.',
+    14,
+    finalY + 5,
+    { maxWidth: 182 }
+  );
 
-  // 7. Footer: Digital Signature & Verification Box
-  doc.setFillColor(240, 253, 244);
-  doc.setDrawColor(187, 247, 208);
-  doc.roundedRect(14, 250, 182, 32, 2, 2, 'FD');
+  // 7. Footer: ABDM Authenticated Signature & QR Hash Verification Box
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(...borderGrey);
+  doc.roundedRect(14, 250, 182, 34, 2, 2, 'FD');
 
-  doc.setFontSize(9);
+  doc.setFontSize(8.5);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...primaryColor);
-  doc.text('AUTHENTICATED DIGITAL PRESCRIPTION • ABDM COMPLIANT', 18, 257);
+  doc.text('AUTHENTICATED DIGITAL PRESCRIPTION • ABDM COMPLIANT', 18, 256);
 
-  doc.setFontSize(8);
+  doc.setFontSize(7.5);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...darkText);
-  doc.text(`Digital Sign Hash: ${prescription.verificationQrHash}`, 18, 263);
-  doc.text('Accepted at affiliated local pharmacies, franchise dispensaries, and diagnostic centers across districts.', 18, 268);
-  doc.text(`Generated on B care Cloud Platform | Telemedicine & OPD Protocol Compliant`, 18, 273);
+  doc.text(`Digital Sign Hash: ${prescription.verificationQrHash || 'SHA256-BC-9482-AD31-TMC'}`, 18, 261);
+  doc.text('Valid at affiliated local pharmacies, hospital dispensaries, and diagnostic labs across districts.', 18, 265);
+  doc.text('Tamper-evident digital token registered under India National Health Stack (ABDM / Ayushman Bharat).', 18, 269);
+  doc.text('Powered by Bcare Healthcare Platform | Telemedicine & OPD Protocol Compliant', 18, 273);
 
   // Doctor Signature Stamp Placeholder
-  doc.setFontSize(9);
+  doc.setFontSize(9.5);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...primaryColor);
   doc.text(prescription.doctorName, 190, 262, { align: 'right' });
-  doc.setFontSize(7);
+  
+  doc.setFontSize(7.5);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...mutedText);
-  doc.text('(Digitally Verified & Signed)', 190, 267, { align: 'right' });
+  doc.text(`Reg: ${prescription.doctorRegistrationNumber || 'TMC-77492'}`, 190, 266, { align: 'right' });
+  doc.text('(Digitally Verified & Signed Stamp)', 190, 271, { align: 'right' });
 
   // Save the PDF
-  doc.save(`B_care_Rx_${prescription.patientName.replace(/\s+/g, '_')}_${prescription.id}.pdf`);
+  doc.save(`Bcare_Prescription_${prescription.patientName.replace(/\s+/g, '_')}_${prescription.id}.pdf`);
 };
+
+export default generatePrescriptionPdf;

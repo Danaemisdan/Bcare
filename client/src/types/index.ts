@@ -53,6 +53,9 @@ export interface Hospital {
   status?: 'ACTIVE' | 'BLOCKED' | 'PENDING_APPROVAL';
   featured?: boolean;
   onboardingSource?: string;
+  contactNumber?: string;
+  image?: string;
+  facilities?: string[];
 }
 
 export interface DoctorProfile {
@@ -79,6 +82,14 @@ export interface DoctorProfile {
   featured?: boolean;
   onboardingSource?: string;
   franchiseName?: string;
+  gender?: 'Female' | 'Male' | 'Other';
+  qualifications?: string;
+  languages?: string[];
+  bio?: string;
+  phone?: string;
+  schedule?: string;
+  image?: string;
+  isProfileCompleted?: boolean;
 }
 
 export interface NurseProfile {
@@ -93,6 +104,12 @@ export interface NurseProfile {
   totalReferrals: number;
   walletBalance: number;
   totalEarnings: number;
+  gender?: 'Female' | 'Male' | 'Other';
+  languages?: string[];
+  experienceYears?: number;
+  registrationNumber?: string;
+  qualification?: string;
+  isProfileCompleted?: boolean;
   status?: 'ACTIVE' | 'BLOCKED' | 'PENDING_APPROVAL';
   isAccountVerified?: boolean;
 }
@@ -160,6 +177,9 @@ export interface PrescriptionMedicine {
   frequency: string;
   duration: string;
   instructions: string;
+  specification?: string;
+  image?: string;
+  genericComposition?: string;
 }
 
 export interface DigitalPrescription {
@@ -172,7 +192,11 @@ export interface DigitalPrescription {
   doctorId: string;
   doctorName: string;
   doctorSpecialty: string;
+  doctorRegistrationNumber?: string;
+  doctorQualifications?: string;
   hospitalName: string;
+  hospitalAddress?: string;
+  hospitalLogo?: string;
   diagnosis: string;
   vitals: {
     bp?: string;

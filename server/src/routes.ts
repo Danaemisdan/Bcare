@@ -1004,19 +1004,15 @@ router.get('/doctor/:doctorId/incoming-calls', (req: Request, res: Response) => 
 router.post('/doctor/:doctorId/call/:callId/respond', (req: Request, res: Response) => {
   const { doctorId, callId } = req.params;
   const { action } = req.body; // 'ANSWER' | 'DECLINE'
+  if (store.incomingCalls) {
+    store.incomingCalls.forEach(c => {
+      if (c.doctorId === doctorId && (c.id === callId || action === 'DECLINE')) {
+        c.status = action === 'ANSWER' ? 'ACCEPTED' : 'DECLINED';
+      }
+    });
+  }
   const call = (store.incomingCalls || []).find(c => c.id === callId && c.doctorId === doctorId);
-  if (!call) {
-    return res.status(404).json({ error: 'Call not found or already concluded' });
-  }
-
-  if (action === 'ANSWER') {
-    call.status = 'ACCEPTED';
-    const appointment = store.videoAppointments.find(v => v.id === call.appointmentId);
-    return res.json({ message: 'Call answered', call, appointment });
-  } else {
-    call.status = 'DECLINED';
-    return res.json({ message: 'Call declined', call });
-  }
+  return res.json({ message: 'Call updated', call });
 });
 
 // Doctor Phone Notification: Simulate an instant incoming call for verification/testing

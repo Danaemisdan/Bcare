@@ -15,6 +15,8 @@ import { RollingCounter } from '../components/RollingCounter';
 import { CountUp } from '../components/CountUp';
 import { SlapBlock } from '../components/SlapBlock';
 import { TeleconsultRoomModal } from '../components/TeleconsultRoomModal';
+import { PrescriptionCreatorModal } from '../components/PrescriptionCreatorModal';
+import { DoctorOnboardingModal } from '../components/DoctorOnboardingModal';
 import { PhoneModalPortal } from '../components/PhoneModalPortal';
 import { 
   Stethoscope, 
@@ -98,6 +100,8 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
   // Queue sub-tab: In-person OPD vs Scheduled Video Teleconsultations
   const [queueMode, setQueueMode] = useState<'IN_PERSON' | 'VIDEO'>('IN_PERSON');
   const [activeVideoRoomApt, setActiveVideoRoomApt] = useState<VideoAppointment | null>(null);
+  const [showPrescriptionCreator, setShowPrescriptionCreator] = useState(false);
+  const [showDoctorWizard, setShowDoctorWizard] = useState(!doctor.isProfileCompleted);
 
   // Active Incoming Video Call from Patient (Phone Ringing Alert & Chime)
   const [incomingCall, setIncomingCall] = useState<IncomingCallNotification | null>(null);
@@ -932,6 +936,29 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
             </span>
           </div>
 
+          {/* Dedicated Prescription Creator Launcher */}
+          <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 text-white shadow-sm flex items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-1.5 text-blue-200 text-xs font-semibold">
+                <FileText className="w-4 h-4 text-cyan-300" />
+                <span>Hospital & Bcare Official Prescription Creator</span>
+              </div>
+              <h4 className="font-extrabold text-sm text-white mt-0.5">
+                Full Indian Medicines Database & PDF Generator
+              </h4>
+              <p className="text-[11px] text-blue-100/80 mt-0.5">
+                Search all Indian medicines with specs & images, customize dosages, and print branded PDF.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowPrescriptionCreator(true)}
+              className="px-4 py-2 rounded-xl bg-white text-blue-700 font-extrabold text-xs shadow-md hover:bg-blue-50 transition-all cursor-pointer whitespace-nowrap shrink-0"
+            >
+              Open Creator
+            </button>
+          </div>
+
           {/* AI Clinical Assistant Card */}
           <div className="bg-white rounded-2xl border border-indigo-100 p-4 shadow-2xs space-y-3">
             <div className="flex items-center justify-between">
@@ -1193,13 +1220,21 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
                     </span>
                   </div>
                   <p className="text-xs text-slate-500 mt-0.5 truncate font-medium">
-                    {doctor.specialty} • License #TMC-77492
+                    {doctor.specialty} • License #{doctor.registrationNumber || 'TNMC-77492'}
                   </p>
                   <p className="text-[11px] text-slate-400 truncate mt-0.5">
-                    {doctor.hospitalName} • Coimbatore Central
+                    {doctor.hospitalName || 'City Care Multi-Specialty Hospital'} • Peelamedu
                   </p>
                 </div>
               </div>
+
+              <button
+                type="button"
+                onClick={() => setShowDoctorWizard(true)}
+                className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs shadow-sm cursor-pointer whitespace-nowrap shrink-0 active:scale-95 transition-all"
+              >
+                3-Step Setup
+              </button>
             </div>
 
             {/* Financial Strip */}
@@ -1549,6 +1584,50 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
           onPrescriptionGenerated={(rx) => {
             setActiveVideoRoomApt(null);
             if (onTabChange) onTabChange('rx');
+          }}
+        />
+      )}
+
+      {/* Official Prescription Creator with Indian Medicines Database & PDF */}
+      {showPrescriptionCreator && (
+        <PrescriptionCreatorModal
+          isOpen={showPrescriptionCreator}
+          onClose={() => setShowPrescriptionCreator(false)}
+          doctor={doctor}
+          hospital={{
+            id: doctor.hospitalId || 'hosp-1',
+            name: 'City Care Multi-Specialty Hospital',
+            districtId: 'dist-coimbatore-south',
+            districtName: 'Coimbatore South',
+            address: '42 Avinashi Road, Peelamedu, Coimbatore',
+            rating: 4.8,
+            specialties: ['Cardiology', 'Orthopedics', 'General Medicine'],
+            baseOpFee: 100,
+            imageUrl: 'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?w=600',
+            emergencyAvailable: true,
+            distance: '1.2 km',
+            activeDoctorsCount: 2
+          }}
+          patientName={activePatientName}
+          patientPhone="+91 98765 43210"
+          appointmentId={`BC-OP-${activeTokenNumber}`}
+          onSavePrescription={async (rx) => {
+            if (onCreatePrescription) {
+              await onCreatePrescription(rx);
+            }
+          }}
+          onTriggerWhatsAppToast={onTriggerWhatsAppToast}
+        />
+      )}
+
+      {/* 3-Step Doctor Setup Wizard Modal */}
+      {showDoctorWizard && (
+        <DoctorOnboardingModal
+          isOpen={showDoctorWizard}
+          onClose={() => setShowDoctorWizard(false)}
+          doctor={doctor}
+          onSaveDoctor={(updated) => {
+            Object.assign(doctor, updated);
           }}
         />
       )}

@@ -135,7 +135,14 @@ export function App() {
     }
     return 'referrals';
   });
-  const [doctorTab, setDoctorTab] = useState<'queue' | 'rx' | 'completed' | 'profile'>('queue');
+  const [doctorTab, setDoctorTab] = useState<'queue' | 'rx' | 'completed' | 'profile'>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const t = params.get('tab');
+      if (t === 'queue' || t === 'rx' || t === 'completed' || t === 'profile') return t as any;
+    }
+    return 'queue';
+  });
   const [franchiseTab, setFranchiseTab] = useState<'territory' | 'hospitals' | 'nurses' | 'profile'>('territory');
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [previousPatientTab, setPreviousPatientTab] = useState<'op_booking' | 'bookings' | 'ai_assist' | 'hospitals'>('op_booking');
