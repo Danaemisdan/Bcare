@@ -685,7 +685,14 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
 
           setActiveBookingTarget(null);
           if (onBookingScreenToggle) onBookingScreenToggle(false);
-          setActiveTab('op_booking');
+
+          if (details.consultationType === 'VIDEO_CONSULTATION') {
+            const targetDoc = doctors.find(d => d.id === details.doctorId) || activeBookingTarget?.doctor || doctors[0];
+            setActiveTab('bookings');
+            setActiveVideoModalDoc(targetDoc);
+          } else {
+            setActiveTab('op_booking');
+          }
 
           confetti({
             particleCount: 90,
@@ -711,6 +718,17 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
           onOpenCheckout={(doc, type, explicitSlot) => handleOpenCheckout(doc, type, explicitSlot)}
           onClose={() => setActiveTab('op_booking')}
         />
+
+        {activeVideoModalDoc && (
+          <TeleconsultRoomModal
+            isOpen={!!activeVideoModalDoc}
+            onClose={() => setActiveVideoModalDoc(null)}
+            patientName={patientProfile.name}
+            doctorName={activeVideoModalDoc.name}
+            specialty={activeVideoModalDoc.specialty}
+            patientLanguages={patientProfile.languages}
+          />
+        )}
       </div>
     );
   }

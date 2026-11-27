@@ -264,10 +264,12 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
     }
   };
 
-  // Web Speech API (Microphone Speech-to-Text)
-  const toggleListening = () => {
+  // Web Speech API (Microphone Speech-to-Text - Device-Ready)
+  const toggleListening = async () => {
     if (isListening) {
-      recognitionRef.current?.stop();
+      try {
+        recognitionRef.current?.stop();
+      } catch {}
       setIsListening(false);
       return;
     }
@@ -278,26 +280,60 @@ export const AiHealthAssistant: React.FC<AiHealthAssistantProps> = ({
       return;
     }
 
+    // Explicitly prompt device mic permission first so iOS Safari / Android Chrome doesn't abort silently
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        // Release stream so SpeechRecognition can bind cleanly
+        stream.getTracks().forEach(t => t.stop());
+      } catch (permErr: any) {
+        console.warn('Microphone permission error:', permErr);
+        if (permErr.name === 'NotAllowedError' || permErr.name === 'PermissionDeniedError') {
+          alert('Microphone access is blocked. Please enable microphone permissions in your browser or device settings.');
+          return;
+        }
+      }
+    }
+
     try {
       const recognition = new SpeechRecognition();
       recognition.lang = selectedLanguage.code;
       recognition.continuous = false;
-      recognition.interimResults = false;
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
 
       recognition.onstart = () => {
         setIsListening(true);
       };
 
       recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        if (transcript.trim()) {
-          setInputText(transcript);
-          handleSendMessage(transcript);
+        let interimText = '';
+        let finalText = '';
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalText += event.results[i][0].transcript;
+          } else {
+            interimText += event.results[i][0].transcript;
+          }
+        }
+
+        const currentSpeech = finalText || interimText;
+        if (currentSpeech.trim()) {
+          setInputText(currentSpeech);
+        }
+
+        if (finalText.trim()) {
+          setIsListening(false);
+          handleSendMessage(finalText.trim());
         }
       };
 
       recognition.onerror = (event: any) => {
         console.warn('Speech recognition error:', event.error);
+        if (event.error === 'not-allowed') {
+          alert('Microphone permission was denied. Please allow microphone in settings.');
+        }
         setIsListening(false);
       };
 
